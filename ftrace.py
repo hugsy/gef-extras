@@ -6,7 +6,9 @@
 # Load with:
 # gef> source /path/to/this/script.py
 #
-
+# Use with
+# gef> ftrace <function_name>,<num_of_args>
+#
 class FtraceEnterBreakpoint(gdb.Breakpoint):
     def __init__(self, location, nb_args, *args, **kwargs):
         super(FtraceEnterBreakpoint, self).__init__(location, gdb.BP_BREAKPOINT, internal=True)
