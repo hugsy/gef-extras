@@ -1,2 +1,2 @@
 # gef-scripts
-Open repositories of external scripts for GBD Enhanced Features (GEF)
+Open repositories of external scripts for GDB Enhanced Features (GEF)
