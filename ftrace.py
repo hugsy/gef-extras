@@ -18,6 +18,7 @@ class FtraceEnterBreakpoint(gdb.Breakpoint):
         super(FtraceEnterBreakpoint, self).__init__(location, gdb.BP_BREAKPOINT, internal=True)
         self.silent = True
         self.nb_args = nb_args
+        self.retbp = None
         return
 
     def stop(self):
@@ -26,6 +27,7 @@ class FtraceEnterBreakpoint(gdb.Breakpoint):
             regs[r] = get_register(r)
         self.retbp = FtraceExitBreakpoint(location=self.location, regs=regs)
         return False
+
 
 class FtraceExitBreakpoint(gdb.FinishBreakpoint):
     def __init__(self, *args, **kwargs):
@@ -42,18 +44,25 @@ class FtraceExitBreakpoint(gdb.FinishBreakpoint):
 
         output = get_gef_setting("ftrace.output")
         mode = "a"
+        use_color = False
+
         if output is None:
             output = "/dev/stderr"
             mode = "w"
+            use_color = True
 
         with open(output, "w") as fd:
-            fd.write("{}() = {} {{\n".format(self.args["location"], retval))
+            if use_color:
+                fd.write("{:s}() = {} {{\n".format(Color.yellowify(self.args["location"]), retval))
+            else:
+                fd.write("{:s}() = {} {{\n".format(self.args["location"], retval))
             for reg in self.args["regs"].keys():
                 regval = self.args["regs"][reg]
                 fd.write("\t{} {} {}\n".format(reg, right_arrow, right_arrow.join(DereferenceCommand.dereference_from(regval))))
             fd.write("}\n")
             fd.flush()
         return False
+
 
 class FtraceCommand(GenericCommand):
     """Tracks a function given in parameter for arguments and return code."""
@@ -77,7 +86,7 @@ class FtraceCommand(GenericCommand):
 
     def cleanup(self, events):
         for bp in self.bkps:
-            bp.retbp.delete()
+            if bp.retbp: bp.retbp.delete()
             bp.delete()
         gdb.events.exited.disconnect(self.cleanup)
         return
