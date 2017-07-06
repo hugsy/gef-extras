@@ -4,7 +4,7 @@
 # @_hugsy_
 #
 # Load with:
-# gef> source /path/to/this/script.py
+# gef> source /path/to/ftrace.py
 #
 # Use with
 # gef> ftrace <function_name1>,<num_of_args> <function_name2>,<num_of_args>  ...
