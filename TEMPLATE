@@ -1,0 +1,9 @@
+class MyCommand(GenericCommand):
+    """Template of a new command."""
+    _cmdline_ = "my-command"
+    _syntax_  = "{:s}".format(_cmdline_)
+
+    def do_invoke(self, argv):
+        return
+
+register_external_command(MyCommand())
