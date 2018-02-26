@@ -101,8 +101,8 @@ def print_arguments_from_symbol(context, function_name, symbol):
     args = []
 
     for i, f in enumerate(symbol.type.fields()):
-        param = __get_ith_parameter(i)
-        _value = right_arrow.join(DereferenceCommand.dereference_from(param))
+        _key, _value = __get_ith_parameter(i)
+        _value = right_arrow.join(DereferenceCommand.dereference_from(_value))
         _name = f.name or "var_{}".format(i)
         _type = f.type.name or size2type[f.type.sizeof]
         args.append("{} {} = {}".format(_type, _name, _value))
@@ -110,7 +110,7 @@ def print_arguments_from_symbol(context, function_name, symbol):
     context.context_title("arguments")
     print("{} (".format(function_name))
     if len(args):
-        print(",\n\t".join(args))
+        print("   " + ",\n   ".join(args))
     print(")")
     return
 
