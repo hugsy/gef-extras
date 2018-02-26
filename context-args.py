@@ -4,6 +4,9 @@ Display arguments when hitting a function call.
 To use, place the script in the directory specified in `gef.extra_plugins_dir`
 and add "args" to the `context.layout` variable.
 
+For instance:
+gef➤  gef config context.layout "regs code args"
+
 Author: @_hugsy_
 """
 
@@ -16,6 +19,7 @@ size2type = {
 
 
 def __get_current_block_start_address():
+    pc = current_arch.pc
     try:
         block_start = gdb.block_for_pc(pc).start
     except RuntimeError:
@@ -36,7 +40,6 @@ def __get_ith_parameter(i):
         reg = current_arch.function_parameters[i]
         val = get_register(reg)
         key = reg
-
     return (key, val)
 
 
@@ -62,6 +65,18 @@ def print_guessed_arguments(ctx, function_name):
             if op in function_parameters:
                 parameter_set.add(op)
 
+            if is_x86_64():
+                # also consider extended registers
+                extended_registers = { "$rdi": ["$edi", "$di"],
+                                       "$rsi": ["$esi", "$si"],
+                                       "$rdx": ["$edx", "$dx"],
+                                       "$rcx": ["$ecx", "$cx"],
+                                       # todo r8 , r9
+                }
+                for exreg in extended_registers:
+                    if op in extended_registers[exreg]:
+                        parameter_set.add(exreg)
+
     if is_x86_32():
         nb_argument = len(parameter_set)
     else:
@@ -76,7 +91,8 @@ def print_guessed_arguments(ctx, function_name):
         args.append("{} = {}".format(_key, _value))
 
     print("{} (".format(function_name))
-    print("   "+",\n   ".join(args))
+    if (len(args)):
+        print("   "+",\n   ".join(args))
     print(")")
     return
 
@@ -93,7 +109,8 @@ def print_arguments_from_symbol(context, function_name, symbol):
 
     context.context_title("arguments")
     print("{} (".format(function_name))
-    print(",\n\t".join(args))
+    if len(args):
+        print(",\n\t".join(args))
     print(")")
     return
 
