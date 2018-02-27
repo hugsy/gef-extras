@@ -32,10 +32,10 @@ def __get_current_block_start_address():
 def __get_ith_parameter(i):
     if is_x86_32():
         sp = current_arch.sp
-        sz =  current_arch.instruction_length
+        sz =  current_arch.ptrsize
         loc = sp + (i * sz) + sz
         val = read_int_from_memory(loc)
-        key = "[sp + {:#x}]".format((i * sz) + sz)
+        key = "[sp + {:#x}]".format(i * sz)
     else:
         reg = current_arch.function_parameters[i]
         val = get_register(reg)
