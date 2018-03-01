@@ -3,3 +3,4 @@ theme: readthedocs
 pages:
 - Home: index.md
 - RetDec: retdec.md
+- PeekPointers: peekpointers.md
