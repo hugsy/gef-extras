@@ -1,5 +1,7 @@
 # gef-scripts
 
+![](https://readthedocs.org/projects/gef-scripts/badge/?version=master)
+
 ## How-to
 
 Open repositories of external scripts for [GDB Enhanced Features (GEF)](https://github.com/hugsy/gef). To enjoy those scripts from `gef`, then `git-clone` this repository and update your GEF settings like this:
