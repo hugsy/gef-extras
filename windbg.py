@@ -1,15 +1,38 @@
 import subprocess
 
-class WindbgPcCommand(GenericCommand):
-    """WinDBG compatibility layer: pc - run until call."""
-    _cmdline_ = "pc"
-    _syntax_  = "{:s}".format(_cmdline_)
+
+class WindbgTcCommand(GenericCommand):
+    """WinDBG compatibility layer: tc - trace to next call."""
+    _cmdline_ = "tc"
+    _syntax_  = "{:s} [COUNT]".format(_cmdline_)
 
     @only_if_gdb_running
     def do_invoke(self, argv):
-        while True:
+        cnt = int(argv[0]) if len(argv) else 0xffffffffffffffff
+        while cnt:
+            cnt -= 1
             set_gef_setting("context.enable", False)
-            gdb.execute("si")
+            gdb.execute("stepi")
+            insn = gef_current_instruction(current_arch.pc)
+            if current_arch.is_call(insn):
+                set_gef_setting("context.enable", True)
+                gdb.execute("context")
+                break
+        return
+
+
+class WindbgPcCommand(GenericCommand):
+    """WinDBG compatibility layer: pc - run until call."""
+    _cmdline_ = "pc"
+    _syntax_  = "{:s} [COUNT]".format(_cmdline_)
+
+    @only_if_gdb_running
+    def do_invoke(self, argv):
+        cnt = int(argv[0]) if len(argv) else 0xffffffffffffffff
+        while cnt:
+            cnt -= 1
+            set_gef_setting("context.enable", False)
+            gdb.execute("nexti")
             insn = gef_current_instruction(current_arch.pc)
             if current_arch.is_call(insn):
                 set_gef_setting("context.enable", True)
@@ -103,6 +126,7 @@ GefAlias("ptc", "finish")
 
 # Commands
 windbg_commands = [
+    WindbgTcCommand,
     WindbgPcCommand,
     WindbgHhCommand,
     WindbgGoCommand,
