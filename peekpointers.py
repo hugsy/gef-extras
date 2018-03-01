@@ -1,8 +1,7 @@
 class PeekPointers(GenericCommand):
-    """
-    Command to help find pointers belonging to other memory regions
-    helpful in case of OOB Read when looking for specific pointers
-    """
+    """Command to help find pointers belonging to other memory regions helpful in case
+    of OOB Read when looking for specific pointers"""
+
     _cmdline_ = "peek-pointers"
     _syntax_  = "{:s} starting_address <object_name> <all>".format(_cmdline_)
 
