@@ -70,6 +70,27 @@ class WindbgGoCommand(GenericCommand):
             gdb.execute("run {}".format(" ".join(argv)))
         return
 
+class WindbgXCommand(GenericCommand):
+    """WinDBG compatibility layer: x - search symbol."""
+    _cmdline_ = "x"
+    _syntax_  = "{:s} REGEX".format(_cmdline_)
+
+    def __init__(self):
+        super(WindbgXCommand, self).__init__(complete=gdb.COMPLETE_LOCATION)
+        return
+
+    def do_invoke(self, argv):
+        if len(argv) < 1:
+            err("Missing REGEX")
+            return
+
+        sym = argv[0]
+        try:
+            gdb.execute("info function {}".format(sym))
+            gdb.execute("info address {}".format(sym))
+        except gdb.error:
+            pass
+        return
 
 def __windbg_prompt__(current_prompt):
     """WinDBG prompt function."""
@@ -100,7 +121,6 @@ set_gef_setting("gef.use-windbg-prompt", False, bool, "Use WinDBG like prompt")
 gdb.prompt_hook = __default_prompt__
 
 # Aliases
-GefAlias("x", "info functions", completer_class=gdb.COMPLETE_LOCATION)
 GefAlias("u", "display/16i", completer_class=gdb.COMPLETE_LOCATION)
 GefAlias("da", "display/s", completer_class=gdb.COMPLETE_LOCATION)
 GefAlias("dt", "pcustom")
@@ -131,6 +151,7 @@ windbg_commands = [
     WindbgPcCommand,
     WindbgHhCommand,
     WindbgGoCommand,
+    WindbgXCommand,
 ]
 
 for _ in windbg_commands: register_external_command(_())
