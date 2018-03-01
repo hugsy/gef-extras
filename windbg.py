@@ -70,6 +70,7 @@ class WindbgGoCommand(GenericCommand):
             gdb.execute("run {}".format(" ".join(argv)))
         return
 
+    
 class WindbgXCommand(GenericCommand):
     """WinDBG compatibility layer: x - search symbol."""
     _cmdline_ = "x"
@@ -92,6 +93,7 @@ class WindbgXCommand(GenericCommand):
             pass
         return
 
+    
 def __windbg_prompt__(current_prompt):
     """WinDBG prompt function."""
     p = "0:000 "
