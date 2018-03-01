@@ -15,9 +15,9 @@ class WindbgTcCommand(GenericCommand):
             gdb.execute("stepi")
             insn = gef_current_instruction(current_arch.pc)
             if current_arch.is_call(insn):
-                set_gef_setting("context.enable", True)
-                gdb.execute("context")
                 break
+        set_gef_setting("context.enable", True)
+        gdb.execute("context")
         return
 
 
@@ -35,9 +35,10 @@ class WindbgPcCommand(GenericCommand):
             gdb.execute("nexti")
             insn = gef_current_instruction(current_arch.pc)
             if current_arch.is_call(insn):
-                set_gef_setting("context.enable", True)
-                gdb.execute("context")
                 break
+
+        set_gef_setting("context.enable", True)
+        gdb.execute("context")
         return
 
 
