@@ -82,15 +82,13 @@ def __default_prompt__(x):
         return __gef_prompt__(x)
 
 
-ok("Loading WinDBG compatibility layer...")
-
 # Prompt
 gdb.prompt_hook = __default_prompt__
 
 # Aliases
 GefAlias("x", "info functions", completer_class=gdb.COMPLETE_LOCATION)
 GefAlias("u", "display/16i", completer_class=gdb.COMPLETE_LOCATION)
-GefAlias("da", "x/s", completer_class=gdb.COMPLETE_LOCATION)
+GefAlias("da", "display/s", completer_class=gdb.COMPLETE_LOCATION)
 GefAlias("dt", "pcustom")
 GefAlias("dq", "hexdump qword", completer_class=gdb.COMPLETE_LOCATION)
 GefAlias("dd", "hexdump dword", completer_class=gdb.COMPLETE_LOCATION)
