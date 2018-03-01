@@ -1,6 +1,6 @@
 # gef-scripts
 
-![](https://readthedocs.org/projects/gef-scripts/badge/?version=master)
+[![](https://readthedocs.org/projects/gef-scripts/badge/?version=master)](http://gef-scripts.readthedocs.io/en/master/)
 
 ## How-to
 
