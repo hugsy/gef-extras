@@ -2,22 +2,6 @@ class PeekPointers(GenericCommand):
     """
     Command to help find pointers belonging to other memory regions
     helpful in case of OOB Read when looking for specific pointers
-
-    Example:
-    \tgef➤  peek-pointers 0x55555575c000
-    \tcat pointer at 0x55555575c008, value 0x55555575c008
-    \t[stack] pointer at 0x55555575c0c0, value 0x7fffffffe497
-    \tlibc-2.24.so pointer at 0x55555575c0c8, value 0x7ffff7dd2600 <_IO_2_1_stdout_>
-    \t[heap] pointer at 0x55555575d038, value 0x55555575d010
-    \tlocale-archive pointer at 0x55555575d0b8, value 0x7ffff774e5c0
-    \tCould not read from address 0x55555577e000, stopping.
-    \tgef➤  peek-pointers 0x55555575c000 libc-2.24.so
-    \tlibc-2.24.so pointer at 0x55555575c0c8, value 0x7ffff7dd2600 <_IO_2_1_stdout_>
-    \tgef➤  peek-pointers 0x55555575c000 libc-2.24.so all
-    \tlibc-2.24.so pointer at 0x55555575c0c8, value 0x7ffff7dd2600 <_IO_2_1_stdout_>
-    \tlibc-2.24.so pointer at 0x55555575c0e0, value 0x7ffff7dd2520 <_IO_2_1_stderr_>
-    \tlibc-2.24.so pointer at 0x55555575dfe8, value 0x7ffff7ba1b40 <_nl_default_dirname>
-    \tCould not read from address 0x55555577e000, stopping.
     """
     _cmdline_ = "peek-pointers"
     _syntax_  = "{:s} starting_address <object_name> <all>".format(_cmdline_)

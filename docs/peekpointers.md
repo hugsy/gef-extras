@@ -1,5 +1,7 @@
 ## Command `peekpointers` ##
 
+_Author_: [bkth](https://github.com/bkth)
+
 This command helps find pointers belonging to other memory regions
 helpful in case of OOB Read when looking for specific pointers
 
