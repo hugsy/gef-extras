@@ -47,42 +47,32 @@ class WindbgGoCommand(GenericCommand):
         return
 
 
-class WindbgCommand(GenericCommand):
-    """WinDBG config."""
-    _cmdline_ = "windbg"
-    _syntax_ = _cmdline_
+def __windbg_prompt__(current_prompt):
+    """WinDBG prompt function."""
+    p = "0:000 "
+    if PYTHON_MAJOR==3:
+        p+="\u27a4  "
+    else:
+        p+="> "
+    if get_gef_setting("gef.readline_compat")==True or \
+       get_gef_setting("gef.disable_color")==True:
+        return gef_prompt
 
-    def __init__(self, *args, **kwargs):
-        super(WindbgCommand, self).__init__(complete=gdb.COMPLETE_NONE)
-        self.add_setting("use-windbg-prompt", False, "Use WinDBG like prompt")
-        return
-
-    @staticmethod
-    def __windbg_prompt__(current_prompt):
-        """WinDBG prompt function."""
-        p = "0:000 "
-        if PYTHON_MAJOR==3:
-            p+="\u27a4  "
-        else:
-            p+="> "
-        if get_gef_setting("gef.readline_compat")==True or \
-           get_gef_setting("gef.disable_color")==True:
-            return gef_prompt
-
-        if is_alive():
-            return Color.colorify(p, attrs="bold green")
-        else:
-            return Color.colorify(p, attrs="bold red")
+    if is_alive():
+        return Color.colorify(p, attrs="bold green")
+    else:
+        return Color.colorify(p, attrs="bold red")
 
 
 def __default_prompt__(x):
     if get_gef_setting("windbg.use-windbg-prompt") == True:
-        return WindbgCommand.__windbg_prompt__(x)
+        return __windbg_prompt__(x)
     else:
         return __gef_prompt__(x)
 
 
 # Prompt
+set_gef_setting("gef.use-windbg-prompt", False, bool, "Use WinDBG like prompt")
 gdb.prompt_hook = __default_prompt__
 
 # Aliases
@@ -113,7 +103,6 @@ GefAlias("ptc", "finish")
 
 # Commands
 windbg_commands = [
-    WindbgCommand,
     WindbgPcCommand,
     WindbgHhCommand,
     WindbgGoCommand,
