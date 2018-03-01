@@ -1,0 +1,5 @@
+site_name: GEF Scripts - Open repository for GEF scripts
+theme: readthedocs
+pages:
+- Home: index.md
+- RetDec: retdec.md
