@@ -17,14 +17,30 @@ gef➤  gef config gef.extra_plugins_dir /path/to/gef-scripts/directory
 You can now load manually any script from this repo, or restart GDB to make GEF
 load them automatically.
 
+Note that it is possible to specify multiple directories, separating the paths with 
+a semi-colon:
+
+```
+gef➤  gef config gef.extra_plugins_dir /path/to/dir1;/path/to/dir2
+```
+
+
 ## Contributions
 
-This repository is open to anyone, no filtering is done! Simply PR the command
-you want to share :smile: And useful scripts will eventually be integrated
-directly to GEF.
+### I can code! ###
+
+This repository is open to anyone, no filtering is done! Simply [drop a PR](https://github.com/hugsy/gef-scripts/pulls) with
+the command you want to share :smile: And useful scripts will eventually be 
+integrated directly to GEF.
 
 Check out [GEF API page](https://gef.readthedocs.io/en/latest/api/) to start
 writing powerful GDB commands using GEF!
+
+
+### I can't code :weary: ###
+
+Well, that's ok! Just create an [Issue](https://github.com/hugsy/gef-scripts/issues) 
+explaining what cool feature/idea/command you had in mind!
 
 
 ## Thanks & enjoy !
