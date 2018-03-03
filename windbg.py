@@ -1,6 +1,55 @@
 import subprocess
 
+class BreakOnLoadSharedLibrary(gdb.Breakpoint):
+    def __init__(self, module_name):
+        super(BreakOnLoadSharedLibrary, self).__init__("dlopen", type=gdb.BP_BREAKPOINT, internal=False)
+        self.module_name = module_name
+        self.silent = True
+        self.enabled = True
+        return
 
+    def stop(self):
+        reg = current_arch.function_parameters[0]
+        addr = lookup_address(get_register(reg))
+        if addr.value==0:
+            return False
+        path = read_cstring_from_memory(addr.value, max_length=None)
+        if path.endswith(self.module_name):
+            return True
+        return False
+
+
+class WindbgSxeCommand(GenericCommand):
+    """WinDBG compatibility layer: sxe (set-exception-enable): break on loading libraries."""
+    _cmdline_ = "sxe"
+    _syntax_  = "{:s} [ld,ud]:module".format(_cmdline_)
+    _example_ = "{:s} ld:mylib.so".format(_cmdline_)
+
+    def __init__(self):
+        super(WindbgSxeCommand, self).__init__(complete=gdb.COMPLETE_NONE)
+        self.breakpoints = []
+        return
+
+    def do_invoke(self, argv):
+        if len(argv) < 1:
+            self.usage()
+            return
+
+        action, module = argv[0].split(":", 1)
+        if action=="ld":
+            self.breakpoints.append(BreakOnLoadSharedLibrary(module))
+        elif action=="ud":
+            bkps = [bp for bp in self.breakpoints if bp.module_name == module]
+            if len(bkps):
+                bkp = bkps[0]
+                bkp.enabled = False
+                bkp.delete()
+                bkps.remove(bkp)
+        else:
+            self.usage()
+        return
+    
+    
 class WindbgTcCommand(GenericCommand):
     """WinDBG compatibility layer: tc - trace to next call."""
     _cmdline_ = "tc"
