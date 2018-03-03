@@ -1,6 +1,6 @@
 ## GEF Extras: more goodies for [`GEF`](https://github.com/hugsy/gef) ##
 
-[![](https://readthedocs.org/projects/gef-extras/badge/?version=master)](http://gef-extras.readthedocs.io/en/master/)
+[![Documentation Status](https://readthedocs.org/projects/gef-extras/badge/?version=latest)](http://gef-extras.readthedocs.io/en/latest/?badge=latest)
 
 This is an open repository of external scripts and structures to be used by
 [GDB Enhanced Features (GEF)](https://github.com/hugsy/gef). To use those
