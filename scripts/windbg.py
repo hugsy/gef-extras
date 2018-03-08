@@ -48,8 +48,8 @@ class WindbgSxeCommand(GenericCommand):
         else:
             self.usage()
         return
-    
-    
+
+
 class WindbgTcCommand(GenericCommand):
     """WinDBG compatibility layer: tc - trace to next call."""
     _cmdline_ = "tc"
@@ -119,7 +119,7 @@ class WindbgGoCommand(GenericCommand):
             gdb.execute("run {}".format(" ".join(argv)))
         return
 
-    
+
 class WindbgXCommand(GenericCommand):
     """WinDBG compatibility layer: x - search symbol."""
     _cmdline_ = "x"
@@ -142,7 +142,7 @@ class WindbgXCommand(GenericCommand):
             pass
         return
 
-    
+
 def __windbg_prompt__(current_prompt):
     """WinDBG prompt function."""
     p = "0:000 "
@@ -173,6 +173,7 @@ gdb.prompt_hook = __default_prompt__
 
 # Aliases
 GefAlias("u", "display/16i", completer_class=gdb.COMPLETE_LOCATION)
+GefAlias("uf", "disassemble", completer_class=gdb.COMPLETE_LOCATION)
 GefAlias("da", "display/s", completer_class=gdb.COMPLETE_LOCATION)
 GefAlias("dt", "pcustom")
 GefAlias("dq", "hexdump qword", completer_class=gdb.COMPLETE_LOCATION)
