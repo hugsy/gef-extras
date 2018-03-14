@@ -120,6 +120,35 @@ class WindbgGoCommand(GenericCommand):
         return
 
 
+class WindbgUCommand(GenericCommand):
+    """WinDBG compatibility layer: u - disassemble."""
+    _cmdline_ = "u"
+    _syntax_  = "{:s}".format(_cmdline_)
+
+    def __init__(self):
+        super(WindbgUCommand, self).__init__(complete=gdb.COMPLETE_LOCATION)
+        return
+
+    @only_if_gdb_running
+    def do_invoke(self, argv):
+        length = 16
+        location = current_arch.pc
+        for arg in argv:
+            if arg[0] in ("l","L"):
+                length = int(arg[1:])
+            else:
+                location = safe_parse_and_eval(arg)
+                if location is not None:
+                    if hasattr(location, "address"):
+                        location = long(location.address)
+                    else:
+                        location = long(location)
+
+        for insn in gef_disassemble(location, length):
+            print(insn)
+        return
+
+
 class WindbgXCommand(GenericCommand):
     """WinDBG compatibility layer: x - search symbol."""
     _cmdline_ = "x"
@@ -172,8 +201,6 @@ set_gef_setting("gef.use-windbg-prompt", False, bool, "Use WinDBG like prompt")
 gdb.prompt_hook = __default_prompt__
 
 # Aliases
-GefAlias("u", "display/16i", completer_class=gdb.COMPLETE_LOCATION)
-GefAlias("uf", "disassemble", completer_class=gdb.COMPLETE_LOCATION)
 GefAlias("da", "display/s", completer_class=gdb.COMPLETE_LOCATION)
 GefAlias("dt", "pcustom")
 GefAlias("dq", "hexdump qword", completer_class=gdb.COMPLETE_LOCATION)
@@ -204,6 +231,7 @@ windbg_commands = [
     WindbgHhCommand,
     WindbgGoCommand,
     WindbgXCommand,
+    WindbgUCommand,
 ]
 
 for _ in windbg_commands: register_external_command(_())
