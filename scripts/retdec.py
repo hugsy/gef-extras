@@ -1,4 +1,18 @@
-class RetDecCommand(GenericCommand):
+import getopt
+import os
+import re
+import sys
+import tempfile
+
+import gdb
+
+from gef import (GEF_TEMP_DIR, PYTHON_MAJOR, current_arch, err, get_arch,
+                 gef_current_instruction, get_filepath, get_function_length,
+                 info, is_big_endian, ok, only_if_gdb_running, read_memory,
+                 register_external_command, warn)
+
+
+class RetDecCommand(gdb.GenericCommand):
     """Decompile code from GDB context using RetDec API."""
 
     _cmdline_ = "retdec"
@@ -91,7 +105,7 @@ class RetDecCommand(GenericCommand):
                 return
 
         params["input_file"] = filename
-        if self.send_to_retdec(params) == False:
+        if self.send_to_retdec(params) is False:
             return
 
         fname = os.path.join(self.get_setting("path"), "{}.c".format(os.path.basename(filename)))
@@ -111,7 +125,6 @@ class RetDecCommand(GenericCommand):
                 print(line)
         return
 
-
     def send_to_retdec(self, params):
         try:
             retdec = sys.modules["retdec"]
@@ -130,5 +143,6 @@ class RetDecCommand(GenericCommand):
             return False
 
         return True
+
 
 register_external_command(RetDecCommand())
