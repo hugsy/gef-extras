@@ -151,7 +151,7 @@ class WindbgUCommand(GenericCommand):
 
 class WindbgXCommand(GenericCommand):
     """WinDBG compatibility layer: x - search symbol."""
-    _cmdline_ = "x"
+    _cmdline_ = "xs"
     _syntax_  = "{:s} REGEX".format(_cmdline_)
 
     def __init__(self):
