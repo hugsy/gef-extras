@@ -4,8 +4,6 @@ import re
 import sys
 import tempfile
 
-import gdb
-
 
 class RetDecCommand(gdb.GenericCommand):
     """Decompile code from GDB context using RetDec API."""
