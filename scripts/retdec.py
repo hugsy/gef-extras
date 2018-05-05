@@ -14,7 +14,7 @@ class RetDecCommand(GenericCommand):
     _example_ = "{:s} -s main".format(_cmdline_)
 
     def __init__(self):
-        super(RetDecCommand, self).__init__(complete=COMPLETE_SYMBOL)
+        super(RetDecCommand, self).__init__(complete=gdb.COMPLETE_SYMBOL)
         self.add_setting("key", "", "RetDec decompilator API key")
         self.add_setting("path", GEF_TEMP_DIR, "Path to store the decompiled code")
         self.decompiler = None
