@@ -5,7 +5,7 @@ import sys
 import tempfile
 
 
-class RetDecCommand(gdb.GenericCommand):
+class RetDecCommand(GenericCommand):
     """Decompile code from GDB context using RetDec API."""
 
     _cmdline_ = "retdec"
@@ -14,7 +14,7 @@ class RetDecCommand(gdb.GenericCommand):
     _example_ = "{:s} -s main".format(_cmdline_)
 
     def __init__(self):
-        super(RetDecCommand, self).__init__(complete=gdb.COMPLETE_SYMBOL)
+        super(RetDecCommand, self).__init__(complete=COMPLETE_SYMBOL)
         self.add_setting("key", "", "RetDec decompilator API key")
         self.add_setting("path", GEF_TEMP_DIR, "Path to store the decompiled code")
         self.decompiler = None
@@ -78,7 +78,7 @@ class RetDecCommand(gdb.GenericCommand):
                 params["raw_entry_point"] = hex(range_from)
             elif opt == "-s":
                 try:
-                    value = gdb.parse_and_eval(arg)
+                    value = parse_and_eval(arg)
                 except gdb.error:
                     err("No symbol named '{:s}'".format(arg))
                     return
