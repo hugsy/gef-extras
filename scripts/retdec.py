@@ -6,11 +6,6 @@ import tempfile
 
 import gdb
 
-from gef import (GEF_TEMP_DIR, PYTHON_MAJOR, current_arch, err, get_arch,
-                 gef_current_instruction, get_filepath, get_function_length,
-                 info, is_big_endian, ok, only_if_gdb_running, read_memory,
-                 register_external_command, warn)
-
 
 class RetDecCommand(gdb.GenericCommand):
     """Decompile code from GDB context using RetDec API."""
