@@ -2,7 +2,7 @@ class RustMainBreakpoint(gdb.Breakpoint):
     """Breakpoint used internally to stop execution at the main function of a Rust binary."""
 
     def __init__(self, location):
-        super(EntryBreakBreakpoint, self).__init__(location, gdb.BP_BREAKPOINT, internal=True, temporary=True)
+        super(RustMainBreakpoint, self).__init__(location, gdb.BP_BREAKPOINT, internal=True, temporary=True)
         self.silent = True
         return
 
@@ -49,7 +49,7 @@ class RustMainBreakCommand(GenericCommand):
             try:
                 addr += base_address
                 info("Trying {:s}".format(hex(addr)))
-                bp = EntryBreakBreakpoint("*{:s}".format(hex(addr)))
+                bp = RustMainBreakpoint("*{:s}".format(hex(addr)))
                 gdb.execute("run {}".format(" ".join(args)))
 
                 insn = gef_current_instruction(current_arch.pc)
