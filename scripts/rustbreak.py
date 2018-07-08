@@ -53,12 +53,21 @@ class RustMainBreakCommand(GenericCommand):
                 gdb.execute("run {}".format(" ".join(args)))
 
                 insn = gef_current_instruction(current_arch.pc)
+                failed = False
+
+                # just keep stepping until we reach call QWORD PTR [rdi]
                 while not (insn.mnemonic == "call" and " ".join(insn.operands) == "QWORD PTR [rdi]"):
                     gdb.execute("si")
                     insn = gef_current_instruction(current_arch.pc)
+
+                    # call QWORD PTR [rdi] must show up in the same function frame as jmp QWORD PTR [rsi+0x18]
                     if insn.mnemonic == "ret":
                         info("Not at main yet. Trying next address.")
-                        continue
+                        failed = True
+                        break
+
+                if failed:
+                    continue
 
                 enable_context()
                 gdb.execute("si")
