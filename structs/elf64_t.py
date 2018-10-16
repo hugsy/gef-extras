@@ -70,7 +70,7 @@ class elf64_t(Structure):
             (7 , "EM_860"),
             (8 , "EM_MIPS"),
             (40 , "EM_ARM"),
-            (41 , "EM_ALPHA"),
+            (21 , "EM_ALPHA"),
             (62, "EM_AMD64"),
             (None, "Unknown machine")
         ]),
