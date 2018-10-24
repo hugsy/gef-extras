@@ -10,6 +10,13 @@ settings like this:
 
 ### How-to use ###
 
+#### Run the install script ####
+```bash
+$ wget -q -O- https://github.com/hugsy/gef/raw/master/scripts/gef-extras.sh | sh
+```
+
+#### Do it manually ####
+
 Start with cloning this repo:
 ```bash
 $ git clone https://github.com/hugsy/gef-extras
