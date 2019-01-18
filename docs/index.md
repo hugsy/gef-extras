@@ -32,6 +32,11 @@ And same for the structures (to be used by [`pcustom` command](https://gef.readt
 gef➤  gef config pcustom.struct_path /path/to/gef-extras/structs
 ```
 
+And finally for the syscall tables:
+```
+gef➤  gef config syscall-args.path /path/to/gef-extras/syscall-tables
+```
+
 Now run and enjoy all the fun!
 
 
