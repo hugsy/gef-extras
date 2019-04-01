@@ -232,6 +232,7 @@ windbg_commands = [
     WindbgGoCommand,
     WindbgXCommand,
     WindbgUCommand,
+    WindbgSxeCommand,
 ]
 
 for _ in windbg_commands: register_external_command(_())
