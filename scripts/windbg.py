@@ -223,6 +223,7 @@ GefAlias("s", "grep", completer_class=gdb.COMPLETE_LOCATION)
 GefAlias("pa", "advance", completer_class=gdb.COMPLETE_LOCATION)
 GefAlias("kp", "info stack")
 GefAlias("ptc", "finish")
+GefAlias("uf", "disassemble")
 
 # Commands
 windbg_commands = [
