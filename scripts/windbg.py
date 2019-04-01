@@ -190,7 +190,7 @@ def __windbg_prompt__(current_prompt):
 
 
 def __default_prompt__(x):
-    if get_gef_setting("windbg.use-windbg-prompt") == True:
+    if get_gef_setting("gef.use-windbg-prompt") == True:
         return __windbg_prompt__(x)
     else:
         return __gef_prompt__(x)
