@@ -42,6 +42,12 @@ a semi-colon:
 gef➤  gef config gef.extra_plugins_dir /path/to/dir1;/path/to/dir2
 ```
 
+And don't forget to save your settings.
+
+```
+gef➤ gef save
+```
+
 
 ### Contributions ###
 
