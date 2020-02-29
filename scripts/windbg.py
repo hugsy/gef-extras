@@ -175,10 +175,8 @@ class WindbgXCommand(GenericCommand):
 def __windbg_prompt__(current_prompt):
     """WinDBG prompt function."""
     p = "0:000 "
-    if PYTHON_MAJOR==3:
-        p+="\u27a4  "
-    else:
-        p+="> "
+    p+="\u27a4  "
+
     if get_gef_setting("gef.readline_compat")==True or \
        get_gef_setting("gef.disable_color")==True:
         return gef_prompt
