@@ -1,18 +1,25 @@
 ## Command retdec ##
 
-`gef` uses the RetDec decompilation Web API (https://retdec.com/decompilation)
+`gef` uses the RetDec decompiler (https://github.com/avast/retdec)
 to decompile parts of or entire binary. The command, `retdec`, also has a
 default alias, `decompile` to make it easier to remember.
 
-To use the command, you need to provide `gef` a valid RetDec API key, available
-by registering [here](https://retdec.com/registration/) (free accounts).
+To use the command, you need to provide `gef` the path to a retdec installation. The compiled source can be found on the [releases](https://github.com/avast/retdec/releases) page. 
 
-Then enter the key through the `gef config` command:
 ```
-gef➤ gef config retdec.key 1234-1234-1234-1234
+cd /opt
+wget https://github.com/avast/retdec/releases/download/v4.0/retdec-v4.0-ubuntu-64b.tar.xz
+tar xvf retdec-v4.0-ubuntu-64b.tar.xz
 ```
 
-You can have `gef` save this key by saving the current configuration settings.
+Then enter the path the `gef config` command:
+
+```
+gef➤ gef config retdec.retdec_path /opt/retdec
+```
+
+You can have `gef` save this path by saving the current configuration settings.
+
 ```
 gef➤ gef save
 ```
