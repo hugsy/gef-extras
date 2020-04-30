@@ -171,6 +171,66 @@ class WindbgXCommand(GenericCommand):
             pass
         return
 
+class WindbgRCommand(GenericCommand):
+    """WinDBG compatibility layer: r - register info"""
+    _cmdline_ = "r"
+    _syntax_  = "{:s} [REGISTER[=VALUE]]".format(_cmdline_)
+
+    def print_regs(self, reg_list):
+        def threes(l):
+            for ii in range(0, len(l), 3):
+                yield l[ii:ii + 3]
+
+        def print_reg(reg):
+            print('%s=%016x' % (reg.rjust(3), get_register('$' + reg)), end='')
+
+        for regs in threes(reg_list):
+            for ii in range(0, len(regs)):
+                print_reg(regs[ii])
+
+                if ii + 1 != len(regs): print(' ', end='')
+                else: print()
+
+
+    def print_gprs(self):
+        if not get_arch().startswith("i386:x86-64"):
+            raise NotImplemented
+
+        # rax=0000000000000000 rbx=000000e62e50b000 rcx=00007ffb4763c564
+        # rdx=0000000000000000 rsi=00007ffb476cd4c0 rdi=0000000000000010
+        # rip=00007ffb4767121c rsp=000000e62e28f140 rbp=0000000000000000
+        #  r8=000000e62e28f138  r9=0000000000000000 r10=0000000000000000
+        # r11=0000000000000246 r12=0000000000000001 r13=0000000000000000
+        # r14=00007ffb476ccd90 r15=0000027685520000
+        gprs = [
+                'rax', 'rbx', 'rcx',
+                'rdx', 'rsi', 'rdi',
+                'rip', 'rsp', 'rbp',
+                'r8', 'r9', 'r10',
+                'r11', 'r12', 'r13',
+                'r14', 'r15'
+                ]
+        self.print_regs(gprs)
+
+    @only_if_gdb_running
+    def do_invoke(self, argv):
+        if len(argv) < 1:
+            self.print_gprs()
+        else:
+            combined = ''.join(argv).replace(' ', '').replace('@', '')
+
+            if '=' in combined:
+                (regstr,valstr) = combined.split('=')
+                reg = '$' + regstr
+                val = int(valstr, 16)
+                gdb.execute("set {:s} = {:#x}".format(reg, val))
+            else:
+                regs = combined.split(',')
+                self.print_regs(regs)
+
+        return
+
+
 
 def __windbg_prompt__(current_prompt):
     """WinDBG prompt function."""
@@ -232,6 +292,7 @@ windbg_commands = [
     WindbgXCommand,
     WindbgUCommand,
     WindbgSxeCommand,
+    WindbgRCommand,
 ]
 
 for _ in windbg_commands: register_external_command(_())
