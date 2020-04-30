@@ -140,9 +140,9 @@ class WindbgUCommand(GenericCommand):
                 location = safe_parse_and_eval(arg)
                 if location is not None:
                     if hasattr(location, "address"):
-                        location = long(location.address)
+                        location = int(location.address,0)
                     else:
-                        location = long(location)
+                        location = int(location,0)
 
         for insn in gef_disassemble(location, length):
             print(insn)
