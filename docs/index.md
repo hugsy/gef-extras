@@ -2,7 +2,9 @@
 
 ![gef-logo](https://camo.githubusercontent.com/695432d57b3a21a250f81ed5e323658239b8bf25/68747470733a2f2f692e696d6775722e636f6d2f763350557150782e706e67)
 
-[![Documentation Status](https://readthedocs.org/projects/gef-extras/badge/?version=latest)](http://gef-extras.readthedocs.io/en/latest/?badge=latest)
+
+[![Documentation Status](https://readthedocs.org/projects/gef-extras/badge/?version=latest&token=05e48c43fba3df26ad1ccf33353180e4b515681b727e2f3011013a915f953084)](https://gef-extras.readthedocs.io/en/latest/?badge=latest)
+
 
 This is an open repository of external scripts and structures to be used by [GDB Enhanced Features (GEF)](https://github.com/hugsy/gef). To use those scripts once `gef` is setup, simply clone this repository and update your GEF settings like this:
 
