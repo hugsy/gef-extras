@@ -1,25 +1,26 @@
-#
-# Quick'n dirty exploit template
-#
-# @_hugsy_
-#
-# Load with:
-# gef> source /path/to/skel.py
-#
-# Use with
-# gef> skel [local|remote=TARGET:PORT]
-#
+__AUTHOR__ = "hugsy"
+__VERSION__ = 0.1
 
 import os, tempfile
 
-TEMPLATE="""#!/usr/bin/env python2
+
+
+TEMPLATE="""#!/usr/bin/env python3
 import sys
 from pwn import *
-context.update(arch="{arch}", endian="{endian}", os="linux", log_level="debug",
-               terminal=["tmux", "split-window", "-v", "-p 85"],)
+context.update(
+    arch="{arch}",
+    endian="{endian}",
+    os="linux",
+    log_level="debug",
+    terminal=["tmux", "split-window", "-v", "-p 85"],
+)
+
+
 LOCAL, REMOTE = False, False
 TARGET=os.path.realpath("{filepath}")
 elf = ELF(TARGET)
+
 
 def attach(r):
     if LOCAL:

@@ -1,3 +1,7 @@
+__AUTHOR__ = "hugsy"
+__VERSION__ = 0.2
+
+
 import subprocess
 
 class BreakOnLoadSharedLibrary(gdb.Breakpoint):

@@ -2,7 +2,10 @@ site_name: GEF Extras - Extra goodies for GEF by and for the community
 theme: readthedocs
 nav:
 - Home: index.md
-- RetDec: retdec.md
-- PeekPointers: peekpointers.md
 - BinCompare: bincompare.md
 - ByteArray: bytearray.md
+- FTrace: ftrace.md
+- PeekPointers: peekpointers.md
+- RetDec: retdec.md
+- Skeleton: skel.md
+- WinDbg: windbg.md

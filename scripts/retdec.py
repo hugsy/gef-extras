@@ -1,3 +1,8 @@
+__AUTHOR__ = "Minato-TW"
+__VERSION__ = 0.1
+
+
+
 import getopt
 import subprocess
 import gdb
@@ -5,6 +10,7 @@ import os
 import re
 import sys
 import tempfile
+
 
 
 class RetDecCommand(GenericCommand):
@@ -45,7 +51,7 @@ class RetDecCommand(GenericCommand):
             "target_language": "c",
             "raw_endian": "big" if is_big_endian() else "little",
         }
-        
+
         raw_cmd = "{}  -m {} --raw-section-vma {} --raw-entry-point {} -e {} -f plain -a {} -o {} -l {} {} --cleanup"
         bin_cmd = "{}  -m {} -e {} -f plain -a {} -o {} -l {} {} --cleanup"
 
@@ -129,5 +135,5 @@ class RetDecCommand(GenericCommand):
 
         return True
 
-
-register_external_command(RetDecCommand())
+if __name__ == "__main__":
+    register_external_command(RetDecCommand())
