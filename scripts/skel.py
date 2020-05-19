@@ -13,7 +13,7 @@ context.update(
     endian="{endian}",
     os="linux",
     log_level="debug",
-    terminal=["tmux", "split-window", "-v", "-p 85"],
+    terminal=["tmux", "split-window", "-h", "-p 65"],
 )
 
 
