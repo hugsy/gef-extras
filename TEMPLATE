@@ -1,3 +1,13 @@
+"""
+Describe thoroughly what your command does. In addition, complete the documentation
+in /docs/ and adding the reference in /mkdocs.yml
+"""
+
+plugin_author   = "your_name"
+plugin_version  = 0.1
+plugin_license  = "MIT"
+
+
 class MyCommand(GenericCommand):
     """Template of a new command."""
     _cmdline_ = "my-command"
