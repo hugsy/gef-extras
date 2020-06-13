@@ -1,3 +1,8 @@
+__AUTHOR__ = "hugsy"
+__VERSION__ = 0.1
+
+
+
 class CurrentFrameStack(GenericCommand):
     """Show the entire stack of the current frame."""
     _cmdline_ = "current-stack-frame"
@@ -45,4 +50,5 @@ class CurrentFrameStack(GenericCommand):
         return
 
 
-register_external_command(CurrentFrameStack())
+if __name__ == "__main__":
+    register_external_command(CurrentFrameStack())

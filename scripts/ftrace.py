@@ -1,14 +1,8 @@
-#
-# Quick'n dirty function tracer scripts for GEF
-#
-# @_hugsy_
-#
-# Load with:
-# gef> source /path/to/ftrace.py
-#
-# Use with
-# gef> ftrace <function_name1>,<num_of_args> <function_name2>,<num_of_args>  ...
-#
+__AUTHOR__ = "hugsy"
+__VERSION__ = 0.1
+
+
+
 
 import collections
 

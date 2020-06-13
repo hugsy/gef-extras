@@ -1,30 +1,32 @@
-#
-# Quick'n dirty exploit template
-#
-# @_hugsy_
-#
-# Load with:
-# gef> source /path/to/skel.py
-#
-# Use with
-# gef> skel [local|remote=TARGET:PORT]
-#
+__AUTHOR__ = "hugsy"
+__VERSION__ = 0.1
 
 import os, tempfile
 
-TEMPLATE="""#!/usr/bin/env python2
-import sys
+
+
+TEMPLATE="""#!/usr/bin/env python3
+import sys, os
 from pwn import *
-context.update(arch="{arch}", endian="{endian}", os="linux", log_level="debug",
-               terminal=["tmux", "split-window", "-v", "-p 85"],)
-LOCAL, REMOTE = False, False
+context.update(
+    arch="{arch}",
+    endian="{endian}",
+    os="linux",
+    log_level="debug",
+    terminal=["tmux", "split-window", "-h", "-p 65"],
+)
+
+
+REMOTE = False
 TARGET=os.path.realpath("{filepath}")
 elf = ELF(TARGET)
 
+
 def attach(r):
-    if LOCAL:
+    if not REMOTE:
         bkps = {bkps}
-        gdb.attach(r, '\\n'.join(["break %s"%(x,) for x in bkps]))
+        cmds = []
+        gdb.attach(r, '\n'.join(["break *{:#x}".format(x) for x in bkps] + cmds))
     return
 
 def exploit(r):
@@ -37,7 +39,7 @@ if __name__ == "__main__":
         REMOTE = True
         r = remote("{target}", {port})
     else:
-        LOCAL = True
+        REMOTE = False
         r = process([TARGET,])
     exploit(r)
     sys.exit(0)
@@ -47,7 +49,7 @@ class ExploitTemplateCommand(GenericCommand):
     """Generates a exploit template."""
     _cmdline_ = "exploit-template"
     _syntax_  = "{:s} [local|remote=TARGET:PORT]".format(_cmdline_)
-    _aliases_ = ["skel", ]
+    _aliases_ = ["skeleton", ]
 
     @only_if_gdb_running
     def do_invoke(self, args):
