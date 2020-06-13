@@ -181,32 +181,41 @@ class WindbgRCommand(GenericCommand):
     _syntax_  = "{:s} [REGISTER[=VALUE]]".format(_cmdline_)
 
     def print_regs(self, reg_list):
-        def threes(l):
-            for ii in range(0, len(l), 3):
-                yield l[ii:ii + 3]
+        n = self.arch_reg_width()
+
+        def chunks(l, n):
+            for ii in range(0, len(l), n):
+                yield l[ii:ii + n]
 
         def print_reg(reg):
             print('%s=%016x' % (reg.rjust(3), get_register('$' + reg)), end='')
 
-        for regs in threes(reg_list):
+        for regs in chunks(reg_list, n):
             for ii in range(0, len(regs)):
-                print_reg(regs[ii])
+                reg = regs[ii]
+
+                if reg is not None: print_reg(reg)
 
                 if ii + 1 != len(regs): print(' ', end='')
                 else: print()
 
+    def arch_reg_width(self):
+        if get_arch().startswith("i386:x86-64"): return 3
+        if get_arch().startswith('aarch64'): return 4
+        raise NotImplemented
+
 
     def print_gprs(self):
-        if not get_arch().startswith("i386:x86-64"):
-            raise NotImplemented
+        gprs = None
 
-        # rax=0000000000000000 rbx=000000e62e50b000 rcx=00007ffb4763c564
-        # rdx=0000000000000000 rsi=00007ffb476cd4c0 rdi=0000000000000010
-        # rip=00007ffb4767121c rsp=000000e62e28f140 rbp=0000000000000000
-        #  r8=000000e62e28f138  r9=0000000000000000 r10=0000000000000000
-        # r11=0000000000000246 r12=0000000000000001 r13=0000000000000000
-        # r14=00007ffb476ccd90 r15=0000027685520000
-        gprs = [
+        if get_arch().startswith("i386:x86-64"):
+            # rax=0000000000000000 rbx=000000e62e50b000 rcx=00007ffb4763c564
+            # rdx=0000000000000000 rsi=00007ffb476cd4c0 rdi=0000000000000010
+            # rip=00007ffb4767121c rsp=000000e62e28f140 rbp=0000000000000000
+            #  r8=000000e62e28f138  r9=0000000000000000 r10=0000000000000000
+            # r11=0000000000000246 r12=0000000000000001 r13=0000000000000000
+            # r14=00007ffb476ccd90 r15=0000027685520000
+            gprs = [
                 'rax', 'rbx', 'rcx',
                 'rdx', 'rsi', 'rdi',
                 'rip', 'rsp', 'rbp',
@@ -214,7 +223,33 @@ class WindbgRCommand(GenericCommand):
                 'r11', 'r12', 'r13',
                 'r14', 'r15'
                 ]
-        self.print_regs(gprs)
+            self.print_regs(gprs)
+            return
+        elif get_arch().startswith('aarch64'):
+            #  x0=0000000000000078   x1=000002037b0069e0   x2=0000000000000010   x3=000000293a8ff9f0
+            #  x4=000000293a8ffb90   x5=000000293a8ff9eb   x6=0000000000000000   x7=0000000000000000
+            #  x8=0000000000000072   x9=0000000000000000  x10=0000000000000000  x11=ffffffffff817aa9
+            # x12=00007ffea822efe0  x13=0000000000000967  x14=00007ffea8241b1e  x15=00007ffea822f008
+            # x16=0000000000000000  x17=0000000000000000  x18=0000000000000000  x19=000002037b006d60
+            # x20=000002037b0069e0  x21=000002037b004c10  x22=0000000000000010  x23=000000007ffe03c0
+            # x24=0000000000000001  x25=0000000000000000  x26=000000293a8ff9e0  x27=0000000000000010
+            # x28=0000000000000000   fp=000000293a8ffc10   lr=00007ffea80f7388   sp=000000293a8ff9e0
+            #  pc=00007ffea80e30f4  psr=60000000 -ZC- EL0
+            gprs = [
+                'x0', 'x1', 'x2', 'x3',
+                'x4', 'x5', 'x6', 'x7',
+                'x8', 'x9', 'x10', 'x11',
+                'x12', 'x13', 'x14', 'x15',
+                'x16', 'x17', 'x18', 'x19',
+                'x20', 'x21', 'x22', 'x23',
+                'x24', 'x25', 'x26', 'x27',
+                'x28', 'fp', 'lr', 'sp',
+                'pc'
+                ]
+            self.print_regs(gprs)
+            return
+
+        raise NotImplemented
 
     @only_if_gdb_running
     def do_invoke(self, argv):
