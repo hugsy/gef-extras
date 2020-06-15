@@ -143,7 +143,7 @@ class WindbgUCommand(GenericCommand):
             else:
                 location = safe_parse_and_eval(arg)
                 if location is not None:
-                    if hasattr(location, "address"):
+                    if hasattr(location, "address") and location.address is not None:
                         location = int(location.address,0)
                     else:
                         location = int(location,0)
