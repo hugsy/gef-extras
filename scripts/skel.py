@@ -26,7 +26,7 @@ def attach(r):
     if not REMOTE:
         bkps = {bkps}
         cmds = []
-        gdb.attach(r, '\n'.join(["break *{:#x}".format(x) for x in bkps] + cmds))
+        gdb.attach(r, '\\n'.join(["break *{{:#x}}".format(x) for x in bkps] + cmds))
     return
 
 def exploit(r):
@@ -65,15 +65,19 @@ class ExploitTemplateCommand(GenericCommand):
         if args[0].startswith("remote"):
             target, port = args[0][len("remote="):].split(":")
 
+        bkps = [b.location for b in gdb.breakpoints()]
+        temp = TEMPLATE.format(
+            target=target,
+            port=port,
+            arch="amd64" if "x86-64" in get_arch() else "i386",
+            endian="big" if is_big_endian() else "little",
+            filepath=get_filepath(),
+            bkps=bkps
+        )
         fd, fname = tempfile.mkstemp(suffix='.py', prefix='gef_')
-        temp = TEMPLATE.format(target=target,
-                               port=port,
-                               arch="amd64" if "x86-64" in get_arch() else "i386",
-                               endian="big" if is_big_endian() else "little",
-                               filepath=get_filepath(),
-                               bkps=[b.location for b in gdb.breakpoints()])
-        os.write(fd, gef_pybytes(temp))
-        os.close(fd)
+        with os.fdopen(fd, "w") as f:
+            f.write(temp)
+
         ok("Exploit generated in '{:s}'".format(fname))
         return
 
