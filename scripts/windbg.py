@@ -180,26 +180,30 @@ class WindbgRCommand(GenericCommand):
     _cmdline_ = "r"
     _syntax_  = "{:s} [REGISTER[=VALUE]]".format(_cmdline_)
 
-    def print_regs(self, reg_list):
+    def print_regs(self, reg_list, width=16):
         n = self.arch_reg_width()
+        max_reg_len = max( map(len, reg_list ))
 
         def chunks(l, n):
             for ii in range(0, len(l), n):
                 yield l[ii:ii + n]
 
-        def print_reg(reg):
-            print('%s=%016x' % (reg.rjust(3), get_register('$' + reg)), end='')
+        def print_reg(reg, width=16):
+            fmt = "%s=%0{}x".format(width)
+            regval = get_register('$' + reg) & ((1<<(current_arch.ptrsize*8))-1)
+            print(fmt % (reg.rjust(max_reg_len), regval), end='')
 
         for regs in chunks(reg_list, n):
             for ii in range(0, len(regs)):
                 reg = regs[ii]
 
-                if reg is not None: print_reg(reg)
+                if reg is not None: print_reg(reg, width)
 
                 if ii + 1 != len(regs): print(' ', end='')
                 else: print()
 
     def arch_reg_width(self):
+        if get_arch().startswith("i386"): return 6
         if get_arch().startswith("i386:x86-64"): return 3
         if get_arch().startswith('aarch64'): return 4
         raise NotImplemented
@@ -208,7 +212,25 @@ class WindbgRCommand(GenericCommand):
     def print_gprs(self):
         gprs = None
 
-        if get_arch().startswith("i386:x86-64"):
+        if get_arch() == "i386":
+            # eax=00473dc8 ebx=00622000 ecx=00000000 edx=a0b086dc esi=00a40620 edi=00a44890
+            # eip=00461003 esp=005bf8c8 ebp=005bf8c8
+            gprs = [
+                'eax', 'ebx', 'ecx',
+                'edx', 'esi', 'edi',
+                'eip', 'esp', 'ebp',
+                ]
+            self.print_regs(gprs, 8)
+
+            # cs=0023  ss=002b  ds=002b  es=002b  fs=0053  gs=002b             efl=0000020
+            segregs = [
+                'cs', 'ss', 'ds',
+                'es', 'fs', 'gs'
+            ]
+            self.print_regs(segregs, 4)
+            return
+
+        elif get_arch().startswith("i386:x86-64"):
             # rax=0000000000000000 rbx=000000e62e50b000 rcx=00007ffb4763c564
             # rdx=0000000000000000 rsi=00007ffb476cd4c0 rdi=0000000000000010
             # rip=00007ffb4767121c rsp=000000e62e28f140 rbp=0000000000000000
@@ -224,7 +246,15 @@ class WindbgRCommand(GenericCommand):
                 'r14', 'r15'
                 ]
             self.print_regs(gprs)
+
+            # cs=0033  ss=002b  ds=002b  es=002b  fs=0053  gs=002b             efl=00000202
+            segregs = [
+                'cs', 'ss', 'ds',
+                'es', 'fs', 'gs'
+            ]
+            self.print_regs(segregs, 4)
             return
+
         elif get_arch().startswith('aarch64'):
             #  x0=0000000000000078   x1=000002037b0069e0   x2=0000000000000010   x3=000000293a8ff9f0
             #  x4=000000293a8ffb90   x5=000000293a8ff9eb   x6=0000000000000000   x7=0000000000000000
