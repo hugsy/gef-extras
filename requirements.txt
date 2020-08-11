@@ -1,1 +1,2 @@
 retdec-python
+rpyc
