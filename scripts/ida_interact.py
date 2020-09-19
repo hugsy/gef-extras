@@ -14,7 +14,7 @@ sess = {
     "old_colors": {},
 }
 
-def is_pie():
+def is_current_elf_pie():
     return checksec( get_filepath() )["PIE"]
 
 
@@ -142,7 +142,7 @@ class RpycIdaHighlightAddCommand(RpycIdaHighlightCommand):
             return
 
         addr = current_arch.pc if not argv else parse_address(argv[0])
-        if is_pie():
+        if is_current_elf_pie():
             addr = get_rva(addr)
 
         color = int(argv[1], 0)  if len(argv) > 1 else 0x00ff00
@@ -172,7 +172,7 @@ class RpycIdaHighlightDeleteCommand(RpycIdaHighlightCommand):
             return
 
         addr = current_arch.pc if not argv else parse_address(argv[0])
-        if is_pie():
+        if is_current_elf_pie():
             addr = get_rva(addr)
 
         if addr not in sess["old_colors"]:
@@ -259,7 +259,7 @@ class RpycIdaJumpCommand(RpycIdaCommand):
     @only_if_active_rpyc_session
     def do_invoke(self, argv):
         addr = current_arch.pc if not argv else parse_address(argv[0])
-        if is_pie():
+        if is_current_elf_pie():
             addr = get_rva(addr)
         # ok("jumping to {:#x}".format(addr))
         sess["sock"].root.idaapi.jumpto(addr)
@@ -309,7 +309,7 @@ class RpycIdaCommentAddCommand(RpycIdaCommentCommand):
         if len(argv) > 1:
             ea = parse_address(argv[1])
 
-        if is_pie():
+        if is_current_elf_pie():
             ea = get_rva(ea)
 
         idc = sess["sock"].root.idc
@@ -334,7 +334,6 @@ if __name__ == "__main__":
         RpycIdaHighlightAddCommand,
         RpycIdaHighlightDeleteCommand,
     ]
-
 
     for cmd in cmds:
         register_external_command( cmd() )
