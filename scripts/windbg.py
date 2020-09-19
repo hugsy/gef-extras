@@ -386,7 +386,6 @@ GefAlias("tbp", "tbreak", completer_class=gdb.COMPLETE_LOCATION)
 GefAlias("s", "grep", completer_class=gdb.COMPLETE_LOCATION)
 GefAlias("pa", "advance", completer_class=gdb.COMPLETE_LOCATION)
 GefAlias("kp", "info stack")
-GefAlias("ptc", "finish")
 GefAlias("uf", "disassemble")
 
 # Commands
