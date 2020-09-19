@@ -54,6 +54,18 @@ class WindbgSxeCommand(GenericCommand):
         return
 
 
+def windbg_execute_until(cnt, cmd, stop_condition):
+    while cnt:
+        cnt -= 1
+        set_gef_setting("context.enable", False)
+        gdb.execute(cmd)
+        insn = gef_current_instruction(current_arch.pc)
+        if stop_condition(insn):
+            break
+    set_gef_setting("context.enable", True)
+    return
+
+
 class WindbgTcCommand(GenericCommand):
     """WinDBG compatibility layer: tc - trace to next call."""
     _cmdline_ = "tc"
@@ -62,14 +74,7 @@ class WindbgTcCommand(GenericCommand):
     @only_if_gdb_running
     def do_invoke(self, argv):
         cnt = int(argv[0]) if len(argv) else 0xffffffffffffffff
-        while cnt:
-            cnt -= 1
-            set_gef_setting("context.enable", False)
-            gdb.execute("stepi")
-            insn = gef_current_instruction(current_arch.pc)
-            if current_arch.is_call(insn):
-                break
-        set_gef_setting("context.enable", True)
+        windbg_execute_until(cnt, "stepi", current_arch.is_call)
         gdb.execute("context")
         return
 
@@ -82,15 +87,47 @@ class WindbgPcCommand(GenericCommand):
     @only_if_gdb_running
     def do_invoke(self, argv):
         cnt = int(argv[0]) if len(argv) else 0xffffffffffffffff
-        while cnt:
-            cnt -= 1
-            set_gef_setting("context.enable", False)
-            gdb.execute("nexti")
-            insn = gef_current_instruction(current_arch.pc)
-            if current_arch.is_call(insn):
-                break
+        windbg_execute_until(cnt, "nexti", current_arch.is_call)
+        gdb.execute("context")
+        return
 
-        set_gef_setting("context.enable", True)
+
+class WindbgTtCommand(GenericCommand):
+    """WinDBG compatibility layer: pc - run next return."""
+    _cmdline_ = "tt"
+    _syntax_  = "{:s} [COUNT]".format(_cmdline_)
+
+    @only_if_gdb_running
+    def do_invoke(self, argv):
+        cnt = int(argv[0]) if len(argv) else 0xffffffffffffffff
+        windbg_execute_until(cnt, "stepi", current_arch.is_ret)
+        gdb.execute("context")
+        return
+
+
+class WindbgPtCommand(GenericCommand):
+    """WinDBG compatibility layer: pt - run until next return."""
+    _cmdline_ = "pt"
+    _syntax_  = "{:s} [COUNT]".format(_cmdline_)
+
+    @only_if_gdb_running
+    def do_invoke(self, argv):
+        cnt = int(argv[0]) if len(argv) else 0xffffffffffffffff
+        windbg_execute_until(cnt, "nexti", current_arch.is_ret)
+        gdb.execute("context")
+        return
+
+
+class WindbgPtcCommand(GenericCommand):
+    """WinDBG compatibility layer: ptc - run until next call or return."""
+    _cmdline_ = "ptc"
+    _syntax_  = "{:s} [COUNT]".format(_cmdline_)
+
+    @only_if_gdb_running
+    def do_invoke(self, argv):
+        cnt = int(argv[0]) if len(argv) else 0xffffffffffffffff
+        fn = lambda x : current_arch.is_ret(x) or current_arch.is_call(x)
+        windbg_execute_until(cnt, "nexti", fn)
         gdb.execute("context")
         return
 
@@ -356,6 +393,9 @@ GefAlias("uf", "disassemble")
 windbg_commands = [
     WindbgTcCommand,
     WindbgPcCommand,
+    WindbgTtCommand,
+    WindbgPtCommand,
+    WindbgPtcCommand,
     WindbgHhCommand,
     WindbgGoCommand,
     WindbgXCommand,
