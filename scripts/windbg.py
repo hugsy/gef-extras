@@ -67,7 +67,7 @@ def windbg_execute_until(cnt, cmd, stop_condition):
 
 
 class WindbgTcCommand(GenericCommand):
-    """WinDBG compatibility layer: tc - trace to next call."""
+    """WinDBG compatibility layer: tc - trace until next call."""
     _cmdline_ = "tc"
     _syntax_  = "{:s} [COUNT]".format(_cmdline_)
 
@@ -80,7 +80,7 @@ class WindbgTcCommand(GenericCommand):
 
 
 class WindbgPcCommand(GenericCommand):
-    """WinDBG compatibility layer: pc - run until call."""
+    """WinDBG compatibility layer: pc - run until next call."""
     _cmdline_ = "pc"
     _syntax_  = "{:s} [COUNT]".format(_cmdline_)
 
@@ -93,7 +93,7 @@ class WindbgPcCommand(GenericCommand):
 
 
 class WindbgTtCommand(GenericCommand):
-    """WinDBG compatibility layer: pc - run next return."""
+    """WinDBG compatibility layer: tt - trace until next return."""
     _cmdline_ = "tt"
     _syntax_  = "{:s} [COUNT]".format(_cmdline_)
 
