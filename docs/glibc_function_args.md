@@ -1,4 +1,4 @@
-## glibc function call arguments definition##
+## glibc function call arguments definition ##
 
 This tree holds json used to print better definition of glibc function arguments.
 
