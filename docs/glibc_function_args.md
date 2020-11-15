@@ -15,7 +15,7 @@ but using this feature, it will instead look like this:
 Functions are detected if they end with `@plt`, which means that static binaries won't benefit from this.
 
 User has to set two context configurations:
-* context.libc_args: boolean True/False, set to True to use this feature
+* `context.libc_args`: boolean, set to `True` to use this feature
 * context.libc_args_path: string, must be set to the directory where json files is placed
 
 File generate_glibc_args_json.py is used to create given json files.  
