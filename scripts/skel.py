@@ -1,11 +1,11 @@
 __AUTHOR__ = "hugsy"
 __VERSION__ = 0.1
 
-import os, tempfile
+import os
+import tempfile
 
 
-
-TEMPLATE="""#!/usr/bin/env python3
+TEMPLATE = """#!/usr/bin/env python3
 import sys, os
 from pwn import *
 context.update(
@@ -45,10 +45,11 @@ if __name__ == "__main__":
     sys.exit(0)
 """
 
+
 class ExploitTemplateCommand(GenericCommand):
     """Generates a exploit template."""
     _cmdline_ = "exploit-template"
-    _syntax_  = "{:s} [local|remote=TARGET:PORT]".format(_cmdline_)
+    _syntax_ = "{:s} [local|remote=TARGET:PORT]".format(_cmdline_)
     _aliases_ = ["skeleton", ]
 
     @only_if_gdb_running
@@ -57,7 +58,7 @@ class ExploitTemplateCommand(GenericCommand):
             self.usage()
             return
 
-        if args[0]!="local" and not args[0].startswith("remote="):
+        if args[0] != "local" and not args[0].startswith("remote="):
             self.usage()
             return
 
@@ -83,4 +84,4 @@ class ExploitTemplateCommand(GenericCommand):
 
 
 if __name__ == "__main__":
-    register_external_command( ExploitTemplateCommand() )
+    register_external_command(ExploitTemplateCommand())
