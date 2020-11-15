@@ -16,7 +16,7 @@ Functions are detected if they end with `@plt`, which means that static binaries
 
 User has to set two context configurations:
 * `context.libc_args`: boolean, set to `True` to use this feature
-* context.libc_args_path: string, must be set to the directory where json files is placed
+* `context.libc_args_path`: string, must be set to the directory where the libc definition json files can be found
 
 File generate_glibc_args_json.py is used to create given json files.  
 It works by parsing glibc manual txt, that should be download from https://www.gnu.org/software/libc/manual/text/libc.txt.gz and saved in current directory.
