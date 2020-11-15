@@ -8,7 +8,8 @@ For example, the arguments for a `read@plt` would currently look like this:
 
 ![read](https://user-images.githubusercontent.com/1745802/98736103-aed90900-23a4-11eb-8c8d-f1ae41e772f8.png)
 
-using this feature will be presented like this:  
+but using this feature, it will instead look like this:
+
 ![read](https://user-images.githubusercontent.com/1745802/98736838-a7662f80-23a5-11eb-89b4-7f732713d64b.png)
 
 Function is catched if they end with @plt.  
