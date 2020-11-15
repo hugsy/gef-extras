@@ -2,16 +2,19 @@
 __AUTHOR__ = "theguly"
 __VERSION__ = 0.1
 
-import sys,os
-import json
 import gzip
+import json
+import os
+import sys
 
 function_dict = {}
+
 
 def get_function_name(l):
     pre_args = l.split(" (")[0]
     _function_name = pre_args.split(" ")[-1]
     return _function_name
+
 
 def get_function_args(l):
     _function_args = " (".join(l.split(" (")[1:])
@@ -22,11 +25,12 @@ def get_function_args(l):
         ret_function_args.append(_function_arg.lstrip().rstrip())
     return ret_function_args
 
+
 def gen_json(function_dict, _params, outfile_name):
     _dict = {}
-    for _key,_value in function_dict.items():
+    for _key, _value in function_dict.items():
         _dict[_key] = {}
-        for i in range(0,len(_value)):
+        for i in range(0, len(_value)):
             _dict[_key][_params[i]] = _value[i]
 
     if os.path.isfile(outfile_name):
@@ -43,6 +47,7 @@ def gen_json(function_dict, _params, outfile_name):
 
     return
 
+
 if __name__ == "__main__":
     file_name = "libc.txt.gz"
 
@@ -50,7 +55,11 @@ if __name__ == "__main__":
     try:
         fh = gzip.open(file_name, "r")
     except FileNotFoundError:
-        print("file {} cannot be found. download it from https://www.gnu.org/software/libc/manual/text/libc.txt.gz".format(file_name))
+        print(
+            "file {} cannot be found. download it from https://www.gnu.org/software/libc/manual/text/libc.txt.gz".format(
+                file_name
+            )
+        )
         sys.exit(-1)
 
     old_pos = fh.tell()
@@ -68,12 +77,12 @@ if __name__ == "__main__":
 
         if " -- Function: " in line:
             # some function def span two lines, join them
-            line = line.replace(" -- Function: ","").rstrip().rstrip(";").lstrip()
+            line = line.replace(" -- Function: ", "").rstrip().rstrip(";").lstrip()
             if not line.endswith(")"):
                 next_line = fh.readline()
                 next_line = next_line.decode("utf-8")
                 next_line = next_line.rstrip().lstrip()
-                line = ("{} {}".format(line,next_line))
+                line = "{} {}".format(line, next_line)
 
             function_name = get_function_name(line)
             function_args = get_function_args(line)
@@ -88,6 +97,19 @@ if __name__ == "__main__":
                 function_dict[function_name].append(x)
 
     # generate x86_64
-    gen_json(function_dict, ['$rdi','$rsi','$rdx','$r10','$r8','$r9'],'x86_64.json')
+    gen_json(
+        function_dict, ["$rdi", "$rsi", "$rdx", "$r10", "$r8", "$r9"], "x86_64.json"
+    )
     # generate x86_32
-    gen_json(function_dict, ['[sp + 0x0]','[sp + 0x4]','[sp + 0x8]','[sp + 0xc]','[sp + 0x10]','[sp + 0x14]'],'x86_32.json')
+    gen_json(
+        function_dict,
+        [
+            "[sp + 0x0]",
+            "[sp + 0x4]",
+            "[sp + 0x8]",
+            "[sp + 0xc]",
+            "[sp + 0x10]",
+            "[sp + 0x14]",
+        ],
+        "x86_32.json",
+    )
