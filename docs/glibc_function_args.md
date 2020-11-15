@@ -4,7 +4,7 @@ This tree holds json used to print better definition of glibc function arguments
 
 Arguments' definitions are taken from glibc manual, and can be used as a kind reminder.
 
-For example, a read@plt is now presented like this:  
+For example, the arguments for a `read@plt` would currently look like this:  
 ![read](https://user-images.githubusercontent.com/1745802/98736103-aed90900-23a4-11eb-8c8d-f1ae41e772f8.png)
 
 using this feature will be presented like this:  
