@@ -13,7 +13,6 @@ but using this feature, it will instead look like this:
 ![read](https://user-images.githubusercontent.com/1745802/98736838-a7662f80-23a5-11eb-89b4-7f732713d64b.png)
 
 Functions are detected if they end with `@plt`, which means that static binaries won't benefit from this.
-This means that static binaries won't benefit from this.
 
 User has to set two context configurations:
 * context.libc_args: boolean True/False, set to True to use this feature
