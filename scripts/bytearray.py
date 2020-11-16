@@ -13,20 +13,18 @@
 
 import getopt
 import gdb
-import os
 import re
-import sys
+
 
 class BytearrayCommand(GenericCommand):
     """BytearrayCommand: Generate a bytearray to be compared with possible badchars.
 Function ported from mona.py"""
     _cmdline_ = "bytearray"
-    _syntax_  = "{:s} [-b badchars]".format(_cmdline_)
+    _syntax_ = "{:s} [-b badchars]".format(_cmdline_)
 
     def __init__(self):
         super(BytearrayCommand, self).__init__(complete=gdb.COMPLETE_FILENAME)
         return
-
 
     def usage(self):
         h = self._syntax_
@@ -41,8 +39,9 @@ Function ported from mona.py"""
         endval = 255
 
         opts, args = getopt.getopt(argv, "b:ch")
-        for o,a in opts:
-            if   o == "-b": badchars = a
+        for o, a in opts:
+            if o == "-b":
+                badchars = a
             elif o == "-h":
                 self.usage()
                 return
@@ -53,15 +52,15 @@ Function ported from mona.py"""
         bpos = 0
         newbadchars = ""
         while bpos < len(badchars):
-            curchar = badchars[bpos]+badchars[bpos+1]
+            curchar = badchars[bpos] + badchars[bpos + 1]
             if curchar == "..":
                 pos = bpos
-                if pos > 1 and pos <= len(badchars)-4:
+                if pos > 1 and pos <= len(badchars) - 4:
                     # get byte before and after ..
-                    bytebefore = badchars[pos-2] + badchars[pos-1]
-                    byteafter = badchars[pos+2] + badchars[pos+3]
-                    bbefore = int(bytebefore,16)
-                    bafter = int(byteafter,16)
+                    bytebefore = badchars[pos - 2] + badchars[pos - 1]
+                    byteafter = badchars[pos + 2] + badchars[pos + 3]
+                    bbefore = int(bytebefore, 16)
+                    bafter = int(byteafter, 16)
                     insertbytes = ""
                     bbefore += 1
                     while bbefore < bafter:
@@ -76,8 +75,8 @@ Function ported from mona.py"""
         cnt = 0
         excluded = []
         while cnt < len(badchars):
-            excluded.append(self.hex2bin(badchars[cnt]+badchars[cnt+1]))
-            cnt=cnt+2
+            excluded.append(self.hex2bin(badchars[cnt] + badchars[cnt + 1]))
+            cnt = cnt + 2
 
         info("Generating table, excluding {:d} bad chars...".format(len(excluded)))
         arraytable = []
@@ -92,11 +91,11 @@ Function ported from mona.py"""
             increment = -1
 
         # create bytearray
-        for thisval in range(startval,endval,increment):
+        for thisval in range(startval, endval, increment):
             hexbyte = "{:02x}".format(thisval)
             binbyte = self.hex2bin(hexbyte)
             intbyte = self.hex2int(hexbyte)
-            if not binbyte in excluded:
+            if binbyte not in excluded:
                 arraytable.append(hexbyte)
                 binarray.append(intbyte)
 
@@ -116,7 +115,7 @@ Function ported from mona.py"""
                 outputline = '"\\x' + arraytable[tablecnt]
             tablecnt += 1
             cnt += 1
-        if (cnt-1) < bytesperline:
+        if (cnt - 1) < bytesperline:
             outputline += '"\n'
         output += outputline
 
@@ -124,17 +123,15 @@ Function ported from mona.py"""
 
         binfilename = "bytearray.bin"
         arrayfile = "bytearray.txt"
-        binfile = open(binfilename,"wb")
+        binfile = open(binfilename, "wb")
         binfile.write(binarray)
         binfile.close()
 
-        txtfile = open(arrayfile,"w+")
+        txtfile = open(arrayfile, "w+")
         txtfile.write(output)
         txtfile.close()
 
-
-
-        info("Done, wrote {:d} bytes to file {:s}".format(len(arraytable),arrayfile))
+        info("Done, wrote {:d} bytes to file {:s}".format(len(arraytable), arrayfile))
         info("Binary output saved in {:s}".format(binfilename))
 
         return
@@ -144,7 +141,7 @@ Function ported from mona.py"""
         Converts a hex string (\\x??\\x??\\x??\\x??) to real hex bytes
 
         Arguments:
-        pattern - A string representing the bytes to convert 
+        pattern - A string representing the bytes to convert
 
         Return:
         the bytes
@@ -158,7 +155,7 @@ Function ported from mona.py"""
         return "".join(filter(self.permitted_char, hex))
 
     def hex2int(self, hex):
-        return int(hex,16)
+        return int(hex, 16)
 
     def permitted_char(self, s):
         if bool(re.match("^[A-Fa-f0-9]", s)):
@@ -166,5 +163,6 @@ Function ported from mona.py"""
         else:
             return False
 
+
 if __name__ == "__main__":
-    register_external_command( BytearrayCommand() )
+    register_external_command(BytearrayCommand())

@@ -1,9 +1,6 @@
 __AUTHOR__ = "hugsy"
 __VERSION__ = 0.1
 
-
-
-
 import collections
 
 
@@ -37,12 +34,10 @@ class FtraceExitBreakpoint(gdb.FinishBreakpoint):
             retval = get_register(current_arch.return_register)
 
         output = get_gef_setting("ftrace.output")
-        mode = "a"
         use_color = False
 
         if output is None:
             output = "/dev/stderr"
-            mode = "w"
             use_color = True
 
         with open(output, "w") as fd:
@@ -61,7 +56,7 @@ class FtraceExitBreakpoint(gdb.FinishBreakpoint):
 class FtraceCommand(GenericCommand):
     """Tracks a function given in parameter for arguments and return code."""
     _cmdline_ = "ftrace"
-    _syntax_  = "{:s} <function_name1>,<nb_args1> [<function_name2>,<nb_args2> ...]".format(_cmdline_)
+    _syntax_ = "{:s} <function_name1>,<nb_args1> [<function_name2>,<nb_args2> ...]".format(_cmdline_)
 
     def do_invoke(self, args):
         if len(args) < 1:
@@ -80,11 +75,12 @@ class FtraceCommand(GenericCommand):
 
     def cleanup(self, events):
         for bp in self.bkps:
-            if bp.retbp: bp.retbp.delete()
+            if bp.retbp:
+                bp.retbp.delete()
             bp.delete()
         gdb.events.exited.disconnect(self.cleanup)
         return
 
 
 if __name__ == "__main__":
-    register_external_command( FtraceCommand() )
+    register_external_command(FtraceCommand())

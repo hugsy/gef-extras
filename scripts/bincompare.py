@@ -14,18 +14,16 @@
 import getopt
 import gdb
 import os
-import re
-import sys
+
 
 class BincompareCommand(GenericCommand):
     """BincompareCommand: compare an binary file with the memory position looking for badchars."""
     _cmdline_ = "bincompare"
-    _syntax_  = "{:s} -f FILE -a MEMORY_ADDRESS [-h]".format(_cmdline_)
+    _syntax_ = "{:s} -f FILE -a MEMORY_ADDRESS [-h]".format(_cmdline_)
 
     def __init__(self):
         super(BincompareCommand, self).__init__(complete=gdb.COMPLETE_FILENAME)
         return
-
 
     def usage(self):
         h = self._syntax_
@@ -43,9 +41,11 @@ class BincompareCommand(GenericCommand):
         memory_data = None
 
         opts, args = getopt.getopt(argv, "f:a:ch")
-        for o,a in opts:
-            if   o == "-f": filename = a
-            elif o == "-a": start_addr = int(gdb.parse_and_eval(a))
+        for o, a in opts:
+            if o == "-f":
+                filename = a
+            elif o == "-a":
+                start_addr = int(gdb.parse_and_eval(a))
             elif o == "-h":
                 self.usage()
                 return
@@ -58,7 +58,7 @@ class BincompareCommand(GenericCommand):
             err("Especified file '{:s}' not exists".format(filename))
             return
 
-        f=open(filename, "rb")
+        f = open(filename, "rb")
         file_data = f.read()
         f.close()
 
@@ -74,13 +74,12 @@ class BincompareCommand(GenericCommand):
             err("Cannot reach memory {:#x}".format(start_addr))
             return
 
-
         result_table = []
         badchars = ""
         cnt = 0
         corrupted = -1
         for eachByte in file_data:
-            hexchar="{:02x}".format(eachByte)
+            hexchar = "{:02x}".format(eachByte)
             if cnt > len(memory_data):
                 result_table.append((hexchar, "--"))
                 corrupted = -1
@@ -101,14 +100,14 @@ class BincompareCommand(GenericCommand):
 
         info("Comparison result:")
         gef_print("    +-----------------------------------------------+")
-        for line in range(0, len(result_table), 16): 
+        for line in range(0, len(result_table), 16):
             pdata1 = []
             pdata2 = []
-            for i in range(line,line+16):
+            for i in range(line, line + 16):
                 if i < len(result_table):
                     pdata1.append(result_table[i][0])
                     pdata2.append(result_table[i][1])
-                
+
             self.print_line("{:02x}".format(line), pdata1, "file")
             self.print_line("  ", pdata2, "memory")
 
@@ -130,11 +129,13 @@ class BincompareCommand(GenericCommand):
         for d in data:
             l.append(d)
         r = 16 - len(l)
-        for i in range(0,r):
+        for i in range(0, r):
             l.append("--")
 
-        gef_print(" {:s} |{:s} {:s} {:s} {:s} {:s} {:s} {:s} {:s} {:s} {:s} {:s} {:s} {:s} {:s} {:s} {:s}| {:s}".format(line, l[0], l[1], l[2], l[3], l[4], l[5], l[6], l[7], l[8], l[9], l[10], l[11], l[12], l[13], l[14], l[15], label))
+        gef_print(" {:s} |{:s} {:s} {:s} {:s} {:s} {:s} {:s} {:s} {:s} {:s} {:s} {:s} {:s} {:s} {:s} {:s}| {:s}"
+                  .format(line, l[0], l[1], l[2], l[3], l[4], l[5], l[6], l[7], l[8],
+                          l[9], l[10], l[11], l[12], l[13], l[14], l[15], label))
 
 
 if __name__ == "__main__":
-    register_external_command( BincompareCommand() )
+    register_external_command(BincompareCommand())

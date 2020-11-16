@@ -14,8 +14,9 @@ sess = {
     "old_colors": {},
 }
 
+
 def is_current_elf_pie():
-    return checksec( get_filepath() )["PIE"]
+    return checksec(get_filepath())["PIE"]
 
 
 def get_rva(addr):
@@ -61,7 +62,7 @@ def only_if_active_rpyc_session(f):
 class RpycIdaCommand(GenericCommand):
     """RPyCIda root command"""
     _cmdline_ = "ida-rpyc"
-    _syntax_  = "{:s} (breakpoints|comments|info|highlight|jump)".format(_cmdline_)
+    _syntax_ = "{:s} (breakpoints|comments|info|highlight|jump)".format(_cmdline_)
     _example_ = "{:s}".format(_cmdline_)
 
     def __init__(self):
@@ -73,7 +74,6 @@ class RpycIdaCommand(GenericCommand):
         self.last_hl_ea = -1
         return
 
-
     @only_if_gdb_running
     @only_if_active_rpyc_session
     def do_invoke(self, argv):
@@ -84,7 +84,6 @@ class RpycIdaCommand(GenericCommand):
         if argv[0] == "synchronize" or self.get_setting("sync_cursor"):
             self.synchronize()
         return
-
 
     def synchronize(self):
         """Submit all active breakpoint addresses to IDA/BN."""
@@ -108,7 +107,7 @@ class RpycIdaCommand(GenericCommand):
 class RpycIdaHighlightCommand(RpycIdaCommand):
     """RPyC IDA: highlight root command"""
     _cmdline_ = "ida-rpyc highlight"
-    _syntax_  = "{:s} (add|del)".format(_cmdline_)
+    _syntax_ = "{:s} (add|del)".format(_cmdline_)
     _aliases_ = ["ida-rpyc hl", ]
     _example_ = "{:s}".format(_cmdline_)
 
@@ -125,7 +124,7 @@ class RpycIdaHighlightCommand(RpycIdaCommand):
 class RpycIdaHighlightAddCommand(RpycIdaHighlightCommand):
     """RPyC IDA: highlight a specific line in the IDB"""
     _cmdline_ = "ida-rpyc highlight add"
-    _syntax_  = "{:s} [*0xAddress|Symbol]".format(_cmdline_)
+    _syntax_ = "{:s} [*0xAddress|Symbol]".format(_cmdline_)
     _aliases_ = []
     _example_ = "{:s} main".format(_cmdline_)
 
@@ -145,7 +144,7 @@ class RpycIdaHighlightAddCommand(RpycIdaHighlightCommand):
         if is_current_elf_pie():
             addr = get_rva(addr)
 
-        color = int(argv[1], 0)  if len(argv) > 1 else 0x00ff00
+        color = int(argv[1], 0) if len(argv) > 1 else 0x00ff00
         ok("highlight ea={:#x} as {:#x}".format(addr, color))
         sess["old_colors"][addr] = sess["sock"].root.idc.get_color(addr, sess["sock"].root.idc.CIC_ITEM)
         sess["sock"].root.idc.set_color(addr, sess["sock"].root.idc.CIC_ITEM, color)
@@ -155,7 +154,7 @@ class RpycIdaHighlightAddCommand(RpycIdaHighlightCommand):
 class RpycIdaHighlightDeleteCommand(RpycIdaHighlightCommand):
     """RPyC IDA: remove the highlighting of the given line in the IDB"""
     _cmdline_ = "ida-rpyc highlight del"
-    _syntax_  = "{:s} [*0xAddress|Symbol]".format(_cmdline_)
+    _syntax_ = "{:s} [*0xAddress|Symbol]".format(_cmdline_)
     _aliases_ = []
     _example_ = "{:s} main".format(_cmdline_)
 
@@ -188,7 +187,7 @@ class RpycIdaHighlightDeleteCommand(RpycIdaHighlightCommand):
 class RpycIdaBreakpointCommand(RpycIdaCommand):
     """RPyC IDA: breakpoint root command"""
     _cmdline_ = "ida-rpyc breakpoints"
-    _syntax_  = "{:s} (add|del|list)".format(_cmdline_)
+    _syntax_ = "{:s} (add|del|list)".format(_cmdline_)
     _aliases_ = ["ida-rpyc bp", ]
     _example_ = "{:s}".format(_cmdline_)
 
@@ -205,7 +204,7 @@ class RpycIdaBreakpointCommand(RpycIdaCommand):
 class RpycIdaBreakpointListCommand(RpycIdaBreakpointCommand):
     """RPyC IDA: breakpoint list command"""
     _cmdline_ = "ida-rpyc breakpoints list"
-    _syntax_  = "{:s}".format(_cmdline_)
+    _syntax_ = "{:s}".format(_cmdline_)
     _aliases_ = []
     _example_ = "{:s}".format(_cmdline_)
 
@@ -225,7 +224,7 @@ class RpycIdaBreakpointListCommand(RpycIdaBreakpointCommand):
 class RpycIdaInfoSessionCommand(RpycIdaCommand):
     """RPyC IDA: display info about the current session"""
     _cmdline_ = "ida-rpyc info"
-    _syntax_  = "{:s}".format(_cmdline_)
+    _syntax_ = "{:s}".format(_cmdline_)
     _aliases_ = []
     _example_ = "{:s}".format(_cmdline_)
 
@@ -247,8 +246,8 @@ class RpycIdaInfoSessionCommand(RpycIdaCommand):
 class RpycIdaJumpCommand(RpycIdaCommand):
     """RPyC IDA: display info about the current session"""
     _cmdline_ = "ida-rpyc jump"
-    _syntax_  = "{:s} [0xaddress|symbol]".format(_cmdline_)
-    _aliases_ = ["ida-rpyc goto",]
+    _syntax_ = "{:s} [0xaddress|symbol]".format(_cmdline_)
+    _aliases_ = ["ida-rpyc goto"]
     _example_ = "{:s} main".format(_cmdline_)
 
     def __init__(self):
@@ -269,7 +268,7 @@ class RpycIdaJumpCommand(RpycIdaCommand):
 class RpycIdaCommentCommand(RpycIdaCommand):
     """RPyCIda comment root command"""
     _cmdline_ = "ida-rpyc comments"
-    _syntax_  = "{:s} (add|del)".format(_cmdline_)
+    _syntax_ = "{:s} (add|del)".format(_cmdline_)
     _aliases_ = ["ida-rpyc cmt", ]
     _example_ = "{:s}".format(_cmdline_)
 
@@ -286,7 +285,7 @@ class RpycIdaCommentCommand(RpycIdaCommand):
 class RpycIdaCommentAddCommand(RpycIdaCommentCommand):
     """RPyCIda add comment command"""
     _cmdline_ = "ida-rpyc comments add"
-    _syntax_  = "{:s} \"My comment\" [*0xaddress|register|symbol]".format(_cmdline_)
+    _syntax_ = "{:s} \"My comment\" [*0xaddress|register|symbol]".format(_cmdline_)
     _aliases_ = []
     _example_ = "{:s} \"I was here\" $pc".format(_cmdline_)
 
@@ -336,4 +335,4 @@ if __name__ == "__main__":
     ]
 
     for cmd in cmds:
-        register_external_command( cmd() )
+        register_external_command(cmd())

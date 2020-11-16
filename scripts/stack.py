@@ -2,12 +2,11 @@ __AUTHOR__ = "hugsy"
 __VERSION__ = 0.1
 
 
-
 class CurrentFrameStack(GenericCommand):
     """Show the entire stack of the current frame."""
     _cmdline_ = "current-stack-frame"
-    _syntax_  = "{:s}".format(_cmdline_)
-    _aliases_ = ["stack", "full-stack",]
+    _syntax_ = "{:s}".format(_cmdline_)
+    _aliases_ = ["stack", "full-stack"]
     _example_ = "{:s}".format(_cmdline_)
 
     @only_if_gdb_running
@@ -16,16 +15,14 @@ class CurrentFrameStack(GenericCommand):
         frame = gdb.selected_frame()
 
         if not frame.older():
-            reason = frame.unwind_stop_reason()
-            reason_str = gdb.frame_stop_reason_string( frame.unwind_stop_reason() )
+            reason_str = gdb.frame_stop_reason_string(frame.unwind_stop_reason())
             warn("Cannot determine frame boundary, reason: {:s}".format(reason_str))
             return
 
         saved_ip = frame.older().pc()
-        base_address_color = get_gef_setting("theme.dereference_base_address")
         stack_hi = long(frame.older().read_register("sp"))
         stack_lo = long(frame.read_register("sp"))
-        should_stack_grow_down = get_gef_setting("context.grow_stack_down") == True
+        should_stack_grow_down = get_gef_setting("context.grow_stack_down") is True
         results = []
 
         for offset, address in enumerate(range(stack_lo, stack_hi, ptrsize)):

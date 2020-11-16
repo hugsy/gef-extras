@@ -1,24 +1,20 @@
 __AUTHOR__ = "Minato-TW"
 __VERSION__ = 0.1
 
-
-
 import getopt
 import subprocess
 import gdb
 import os
 import re
-import sys
 import tempfile
-
 
 
 class RetDecCommand(GenericCommand):
     """Decompile code from GDB context using RetDec API."""
 
     _cmdline_ = "retdec"
-    _syntax_  = "{:s} [-r RANGE1-RANGE2] [-s SYMBOL] [-a] [-h]".format(_cmdline_)
-    _aliases_ = ["decompile",]
+    _syntax_ = "{:s} [-r RANGE1-RANGE2] [-s SYMBOL] [-a] [-h]".format(_cmdline_)
+    _aliases_ = ["decompile"]
     _example_ = "{:s} -s main".format(_cmdline_)
 
     def __init__(self):
@@ -62,7 +58,7 @@ class RetDecCommand(GenericCommand):
 
         for opt, arg in opts:
             if opt == "-r":
-                range_from, range_to = map(lambda x: int(x,16), arg.split("-", 1))
+                range_from, range_to = map(lambda x: int(x, 16), arg.split("-", 1))
                 fd, filename = tempfile.mkstemp(dir=self.get_setting("path"))
                 with os.fdopen(fd, "wb") as f:
                     length = range_to - range_from
@@ -124,16 +120,15 @@ class RetDecCommand(GenericCommand):
 
     def send_to_retdec(self, params, cmd, logfile):
         try:
-            log = open(logfile, "wb")
-            subprocess.run(cmd, shell = True, stdout = log)
-            log.close()
-        except:
-            log.close()
+            with open(logfile, "wb") as log:
+                subprocess.run(cmd, shell=True, stdout=log)
+        except Exception:
             msg = "Error encountered during decompilation. Check the log file at {}".format(logfile)
             err(msg)
             return False
 
         return True
+
 
 if __name__ == "__main__":
     register_external_command(RetDecCommand())
