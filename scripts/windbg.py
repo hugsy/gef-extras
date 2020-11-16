@@ -240,8 +240,8 @@ class WindbgRCommand(GenericCommand):
                 else: print()
 
     def arch_reg_width(self):
-        if get_arch().startswith("i386"): return 6
         if get_arch().startswith("i386:x86-64"): return 3
+        if get_arch().startswith("i386"): return 6
         if get_arch().startswith('aarch64'): return 4
         raise NotImplemented
 
