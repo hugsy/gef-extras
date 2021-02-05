@@ -1,9 +1,7 @@
 __AUTHOR__ = "hugsy"
-__VERSION__ = 0.1
+__VERSION__ = 0.2
 
 import os, tempfile
-
-
 
 TEMPLATE="""#!/usr/bin/env python3
 import sys, os
@@ -16,11 +14,9 @@ context.update(
     terminal=["tmux", "split-window", "-h", "-p 65"],
 )
 
-
 REMOTE = False
 TARGET=os.path.realpath("{filepath}")
 elf = ELF(TARGET)
-
 
 def attach(r):
     if not REMOTE:
@@ -31,6 +27,7 @@ def attach(r):
 
 def exploit(r):
     attach(r)
+    # r.sendlineafter(b"> ", b"HelloPwn" )
     r.interactive()
     return
 
@@ -42,13 +39,13 @@ if __name__ == "__main__":
         REMOTE = False
         r = process([TARGET,])
     exploit(r)
-    sys.exit(0)
+    exit(0)
 """
 
 class ExploitTemplateCommand(GenericCommand):
     """Generates a exploit template."""
     _cmdline_ = "exploit-template"
-    _syntax_  = "{:s} [local|remote=TARGET:PORT]".format(_cmdline_)
+    _syntax_  = "{:s} [local|remote TARGET:PORT]".format(_cmdline_)
     _aliases_ = ["skeleton", ]
 
     @only_if_gdb_running
@@ -57,13 +54,19 @@ class ExploitTemplateCommand(GenericCommand):
             self.usage()
             return
 
-        if args[0]!="local" and not args[0].startswith("remote="):
+        scope = args[0].lower()
+        if scope not in ("local", "remote"):
             self.usage()
             return
 
         target, port = "127.0.0.1", "1337"
-        if args[0].startswith("remote"):
-            target, port = args[0][len("remote="):].split(":")
+        if scope == "remote":
+            if len(args) < 2:
+                self.usage()
+                return
+
+            target, port = args[1].split(":", 1)
+            port = int(port)
 
         bkps = [b.location for b in gdb.breakpoints()]
         temp = TEMPLATE.format(

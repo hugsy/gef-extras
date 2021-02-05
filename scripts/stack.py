@@ -2,12 +2,11 @@ __AUTHOR__ = "hugsy"
 __VERSION__ = 0.1
 
 
-
 class CurrentFrameStack(GenericCommand):
     """Show the entire stack of the current frame."""
     _cmdline_ = "current-stack-frame"
     _syntax_  = "{:s}".format(_cmdline_)
-    _aliases_ = ["stack", "full-stack",]
+    _aliases_ = ["stack-view",]
     _example_ = "{:s}".format(_cmdline_)
 
     @only_if_gdb_running
@@ -16,15 +15,14 @@ class CurrentFrameStack(GenericCommand):
         frame = gdb.selected_frame()
 
         if not frame.older():
-            reason = frame.unwind_stop_reason()
+            #reason = frame.unwind_stop_reason()
             reason_str = gdb.frame_stop_reason_string( frame.unwind_stop_reason() )
             warn("Cannot determine frame boundary, reason: {:s}".format(reason_str))
             return
 
         saved_ip = frame.older().pc()
-        base_address_color = get_gef_setting("theme.dereference_base_address")
-        stack_hi = long(frame.older().read_register("sp"))
-        stack_lo = long(frame.read_register("sp"))
+        stack_hi = align_address(int(frame.older().read_register("sp")))
+        stack_lo = align_address(int(frame.read_register("sp")))
         should_stack_grow_down = get_gef_setting("context.grow_stack_down") == True
         results = []
 
@@ -36,17 +34,17 @@ class CurrentFrameStack(GenericCommand):
 
         if should_stack_grow_down:
             results.reverse()
-            print(titlify("Stack top (higher address)"))
+            gef_print(titlify("Stack top (higher address)"))
         else:
-            print(titlify("Stack bottom (lower address)"))
+            gef_print(titlify("Stack bottom (lower address)"))
 
         for res in results:
-            print(res)
+            gef_print(res)
 
         if should_stack_grow_down:
-            print(titlify("Stack bottom (lower address)"))
+            gef_print(titlify("Stack bottom (lower address)"))
         else:
-            print(titlify("Stack top (higher address)"))
+            gef_print(titlify("Stack top (higher address)"))
         return
 
 
