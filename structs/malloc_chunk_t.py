@@ -4,12 +4,13 @@
 # @_hugsy_
 #
 
-from ctypes import *
+import ctypes as ct
 
-class malloc_chunk_t(Structure):
+
+class malloc_chunk_t(ct.Structure):
     _fields_ = [
-        ("prev_size", c_uint64),
-        ("size", c_uint64),
+        ("prev_size", ct.c_uint64),
+        ("size", ct.c_uint64),
     ]
 
     _values_ = []

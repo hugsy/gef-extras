@@ -33,10 +33,19 @@ And same for the structures (to be used by [`pcustom` command](https://gef.readt
 gef➤  gef config pcustom.struct_path /path/to/gef-extras/structs
 ```
 
-And finally for the syscall tables:
+And for the syscall tables:
 ```
 gef➤  gef config syscall-args.path /path/to/gef-extras/syscall-tables
 ```
+
+And finally for the glibc function call args definition:
+```
+gef➤  gef config context.libc_args True
+gef➤  gef config context.libc_args_path /path/to/gef-extras/glibc-function-args
+```
+
+Check out the [complete doc](glibc_function_args.md) on libc argument support.
+
 
 Now run and enjoy all the fun!
 

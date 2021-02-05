@@ -1,7 +1,8 @@
 __AUTHOR__ = "hugsy"
 __VERSION__ = 0.2
 
-import os, tempfile
+import os
+import tempfile
 
 TEMPLATE="""#!/usr/bin/env python3
 import sys, os
@@ -41,6 +42,7 @@ if __name__ == "__main__":
     exploit(r)
     exit(0)
 """
+
 
 class ExploitTemplateCommand(GenericCommand):
     """Generates a exploit template."""
@@ -86,4 +88,4 @@ class ExploitTemplateCommand(GenericCommand):
 
 
 if __name__ == "__main__":
-    register_external_command( ExploitTemplateCommand() )
+    register_external_command(ExploitTemplateCommand())
