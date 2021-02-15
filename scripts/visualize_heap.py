@@ -71,7 +71,6 @@ def collect_known_values() -> dict:
             j += 1
             chunk = next_chunk
 
-    print(result)
     return result
 
 
