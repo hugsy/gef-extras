@@ -1,4 +1,5 @@
 import ctypes as ct
+from ctypes import POINTER
 
 # http://sourceware.org/git/?p=glibc.git;a=blob;f=libio/libio.h;hb=765de945efc5d5602999b2999fe8abdf04881370#l67
 _IO_MAGIC = 0xFBAD0000
