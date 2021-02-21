@@ -116,6 +116,8 @@ class VisualizeHeapChunksCommand(GenericCommand):
         known_ranges = collect_known_ranges()
         known_values = collect_known_values()
 
+        aggregate_nuls = 0
+
         while True:
             addr = cur.chunk_base_address
 
@@ -130,6 +132,20 @@ class VisualizeHeapChunksCommand(GenericCommand):
             for off in range(0, cur.size, cur.ptrsize):
                 __addr = addr + off
                 value = align_address( read_int_from_memory(__addr) )
+                if value == 0:
+                    if aggregate_nuls == 0:
+                        aggregate_nuls = 1
+                    else:
+                        if off != 0:
+                            aggregate_nuls += 1
+                            continue
+
+                if aggregate_nuls > 3:
+                    gef_print("        ↓")
+                    gef_print("      [...]")
+                    gef_print("        ↓")
+                    aggregate_nuls = 0
+
                 text = "".join([chr(b) if 0x20 <= b < 0x7F else "." for b in read_memory(__addr, cur.ptrsize)])
                 line = "{}    {}".format(format_address(__addr),  Color.colorify(format_address(value), colors[idx % len(colors)]))
                 line+= "    {}".format(text)
