@@ -19,7 +19,7 @@ def get_tcache_count():
     return count
 
 
-@lru_cache
+@lru_cache(128)
 def collect_known_values() -> dict:
     # { 0xaddress : "name" ,}
     arena = get_main_arena()
@@ -74,7 +74,7 @@ def collect_known_values() -> dict:
     return result
 
 
-@lru_cache
+@lru_cache(128)
 def collect_known_ranges()->list:
     result = []
     for entry in get_process_maps():
@@ -106,7 +106,7 @@ class VisualizeHeapChunksCommand(GenericCommand):
             err("The heap has not been initialized")
             return
 
-        top =  align_address(arena.top)
+        top =  align_address(int(arena.top))
         base = align_address(heap_base_address)
 
         colors = [ "cyan", "red", "yellow", "blue", "green" ]
