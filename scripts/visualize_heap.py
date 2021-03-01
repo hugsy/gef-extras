@@ -32,7 +32,7 @@ def collect_known_values() -> dict:
         while True:
             if chunk is None:
                 break
-            result[chunk.address] = "tcachebins[{}/{}]".format(i, j)
+            result[chunk.address] = "tcachebins[{}/{}] (size={:#x})".format(i, j, (i+1)*0x10+0x10)
             next_chunk_address = chunk.get_fwd_ptr(True)
             if not next_chunk_address: break
             next_chunk = GlibcChunk(next_chunk_address)
@@ -100,6 +100,7 @@ class VisualizeHeapChunksCommand(GenericCommand):
 
     @only_if_gdb_running
     def do_invoke(self, argv):
+        ptrsize = current_arch.ptrsize
         heap_base_address = int(argv[0]) if len(argv) else HeapBaseFunction.heap_base()
         arena = get_main_arena()
         if not arena.top:
@@ -116,13 +117,15 @@ class VisualizeHeapChunksCommand(GenericCommand):
         known_ranges = collect_known_ranges()
         known_values = collect_known_values()
 
-        aggregate_nuls = 0
+
 
         while True:
             addr = cur.chunk_base_address
+            aggregate_nuls = 0
 
             if addr == top:
-                gef_print("{}    {}".format(format_address(addr), Color.colorify(LEFT_ARROW + "Top Chunk", "red bold")))
+                gef_print("{}    {}   {}".format(format_address(addr), format_address(read_int_from_memory(addr)) , Color.colorify(LEFT_ARROW + "Top Chunk", "red bold")))
+                gef_print("{}    {}   {}".format(format_address(addr+ptrsize), format_address(read_int_from_memory(addr+ptrsize)) , Color.colorify(LEFT_ARROW + "Top Chunk Size", "red bold")))
                 break
 
             if cur.size == 0:
@@ -138,9 +141,10 @@ class VisualizeHeapChunksCommand(GenericCommand):
                     else:
                         if off != 0:
                             aggregate_nuls += 1
-                            continue
+                            if off != cur.size - cur.ptrsize:
+                                continue
 
-                if aggregate_nuls > 3:
+                if aggregate_nuls > 2:
                     gef_print("        ↓")
                     gef_print("      [...]")
                     gef_print("        ↓")
