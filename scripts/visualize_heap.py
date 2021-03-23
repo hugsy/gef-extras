@@ -120,10 +120,10 @@ class VisualizeHeapChunksCommand(GenericCommand):
 
 
         while True:
-            addr = cur.chunk_base_address
+            base = cur.chunk_base_address
             aggregate_nuls = 0
 
-            if addr == top:
+            if base == top:
                 gef_print("{}    {}   {}".format(format_address(addr), format_address(read_int_from_memory(addr)) , Color.colorify(LEFT_ARROW + "Top Chunk", "red bold")))
                 gef_print("{}    {}   {}".format(format_address(addr+ptrsize), format_address(read_int_from_memory(addr+ptrsize)) , Color.colorify(LEFT_ARROW + "Top Chunk Size", "red bold")))
                 break
@@ -133,16 +133,13 @@ class VisualizeHeapChunksCommand(GenericCommand):
                 break
 
             for off in range(0, cur.size, cur.ptrsize):
-                __addr = addr + off
-                value = align_address( read_int_from_memory(__addr) )
+                addr = base + off
+                value = read_int_from_memory(addr)
                 if value == 0:
-                    if aggregate_nuls == 0:
-                        aggregate_nuls = 1
-                    else:
-                        if off != 0:
-                            aggregate_nuls += 1
-                            if off != cur.size - cur.ptrsize:
-                                continue
+                    if off != 0 and off != cur.size - cur.ptrsize:
+                        aggregate_nuls += 1
+                        if aggregate_nuls > 1:
+                            continue
 
                 if aggregate_nuls > 2:
                     gef_print("        ↓")
@@ -150,10 +147,11 @@ class VisualizeHeapChunksCommand(GenericCommand):
                     gef_print("        ↓")
                     aggregate_nuls = 0
 
-                text = "".join([chr(b) if 0x20 <= b < 0x7F else "." for b in read_memory(__addr, cur.ptrsize)])
-                line = "{}    {}".format(format_address(__addr),  Color.colorify(format_address(value), colors[idx % len(colors)]))
+
+                text = "".join([chr(b) if 0x20 <= b < 0x7F else "." for b in read_memory(addr, cur.ptrsize)])
+                line = "{}    {}".format(format_address(addr),  Color.colorify(format_address(value), colors[idx % len(colors)]))
                 line+= "    {}".format(text)
-                derefs = DereferenceCommand.dereference_from(__addr)
+                derefs = dereference_from(addr)
                 if len(derefs) > 2:
                     line+= "    [{}{}]".format(LEFT_ARROW, derefs[-1])
 
