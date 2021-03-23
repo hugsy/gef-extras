@@ -14,6 +14,8 @@ def nfastbins():
 
 
 def get_tcache_count():
+    if get_libc_version() < (2, 27):
+        return 0
     count_addr = HeapBaseFunction.heap_base() + 2*current_arch.ptrsize
     count = p8(count_addr) if get_libc_version() < (2, 30) else p16(count_addr)
     return count
@@ -26,18 +28,19 @@ def collect_known_values() -> dict:
     result = {}
 
     # tcache
-    for i in range(GlibcArena.TCACHE_MAX_BINS):
-        chunk = arena.tcachebin(i)
-        j = 0
-        while True:
-            if chunk is None:
-                break
-            result[chunk.address] = "tcachebins[{}/{}] (size={:#x})".format(i, j, (i+1)*0x10+0x10)
-            next_chunk_address = chunk.get_fwd_ptr(True)
-            if not next_chunk_address: break
-            next_chunk = GlibcChunk(next_chunk_address)
-            j += 1
-            chunk = next_chunk
+    if get_libc_version() >= (2, 27):
+        for i in range(GlibcArena.TCACHE_MAX_BINS):
+            chunk = arena.tcachebin(i)
+            j = 0
+            while True:
+                if chunk is None:
+                    break
+                result[chunk.address] = "tcachebins[{}/{}] (size={:#x})".format(i, j, (i+1)*0x10+0x10)
+                next_chunk_address = chunk.get_fwd_ptr(True)
+                if not next_chunk_address: break
+                next_chunk = GlibcChunk(next_chunk_address)
+                j += 1
+                chunk = next_chunk
 
     # fastbins
     for i in range(nfastbins()):
@@ -82,7 +85,6 @@ def collect_known_ranges()->list:
             continue
         path = os.path.basename(entry.path)
         result.append( (range(entry.page_start, entry.page_end), path) )
-
     return result
 
 
@@ -116,8 +118,6 @@ class VisualizeHeapChunksCommand(GenericCommand):
 
         known_ranges = collect_known_ranges()
         known_values = collect_known_values()
-
-
 
         while True:
             base = cur.chunk_base_address
