@@ -7,6 +7,7 @@ import gdb
 import os
 import re
 import tempfile
+from shlex import quote
 
 
 class RetDecCommand(GenericCommand):
@@ -48,8 +49,8 @@ class RetDecCommand(GenericCommand):
             "raw_endian": "big" if is_big_endian() else "little",
         }
 
-        raw_cmd = "'{}' -m {} --raw-section-vma {} --raw-entry-point {} -e {} -f plain -a {} -o {} -l {} '{}' --cleanup"
-        bin_cmd = "'{}' -m {} -e {} -f plain -a {} -o {} -l {} '{}' --cleanup"
+        raw_cmd = "{} -m {} --raw-section-vma {} --raw-entry-point {} -e {} -f plain -a {} -o {} -l {} {} --cleanup"
+        bin_cmd = "{} -m {} -e {} -f plain -a {} -o {} -l {} {} --cleanup"
 
         opts = getopt.getopt(argv, "r:s:ah")[0]
         if not opts:
@@ -94,9 +95,9 @@ class RetDecCommand(GenericCommand):
         fname = "{}/{}.{}".format(path, os.path.basename(params["input_file"]), params["target_language"])
         logfile = "{}/{}.log".format(path, os.path.basename(params["input_file"]))
         if params["mode"] == "bin":
-            cmd = bin_cmd.format(retdec_decompiler, params["mode"], params["raw_endian"], params["architecture"], fname, params["target_language"], params["input_file"])
+            cmd = bin_cmd.format(quote(retdec_decompiler), params["mode"], params["raw_endian"], params["architecture"], fname, params["target_language"], quote(params["input_file"]))
         else:
-            cmd = raw_cmd.format(retdec_decompiler, params["mode"], params["raw_section_vma"], params["raw_entry_point"], params["raw_endian"], params["architecture"], fname, params["target_language"], params["input_file"])
+            cmd = raw_cmd.format(quote(retdec_decompiler), params["mode"], params["raw_section_vma"], params["raw_entry_point"], params["raw_endian"], params["architecture"], fname, params["target_language"], quote(params["input_file"]))
 
         if self.send_to_retdec(params, cmd, logfile) is False:
             return
