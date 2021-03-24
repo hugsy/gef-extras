@@ -48,8 +48,8 @@ class RetDecCommand(GenericCommand):
             "raw_endian": "big" if is_big_endian() else "little",
         }
 
-        raw_cmd = "{}  -m {} --raw-section-vma {} --raw-entry-point {} -e {} -f plain -a {} -o {} -l {} '{}' --cleanup"
-        bin_cmd = "{}  -m {} -e {} -f plain -a {} -o {} -l {} '{}' --cleanup"
+        raw_cmd = "'{}' -m {} --raw-section-vma {} --raw-entry-point {} -e {} -f plain -a {} -o {} -l {} '{}' --cleanup"
+        bin_cmd = "'{}' -m {} -e {} -f plain -a {} -o {} -l {} '{}' --cleanup"
 
         opts = getopt.getopt(argv, "r:s:ah")[0]
         if not opts:
