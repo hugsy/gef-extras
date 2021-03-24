@@ -48,8 +48,8 @@ class RetDecCommand(GenericCommand):
             "raw_endian": "big" if is_big_endian() else "little",
         }
 
-        raw_cmd = "{}  -m {} --raw-section-vma {} --raw-entry-point {} -e {} -f plain -a {} -o {} -l {} {} --cleanup"
-        bin_cmd = "{}  -m {} -e {} -f plain -a {} -o {} -l {} {} --cleanup"
+        raw_cmd = "{}  -m {} --raw-section-vma {} --raw-entry-point {} -e {} -f plain -a {} -o {} -l {} '{}' --cleanup"
+        bin_cmd = "{}  -m {} -e {} -f plain -a {} -o {} -l {} '{}' --cleanup"
 
         opts = getopt.getopt(argv, "r:s:ah")[0]
         if not opts:
@@ -73,7 +73,7 @@ class RetDecCommand(GenericCommand):
                 except gdb.error:
                     err("No symbol named '{:s}'".format(arg))
                     return
-                range_from = long(value.address)
+                range_from = int(value.address)
                 fd, filename = tempfile.mkstemp(dir=self.get_setting("path"))
                 with os.fdopen(fd, "wb") as f:
                     f.write(read_memory(range_from, get_function_length(arg)))
