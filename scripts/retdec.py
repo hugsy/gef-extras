@@ -7,7 +7,6 @@ import gdb
 import os
 import re
 import tempfile
-from shlex import quote
 
 
 class RetDecCommand(GenericCommand):
@@ -48,9 +47,6 @@ class RetDecCommand(GenericCommand):
             "target_language": "c",
             "raw_endian": "big" if is_big_endian() else "little",
         }
-
-#        raw_cmd = "{} -m {} --raw-section-vma {} --raw-entry-point {} -e {} -f plain -a {} -o {} -l {} {} --cleanup"
-#        bin_cmd = "{} -m {} -e {} -f plain -a {} -o {} -l {} {} --cleanup"
 
         opts = getopt.getopt(argv, "r:s:ah")[0]
         if not opts:
@@ -116,7 +112,7 @@ class RetDecCommand(GenericCommand):
               "-e", params["raw_endian"],
               "-f", "plain",
               "-a", params["architecture"],
-              "-o",fname,
+              "-o", fname,
               "-l", params["target_language"],
               params["input_file"],
               "--cleanup"
