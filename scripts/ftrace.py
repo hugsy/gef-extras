@@ -47,7 +47,7 @@ class FtraceExitBreakpoint(gdb.FinishBreakpoint):
                 fd.write("{:s}() = {} {{\n".format(self.args["location"], retval))
             for reg in self.args["regs"].keys():
                 regval = self.args["regs"][reg]
-                fd.write("\t{} {} {}\n".format(reg, RIGHT_ARROW, RIGHT_ARROW.join(dereference(regval))))
+                fd.write("\t{} {} {}\n".format(reg, RIGHT_ARROW, RIGHT_ARROW.join(dereference_from(regval))))
             fd.write("}\n")
             fd.flush()
         return False

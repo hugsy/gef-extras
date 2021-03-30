@@ -103,7 +103,7 @@ class VisualizeHeapChunksCommand(GenericCommand):
     @only_if_gdb_running
     def do_invoke(self, argv):
         ptrsize = current_arch.ptrsize
-        heap_base_address = int(argv[0]) if len(argv) else HeapBaseFunction.heap_base()
+        heap_base_address = HeapBaseFunction.heap_base()
         arena = get_main_arena()
         if not arena.top:
             err("The heap has not been initialized")
@@ -151,7 +151,7 @@ class VisualizeHeapChunksCommand(GenericCommand):
                 text = "".join([chr(b) if 0x20 <= b < 0x7F else "." for b in read_memory(addr, cur.ptrsize)])
                 line = "{}    {}".format(format_address(addr),  Color.colorify(format_address(value), colors[idx % len(colors)]))
                 line+= "    {}".format(text)
-                derefs = dereference(addr)
+                derefs = dereference_from(addr)
                 if len(derefs) > 2:
                     line+= "    [{}{}]".format(LEFT_ARROW, derefs[-1])
 
