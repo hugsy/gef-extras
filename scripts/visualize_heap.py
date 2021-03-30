@@ -151,7 +151,7 @@ class VisualizeHeapChunksCommand(GenericCommand):
                 text = "".join([chr(b) if 0x20 <= b < 0x7F else "." for b in read_memory(addr, cur.ptrsize)])
                 line = "{}    {}".format(format_address(addr),  Color.colorify(format_address(value), colors[idx % len(colors)]))
                 line+= "    {}".format(text)
-                derefs = dereference_from(addr)
+                derefs = dereference(addr)
                 if len(derefs) > 2:
                     line+= "    [{}{}]".format(LEFT_ARROW, derefs[-1])
 
