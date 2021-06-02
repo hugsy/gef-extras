@@ -23,7 +23,7 @@ def attach(r):
     if not REMOTE:
         bkps = {bkps}
         cmds = []
-        gdb.attach(r, '\\n'.join(["break *{{:#x}}".format(x) for x in bkps] + cmds))
+        gdb.attach(r, '\\n'.join(["break {{}}".format(x) for x in bkps] + cmds))
     return
 
 def exploit(r):
