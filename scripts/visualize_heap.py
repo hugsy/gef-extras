@@ -23,21 +23,19 @@ def get_tcache_count():
 
 @lru_cache(128)
 def collect_known_values() -> dict:
-    # { 0xaddress : "name" ,}
     arena = get_main_arena()
-    result = {}
+    result = {} # format is { 0xaddress : "name" ,}
 
     # tcache
     if get_libc_version() >= (2, 27):
+        tcache_addr = GlibcHeapTcachebinsCommand.find_tcache()
         for i in range(GlibcHeapTcachebinsCommand.TCACHE_MAX_BINS):
-            chunk = arena.tcachebin(i)
+            chunk, _ = GlibcHeapTcachebinsCommand.tcachebin(tcache_addr, i)
             j = 0
             while True:
                 if chunk is None:
                     break
-                tcache_addr = GlibcHeapTcachebinsCommand.find_tcache()
-                chunk,count = GlibcHeapTcachebinsCommand.tcachebin(tcache_addr,i)                    
-                result[chunk.address] = "tcachebins[{}/{}] (size={:#x})".format(i, j, (i+1)*0x10+0x10)
+                result[chunk.data_address] = "tcachebins[{}/{}] (size={:#x})".format(i, j, (i+1)*0x10+0x10)
                 next_chunk_address = chunk.get_fwd_ptr(True)
                 if not next_chunk_address: break
                 next_chunk = GlibcChunk(next_chunk_address)
@@ -51,7 +49,7 @@ def collect_known_values() -> dict:
         while True:
             if chunk is None:
                 break
-            result[chunk.address] = "fastbins[{}/{}]".format(i, j)
+            result[chunk.data_address] = "fastbins[{}/{}]".format(i, j)
             next_chunk_address = chunk.get_fwd_ptr(True)
             if not next_chunk_address: break
             next_chunk = GlibcChunk(next_chunk_address)
@@ -69,7 +67,7 @@ def collect_known_values() -> dict:
         j = 0
         while True:
             if chunk is None: break
-            result[chunk.address] = "{}[{}/{}]".format(name, i, j)
+            result[chunk.data_address] = "{}[{}/{}]".format(name, i, j)
             next_chunk_address = chunk.get_fwd_ptr(True)
             if not next_chunk_address: break
             next_chunk = GlibcChunk(next_chunk_address, from_base=True)
@@ -122,7 +120,7 @@ class VisualizeHeapChunksCommand(GenericCommand):
         known_values = collect_known_values()
 
         while True:
-            base = cur.chunk_base_address
+            base = cur.base_address
             aggregate_nuls = 0
 
             if base == top:
@@ -177,7 +175,7 @@ class VisualizeHeapChunksCommand(GenericCommand):
             if next_chunk is None:
                 break
 
-            next_chunk_addr = Address(value=next_chunk.address)
+            next_chunk_addr = Address(value=next_chunk.data_address)
             if not next_chunk_addr.valid:
                 warn("next chunk probably corrupted")
                 break
