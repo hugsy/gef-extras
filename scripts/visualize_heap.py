@@ -29,7 +29,7 @@ def collect_known_values() -> dict:
 
     # tcache
     if get_libc_version() >= (2, 27):
-        for i in range(GlibcArena.TCACHE_MAX_BINS):
+        for i in range(GlibcHeapTcachebinsCommand.TCACHE_MAX_BINS):
             chunk = arena.tcachebin(i)
             j = 0
             while True:
