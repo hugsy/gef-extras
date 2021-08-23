@@ -35,6 +35,8 @@ def collect_known_values() -> dict:
             while True:
                 if chunk is None:
                     break
+                tcache_addr = GlibcHeapTcachebinsCommand.find_tcache()
+                chunk,count = GlibcHeapTcachebinsCommand.tcachebin(tcache_addr,i)                    
                 result[chunk.address] = "tcachebins[{}/{}] (size={:#x})".format(i, j, (i+1)*0x10+0x10)
                 next_chunk_address = chunk.get_fwd_ptr(True)
                 if not next_chunk_address: break
