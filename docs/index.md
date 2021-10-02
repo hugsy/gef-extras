@@ -2,9 +2,9 @@
 
 ![gef-logo](https://camo.githubusercontent.com/695432d57b3a21a250f81ed5e323658239b8bf25/68747470733a2f2f692e696d6775722e636f6d2f763350557150782e706e67)
 
-
-[![Documentation Status](https://readthedocs.org/projects/gef-extras/badge/?version=latest&token=05e48c43fba3df26ad1ccf33353180e4b515681b727e2f3011013a915f953084)](https://gef-extras.readthedocs.io/en/latest/?badge=latest)
-
+| **Documentation** | **Community** |
+|--|--|
+| [![Documentation Status](https://readthedocs.org/projects/gef-extras/badge/?version=latest&token=05e48c43fba3df26ad1ccf33353180e4b515681b727e2f3011013a915f953084)](https://gef-extras.readthedocs.io/en/latest/?badge=latest) | [![Discord](https://img.shields.io/badge/Discord-GDB--GEF-yellow)](https://discordapp.com/channels/705160148813086841/705160148813086843) |
 
 This is an open repository of external scripts and structures to be used by [GDB Enhanced Features (GEF)](https://github.com/hugsy/gef). To use those scripts once `gef` is setup, simply clone this repository and update your GEF settings like this:
 
@@ -79,13 +79,6 @@ Well, that's ok! Just create an [Issue](https://github.com/hugsy/gef-extras/issu
 explaining what cool feature/idea/command you had in mind! Even better, write
 the documentation (Markdown format) for your command. It'll make easier for
 people who wants to integrate it!
-
-
-### Community ###
-
-| IRC                                                                                                                     | Gitter                                                                                                                                                   | Slack                                                                                         | Discord                                                                                                                                 |
-| ----------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| [![IRC](https://img.shields.io/badge/freenode-%23%23gef-yellowgreen.svg)](https://webchat.freenode.net/?channels=##gef) | [![Gitter](https://badges.gitter.im/gdb-gef/community.svg)](https://gitter.im/gdb-gef/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge) | [![Slack](https://img.shields.io/badge/Slack-GDB--GEF-blueviolet)](https://gdb-gef.slack.com) | [![Slack](https://img.shields.io/badge/Discord-GDB--GEF-yellow)](https://discordapp.com/channels/705160148813086841/705160148813086843) |
 
 
 ### Enjoy and happy hacking ! ###
