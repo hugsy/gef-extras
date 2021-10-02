@@ -23,7 +23,7 @@ def get_tcache_count():
 
 @lru_cache(128)
 def collect_known_values() -> dict:
-    arena = get_main_arena()
+    arena = get_glibc_arena()
     result = {} # format is { 0xaddress : "name" ,}
 
     # tcache
@@ -104,7 +104,7 @@ class VisualizeHeapChunksCommand(GenericCommand):
     def do_invoke(self, argv):
         ptrsize = current_arch.ptrsize
         heap_base_address = HeapBaseFunction.heap_base()
-        arena = get_main_arena()
+        arena = get_glibc_arena()
         if not arena.top:
             err("The heap has not been initialized")
             return
