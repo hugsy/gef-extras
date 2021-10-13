@@ -1,10 +1,13 @@
-## GEF Extras: more goodies for [`GEF`](https://github.com/hugsy/gef) ##
+<p align="center">
+  <img src="https://i.imgur.com/KW9Bt8D.png" alt="logo"/>
+</p>
 
-![gef-logo](https://camo.githubusercontent.com/695432d57b3a21a250f81ed5e323658239b8bf25/68747470733a2f2f692e696d6775722e636f6d2f763350557150782e706e67)
 
-| **Documentation** | **Community** |
-|--|--|
-| [![Documentation Status](https://readthedocs.org/projects/gef-extras/badge/?version=latest&token=05e48c43fba3df26ad1ccf33353180e4b515681b727e2f3011013a915f953084)](https://gef-extras.readthedocs.io/en/latest/?badge=latest) | [![Discord](https://img.shields.io/badge/Discord-GDB--GEF-yellow)](https://discordapp.com/channels/705160148813086841/705160148813086843) |
+## Extra goodies for [`GEF`](https://github.com/hugsy/gef) 
+
+| **Documentation** | **Community** | **Try it** |
+|--|--|--|
+| [![Documentation Status](https://readthedocs.org/projects/gef-extras/badge/?version=latest&token=05e48c43fba3df26ad1ccf33353180e4b515681b727e2f3011013a915f953084)](https://gef-extras.readthedocs.io/en/latest/?badge=latest) | [![Discord](https://img.shields.io/badge/Discord-GDB--GEF-yellow)](https://discordapp.com/channels/705160148813086841/705160148813086843) | [![live](https://img.shields.io/badge/GEF-Live-brightgreen)](https://demo.gef.blah.cat) (`gef`/`gef-demo`) |
 
 This is an open repository of external scripts and structures to be used by [GDB Enhanced Features (GEF)](https://github.com/hugsy/gef). To use those scripts once `gef` is setup, simply clone this repository and update your GEF settings like this:
 
