@@ -128,15 +128,15 @@ class RetDecCommand(GenericCommand):
             # trim first 6 lines of watermark, last 5 lines of metainfo
             lines = [line.rstrip() for line in f][6:-5]
 
-            for line in lines:
-                # try to fix the unknown with the current context
-                for match in pattern.finditer(line):
-                    s = match.group(1)
-                    pc = int(s, 16)
-                    insn = gef_current_instruction(pc)
-                    if insn.location:
-                        line = line.replace("unknown_{:s}".format(s), insn.location)
-                print(line)
+        for line in lines:
+            # try to fix the unknown with the current context
+            for match in pattern.finditer(line):
+                s = match.group(1)
+                pc = int(s, 16)
+                insn = gef_current_instruction(pc)
+                if insn.location:
+                    line = line.replace("unknown_{:s}".format(s), insn.location)
+            print(line)
         return
 
     def send_to_retdec(self, params, cmd, logfile):
