@@ -123,11 +123,18 @@ class RetDecCommand(GenericCommand):
         ok("Saved as '{:s}'".format(fname))
         with open(fname, "r") as f:
             pattern = re.compile(r"unknown_([a-f0-9]+)")
-            for line in f:
-                line = line.strip()
-                if not line or line.startswith("//"):
-                    continue
-                # try to fix the unknown with the current context
+
+            # only keep relevant parts of decompilation
+            # trim first 6 lines of watermark, last 5 lines of metainfo
+            lines = []
+            for x in f:
+                lines.append(x)
+            lines = lines[:len(lines)-5][6:]
+
+            for line in lines:
+                line = line.rstrip()
+
+            # try to fix the unknown with the current context
                 for match in pattern.finditer(line):
                     s = match.group(1)
                     pc = int(s, 16)
