@@ -126,15 +126,10 @@ class RetDecCommand(GenericCommand):
 
             # only keep relevant parts of decompilation
             # trim first 6 lines of watermark, last 5 lines of metainfo
-            lines = []
-            for x in f:
-                lines.append(x)
-            lines = lines[:len(lines)-5][6:]
+            lines = [line.rstrip() for line in f][6:-5]
 
             for line in lines:
-                line = line.rstrip()
-
-            # try to fix the unknown with the current context
+                # try to fix the unknown with the current context
                 for match in pattern.finditer(line):
                     s = match.group(1)
                     pc = int(s, 16)
