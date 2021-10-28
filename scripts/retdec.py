@@ -125,7 +125,6 @@ class RetDecCommand(GenericCommand):
             return
 
         ok("Saved as '{:s}'".format(fname))
-        pattern = re.compile(r"unknown_([a-f0-9]+)")
         with open(fname, "r") as f:
 
             # only keep relevant parts of decompilation
