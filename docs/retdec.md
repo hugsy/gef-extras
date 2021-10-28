@@ -31,7 +31,7 @@ gef➤ gef save
 ```
 gef➤ decompile -a
 ```
-![gef-retdec-full](https://i.imgur.com/PzBXf3U.png)
+![gef-retdec-full](https://i.imgur.com/58VSHt0.png)
 
    * By providing the option `-r START:END`, `gef` will submit only the raw
      bytes contained within the range specified as argument.
@@ -42,4 +42,17 @@ gef➤ decompile -a
 ```
 gef➤ decompile -s main
 ```
-![gef-retdec-symbol-main](https://i.imgur.com/76Yl9iD.png)
+![gef-retdec-symbol-main](https://i.imgur.com/QXaTqyM.png)
+
+
+## Syntax Highlighting
+
+Retdec now supports syntax highlighting for all C decompilations with the use of Pygments.
+
+Available themes can be found [here](https://github.com/pygments/pygments/blob/8e9f9cbec9ff496a1846602e32af27ffba52f5f7/pygments/styles/__init__.py).
+
+You can change themes by running
+```py
+gef config retdec.theme THEME_NAME
+gef save # remember to save your config!
+```
