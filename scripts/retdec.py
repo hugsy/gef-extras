@@ -126,7 +126,6 @@ class RetDecCommand(GenericCommand):
 
         ok("Saved as '{:s}'".format(fname))
         with open(fname, "r") as f:
-
             # only keep relevant parts of decompilation
             # trim first 6 lines of watermark, last 5 lines of metainfo
             lines = f.readlines()[6:-5]
