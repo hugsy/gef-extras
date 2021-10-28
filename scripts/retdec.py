@@ -7,7 +7,9 @@ import gdb
 import os
 import re
 import tempfile
-
+from pygments import highlight
+from pygments.lexers import CLexer
+from pygments.formatters import Terminal256Formatter
 
 class RetDecCommand(GenericCommand):
     """Decompile code from GDB context using RetDec API."""
@@ -21,6 +23,7 @@ class RetDecCommand(GenericCommand):
         super(RetDecCommand, self).__init__(complete=gdb.COMPLETE_SYMBOL)
         self.add_setting("path", GEF_TEMP_DIR, "Path to store the decompiled code")
         self.add_setting("retdec_path", "", "Path to the retdec installation")
+        self.add_setting("theme", "default", "Theme for pygments syntax highlighting")
         return
 
     @only_if_gdb_running
@@ -87,6 +90,7 @@ class RetDecCommand(GenericCommand):
 
         # Set up variables
         path = self.get_setting("path")
+        theme = self.get_setting("theme")
         params["input_file"] = filename
         fname = "{}/{}.{}".format(path, os.path.basename(params["input_file"]), params["target_language"])
         logfile = "{}/{}.log".format(path, os.path.basename(params["input_file"]))
@@ -126,7 +130,7 @@ class RetDecCommand(GenericCommand):
 
             # only keep relevant parts of decompilation
             # trim first 6 lines of watermark, last 5 lines of metainfo
-            lines = [line.rstrip() for line in f][6:-5]
+            lines = [line for line in f][6:-5]
 
         for line in lines:
             # try to fix the unknown with the current context
@@ -136,7 +140,7 @@ class RetDecCommand(GenericCommand):
                 insn = gef_current_instruction(pc)
                 if insn.location:
                     line = line.replace("unknown_{:s}".format(s), insn.location)
-            print(line)
+            print(highlight(line, CLexer(), Terminal256Formatter(style=theme)), end='')
         return
 
     def send_to_retdec(self, params, cmd, logfile):
