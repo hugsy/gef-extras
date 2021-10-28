@@ -56,6 +56,6 @@ default, emacs, friendly, colorful, autumn, murphy, manni, material, monokai, pe
 
 You can change themes by running
 ```py
-gef config retdec.theme <THEME_NAME>
+gef config retdec.theme THEME_NAME
 gef save # remember to save your config!
 ```
