@@ -125,8 +125,8 @@ class RetDecCommand(GenericCommand):
             return
 
         ok("Saved as '{:s}'".format(fname))
+        pattern = re.compile(r"unknown_([a-f0-9]+)")
         with open(fname, "r") as f:
-            pattern = re.compile(r"unknown_([a-f0-9]+)")
 
             # only keep relevant parts of decompilation
             # trim first 6 lines of watermark, last 5 lines of metainfo
