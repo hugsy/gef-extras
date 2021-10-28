@@ -130,7 +130,7 @@ class RetDecCommand(GenericCommand):
 
             # only keep relevant parts of decompilation
             # trim first 6 lines of watermark, last 5 lines of metainfo
-            lines = f.read().split("\n")[6:-5]
+            lines = f.readlines()[6:-5]
 
         for line in lines:
             # try to name unknown functions based on current program context
