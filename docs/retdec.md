@@ -47,7 +47,7 @@ gef➤ decompile -s main
 
 ## Syntax Highlighting
 
-Retdec now supports Syntax Highlighting for all C decompilations with the use of Pygments.
+Retdec now supports syntax highlighting for all C decompilations with the use of Pygments.
 
 Supported themes are: 
 ```
