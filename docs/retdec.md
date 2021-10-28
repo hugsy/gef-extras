@@ -47,15 +47,15 @@ gef➤ decompile -s main
 
 ## Syntax Highlighting
 
-Retdec now supports Syntax Highlighting for all C decompilations with the use of Pygments.
+Retdec now supports syntax highlighting for all C decompilations with the use of Pygments.
 
 Supported themes are: 
 ```
 default, emacs, friendly, colorful, autumn, murphy, manni, material, monokai, perldoc, pastie, borland, trac, native, fruity, bw, vim, vs, tango, rrt, xcode, igor, paraiso-light, paraiso-dark, lovelace, algol, algol_nu, arduino, rainbow_dash, abap, solarized-dark, solarized-light, sas, stata, stata-light, stata-dark, inkpot, zenburn, gruvbox-dark, gruvbox-light
 ```
 
-You can change themes by
+You can change themes by running
 ```py
-gef config retdec.theme <THEME_NAME>
+gef config retdec.theme THEME_NAME
 gef save # remember to save your config!
 ```
