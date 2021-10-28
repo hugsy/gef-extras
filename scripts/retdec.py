@@ -133,14 +133,14 @@ class RetDecCommand(GenericCommand):
             lines = [line for line in f][6:-5]
 
         for line in lines:
-            # try to fix the unknown with the current context
+            # try to name unknown functions based on current program context
             for match in pattern.finditer(line):
                 s = match.group(1)
                 pc = int(s, 16)
                 insn = gef_current_instruction(pc)
                 if insn.location:
                     line = line.replace("unknown_{:s}".format(s), insn.location)
-            print(highlight(line, CLexer(), Terminal256Formatter(style=theme)), end='')
+            gef_print(highlight(line, CLexer(), Terminal256Formatter(style=theme)), end="")
         return
 
     def send_to_retdec(self, params, cmd, logfile):
