@@ -105,3 +105,5 @@ class M68K(Architecture):
     @classmethod
     def mprotect_asm(cls, addr, size, perm):
         raise NotImplementedError()
+
+SUPPORTED_ARCHITECTURES["M68K"] = (M68K, Elf.M68K: M68K)
