@@ -14,11 +14,11 @@ class BreakOnLoadSharedLibrary(gdb.Breakpoint):
         return
 
     def stop(self):
-        reg = current_arch.function_parameters[0]
+        reg = gef.arch.function_parameters[0]
         addr = lookup_address(get_register(reg))
         if addr.value == 0:
             return False
-        path = read_cstring_from_memory(addr.value, max_length=None)
+        path = gef.memory.read_cstring(addr.value, max_length=None)
         if path.endswith(self.module_name):
             return True
         return False
@@ -60,7 +60,7 @@ def windbg_execute_until(cnt, cmd, stop_condition):
         cnt -= 1
         set_gef_setting("context.enable", False)
         gdb.execute(cmd)
-        insn = gef_current_instruction(current_arch.pc)
+        insn = gef_current_instruction(gef.arch.pc)
         if stop_condition(insn):
             break
     set_gef_setting("context.enable", True)
@@ -75,7 +75,7 @@ class WindbgTcCommand(GenericCommand):
     @only_if_gdb_running
     def do_invoke(self, argv):
         cnt = int(argv[0]) if len(argv) else 0xffffffffffffffff
-        windbg_execute_until(cnt, "stepi", current_arch.is_call)
+        windbg_execute_until(cnt, "stepi", gef.arch.is_call)
         gdb.execute("context")
         return
 
@@ -88,7 +88,7 @@ class WindbgPcCommand(GenericCommand):
     @only_if_gdb_running
     def do_invoke(self, argv):
         cnt = int(argv[0]) if len(argv) else 0xffffffffffffffff
-        windbg_execute_until(cnt, "nexti", current_arch.is_call)
+        windbg_execute_until(cnt, "nexti", gef.arch.is_call)
         gdb.execute("context")
         return
 
@@ -101,7 +101,7 @@ class WindbgTtCommand(GenericCommand):
     @only_if_gdb_running
     def do_invoke(self, argv):
         cnt = int(argv[0]) if len(argv) else 0xffffffffffffffff
-        windbg_execute_until(cnt, "stepi", current_arch.is_ret)
+        windbg_execute_until(cnt, "stepi", gef.arch.is_ret)
         gdb.execute("context")
         return
 
@@ -114,7 +114,7 @@ class WindbgPtCommand(GenericCommand):
     @only_if_gdb_running
     def do_invoke(self, argv):
         cnt = int(argv[0]) if len(argv) else 0xffffffffffffffff
-        windbg_execute_until(cnt, "nexti", current_arch.is_ret)
+        windbg_execute_until(cnt, "nexti", gef.arch.is_ret)
         gdb.execute("context")
         return
 
@@ -129,7 +129,7 @@ class WindbgPtcCommand(GenericCommand):
         cnt = int(argv[0]) if len(argv) else 0xffffffffffffffff
 
         def fn(x):
-            current_arch.is_ret(x) or current_arch.is_call(x)
+            gef.arch.is_ret(x) or gef.arch.is_call(x)
 
         windbg_execute_until(cnt, "nexti", fn)
         gdb.execute("context")
@@ -177,7 +177,7 @@ class WindbgUCommand(GenericCommand):
     @only_if_gdb_running
     def do_invoke(self, argv):
         length = 16
-        location = current_arch.pc
+        location = gef.arch.pc
         for arg in argv:
             if arg[0] in ("l", "L"):
                 length = int(arg[1:])
@@ -352,8 +352,8 @@ def __windbg_prompt__(current_prompt):
     p = "0:000 "
     p += "\u27a4  "
 
-    if get_gef_setting("gef.readline_compat") is True or \
-       get_gef_setting("gef.disable_color") is True:
+    if gef.config["gef.readline_compat"] is True or \
+       gef.config["gef.disable_color"] is True:
         return gef_prompt
 
     if is_alive():
@@ -370,7 +370,7 @@ def __default_prompt__(x):
 
 
 # Prompt
-set_gef_setting("gef.use-windbg-prompt", False, bool, "Use WinDBG like prompt")
+gef.config["gef.use-windbg-prompt"] = GefSetting(False, description="Use WinDBG like prompt")
 gdb.prompt_hook = __default_prompt__
 
 # Aliases
