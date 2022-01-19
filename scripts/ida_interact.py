@@ -30,8 +30,8 @@ def ida_rpyc_resync(evt):
 
 def reconnect():
     try:
-        host = get_gef_setting("ida-rpyc.host")
-        port = get_gef_setting("ida-rpyc.port")
+        host = gef.config["ida-rpyc.host"]
+        port = gef.config["ida-rpyc.port"]
         sock = rpyc.connect(host, port)
 
         gef_on_stop_hook(ida_rpyc_resync)

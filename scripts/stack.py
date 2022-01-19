@@ -23,7 +23,7 @@ class CurrentFrameStack(GenericCommand):
         saved_ip = frame.older().pc()
         stack_hi = align_address(int(frame.older().read_register("sp")))
         stack_lo = align_address(int(frame.read_register("sp")))
-        should_stack_grow_down = get_gef_setting("context.grow_stack_down") == True
+        should_stack_grow_down = gef.config["context.grow_stack_down"] == True
         results = []
 
         for offset, address in enumerate(range(stack_lo, stack_hi, ptrsize)):

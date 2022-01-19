@@ -33,7 +33,7 @@ class FtraceExitBreakpoint(gdb.FinishBreakpoint):
         else:
             retval = get_register(current_arch.return_register)
 
-        output = get_gef_setting("ftrace.output")
+        output = gef.config["ftrace.output"]
         use_color = False
 
         if output is None:
