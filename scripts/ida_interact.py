@@ -68,9 +68,9 @@ class RpycIdaCommand(GenericCommand):
     def __init__(self):
         global sess
         super(RpycIdaCommand, self).__init__(prefix=True)
-        self.add_setting("host", "127.0.0.1", "IDA host IP address")
-        self.add_setting("port", 18812, "IDA host port")
-        self.add_setting("sync_cursor", False, "Enable real-time $pc synchronisation")
+        self["host"] = ("127.0.0.1", "IDA host IP address")
+        self["port"] = (18812, "IDA host port")
+        self["sync_cursor"] = (False, "Enable real-time $pc synchronisation")
         self.last_hl_ea = -1
         return
 

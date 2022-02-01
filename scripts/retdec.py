@@ -21,9 +21,9 @@ class RetDecCommand(GenericCommand):
 
     def __init__(self):
         super(RetDecCommand, self).__init__(complete=gdb.COMPLETE_SYMBOL)
-        self.add_setting("path", GEF_TEMP_DIR, "Path to store the decompiled code")
-        self.add_setting("retdec_path", "", "Path to the retdec installation")
-        self.add_setting("theme", "default", "Theme for pygments syntax highlighting")
+        self["path"] = (GEF_TEMP_DIR, "Path to store the decompiled code")
+        self["retdec_path"] = ("", "Path to the retdec installation")
+        self["theme"] = ("default", "Theme for pygments syntax highlighting")
         return
 
     @only_if_gdb_running

@@ -47,7 +47,7 @@ class V8DereferenceCommand(GenericCommand):
 
     def __init__(self):
         super(V8DereferenceCommand, self).__init__(complete=gdb.COMPLETE_LOCATION)
-        self.add_setting("max_recursion", 7, "Maximum level of pointer recursion")
+        self["max_recursion"] = (7, "Maximum level of pointer recursion")
         gef_on_exit_hook(del_isolate_root)
         return
 
