@@ -32,11 +32,11 @@ def del_isolate_root(event):
     isolate_root = None
 
 def format_compressed(addr):
-    heap_color = get_gef_setting("theme.address_heap")
+    heap_color = gef.config["theme.address_heap"]
     return "{:s}{:s}".format(Color.colorify("0x{:08x}".format(addr>>32), "gray"),
                                Color.colorify("{:08x}".format(addr&0xffffffff), heap_color))
-    
-@register_command
+
+@register_external_command
 class V8DereferenceCommand(GenericCommand):
     """(v8) Dereference recursively from an address and display information. Handles v8 specific values like tagged and compressed pointers"""
 
@@ -47,14 +47,14 @@ class V8DereferenceCommand(GenericCommand):
 
     def __init__(self):
         super(V8DereferenceCommand, self).__init__(complete=gdb.COMPLETE_LOCATION)
-        self.add_setting("max_recursion", 7, "Maximum level of pointer recursion")
+        self["max_recursion"] = (7, "Maximum level of pointer recursion")
         gef_on_exit_hook(del_isolate_root)
         return
 
     @staticmethod
     def pprint_dereferenced(addr, off):
-        base_address_color = get_gef_setting("theme.dereference_base_address")
-        registers_color = get_gef_setting("theme.dereference_register_value")
+        base_address_color = gef.config["theme.dereference_base_address"]
+        registers_color = gef.config["theme.dereference_register_value"]
 
         regs = [(k, get_register(k)) for k in current_arch.all_registers]
 
@@ -137,7 +137,7 @@ class V8DereferenceCommand(GenericCommand):
             err("Unmapped address")
             return
 
-        if get_gef_setting("context.grow_stack_down") is True:
+        if gef.config["context.grow_stack_down"] is True:
             from_insnum = nb * (self.repeat_count + 1) - 1
             to_insnum = self.repeat_count * nb - 1
             insnum_step = -1
@@ -159,9 +159,9 @@ class V8DereferenceCommand(GenericCommand):
         if not is_alive():
             return ([format_address(addr),], None)
 
-        code_color = get_gef_setting("theme.dereference_code")
-        string_color = get_gef_setting("theme.dereference_string")
-        max_recursion = get_gef_setting("dereference.max_recursion") or 10
+        code_color = gef.config["theme.dereference_code"]
+        string_color = gef.config["theme.dereference_string"]
+        max_recursion = gef.config["dereference.max_recursion"] or 10
         addr = lookup_address(align_address(int(addr)))
         msg = ([format_address(addr.value),], [])
         seen_addrs = set()#tuple(set(), set())
@@ -192,8 +192,8 @@ class V8DereferenceCommand(GenericCommand):
                             else:
                                 msg[i].append("        {:#0{ma}x}".format( val, ma=( 10 )) )
                     return msg
-                    
-                
+
+
         while addr.section and max_recursion:
             if addr.value in seen_addrs:
                 msg[0].append("[loop detected]")
@@ -243,5 +243,3 @@ class V8DereferenceCommand(GenericCommand):
             break
 
         return msg
-
-register_external_command(V8DereferenceCommand())

@@ -10,3 +10,4 @@ nav:
 - Skeleton: skel.md
 - WinDbg: windbg.md
 - Error: error.md
+- ida-rpyc: ida_rpyc.md

@@ -1,26 +1,72 @@
 import functools
+from typing import Any, List, Set, Dict, Optional
 import gdb
 import rpyc
 import pprint
 
+
 __AUTHOR__ = "hugsy"
-__VERSION__ = 0.1
+__VERSION__ = 0.2
 __DESCRIPTION_ = """Control headlessly IDA from GEF using RPyC"""
 
+class RemoteDecompilerSession:
+    sock: Optional[int] = None
+    breakpoints: Set[str] = set()
+    old_colors: Dict[int, str] = {}
 
-sess = {
-    "sock": None,
-    "breakpoints": set(),
-    "old_colors": {},
-}
+    # IDA aliases
+    @property
+    def idc(self):
+        return self.sock.root.idc
+
+    @property
+    def idaapi(self):
+        return self.sock.root.idaapi
+
+    def reconnect(self) -> bool:
+        try:
+            host = gef.config["ida-rpyc.host"]
+            port = gef.config["ida-rpyc.port"]
+            self.sock = rpyc.connect(host, port)
+            gef_on_stop_hook(ida_rpyc_resync)
+            gef_on_continue_hook(ida_rpyc_resync)
+            return False
+        except ConnectionRefusedError:
+            self.sock = None
+            gef_on_stop_unhook(ida_rpyc_resync)
+            gef_on_continue_unhook(ida_rpyc_resync)
+        return False
+
+    def print_info(self) -> None:
+        connection_status = "Connection status to "\
+                            f"{gef.config['ida-rpyc.host']}:{gef.config['ida-rpyc.port']} ... "
+        if self.sock is None:
+            warn(f"{connection_status} {Color.redify('DISCONNECTED')}")
+            return
+
+        ok(f"{connection_status} {Color.greenify('CONNECTED')}")
+
+        major, minor = self.idaapi.IDA_SDK_VERSION // 100, self.idaapi.IDA_SDK_VERSION % 100
+        info(f"Version: {Color.boldify('IDA Pro')} v{major}.{minor}")
+
+        info("Breakpoints")
+        gef_print(str(self.breakpoints))
+
+        info("Colors")
+        gef_print(str(self.old_colors))
+        return
+
+
+sess = RemoteDecompilerSession()
 
 
 def is_current_elf_pie():
-    return checksec(get_filepath())["PIE"]
+    sp = checksec(str(gef.session.file))
+    return sp["PIE"] == True
 
 
 def get_rva(addr):
-    base_address = [x.page_start for x in get_process_maps() if x.path == get_filepath()][0]
+    base_address = [x.page_start for x in gef.memory.maps if x.path == get_filepath()][0]
     return addr - base_address
 
 
@@ -28,33 +74,17 @@ def ida_rpyc_resync(evt):
     return gdb.execute("ida-rpyc synchronize", from_tty=True)
 
 
-def reconnect():
-    try:
-        host = get_gef_setting("ida-rpyc.host")
-        port = get_gef_setting("ida-rpyc.port")
-        sock = rpyc.connect(host, port)
-
-        gef_on_stop_hook(ida_rpyc_resync)
-        gef_on_continue_hook(ida_rpyc_resync)
-    except ConnectionRefusedError:
-        sock = None
-        gef_on_stop_unhook(ida_rpyc_resync)
-        gef_on_continue_unhook(ida_rpyc_resync)
-    return sock
-
-
 def only_if_active_rpyc_session(f):
     """Decorator wrapper to check if the RPyC session is running."""
     @functools.wraps(f)
     def wrapper(*args, **kwargs):
         global sess
-
-        for i in range(2):
-            if sess["sock"]:
+        for _ in range(2):
+            if sess.sock:
                 return f(*args, **kwargs)
-            sess["sock"] = reconnect()
+            sess.reconnect()
 
-        if not sess["sock"]:
+        if not sess.sock:
             warn("No RPyC session running")
     return wrapper
 
@@ -68,9 +98,9 @@ class RpycIdaCommand(GenericCommand):
     def __init__(self):
         global sess
         super(RpycIdaCommand, self).__init__(prefix=True)
-        self.add_setting("host", "127.0.0.1", "IDA host IP address")
-        self.add_setting("port", 18812, "IDA host port")
-        self.add_setting("sync_cursor", False, "Enable real-time $pc synchronisation")
+        self["host"] = ("127.0.0.1", "IDA host IP address")
+        self["port"] = (18812, "IDA host port")
+        self["sync_cursor"] = (False, "Enable real-time $pc synchronisation")
         self.last_hl_ea = -1
         return
 
@@ -81,25 +111,24 @@ class RpycIdaCommand(GenericCommand):
             self.usage()
             return
 
-        if argv[0] == "synchronize" or self.get_setting("sync_cursor"):
+        if argv[0] == "synchronize" or self["sync_cursor"]:
             self.synchronize()
         return
 
     def synchronize(self):
         """Submit all active breakpoint addresses to IDA/BN."""
-        pc = current_arch.pc
-        vmmap = get_process_maps()
+        pc = gef.arch.pc
+        vmmap = gef.memory.maps
         base_address = min([x.page_start for x in vmmap if x.path == get_filepath()])
         end_address = max([x.page_end for x in vmmap if x.path == get_filepath()])
         if not (base_address <= pc < end_address):
             return
 
         if self.last_hl_ea >= 0:
-            gdb.execute("ida-rpyc highlight del {:#x}".format(self.last_hl_ea))
+            gdb.execute(f"ida-rpyc highlight del {self.last_hl_ea:#x}")
 
-        gdb.execute("ida-rpyc jump {:#x}".format(pc))
-
-        gdb.execute("ida-rpyc highlight add {:#x}".format(pc))
+        gdb.execute(f"ida-rpyc jump {pc:#x}")
+        gdb.execute(f"ida-rpyc highlight add {pc:#x}")
         self.last_hl_ea = pc
         return
 
@@ -134,20 +163,15 @@ class RpycIdaHighlightAddCommand(RpycIdaHighlightCommand):
 
     @only_if_gdb_running
     @only_if_active_rpyc_session
-    def do_invoke(self, argv):
-        global sess
-        if not argv:
-            self.usage()
-            return
-
-        addr = current_arch.pc if not argv else parse_address(argv[0])
-        if is_current_elf_pie():
-            addr = get_rva(addr)
-
-        color = int(argv[1], 0) if len(argv) > 1 else 0x00ff00
-        ok("highlight ea={:#x} as {:#x}".format(addr, color))
-        sess["old_colors"][addr] = sess["sock"].root.idc.get_color(addr, sess["sock"].root.idc.CIC_ITEM)
-        sess["sock"].root.idc.set_color(addr, sess["sock"].root.idc.CIC_ITEM, color)
+    @parse_arguments({"location": "$pc", }, {"--color": 0x00ff00})
+    def do_invoke(self, _: List[str], **kwargs: Any) -> None:
+        args = kwargs["arguments"]
+        ea = parse_address(args.location)
+        if is_current_elf_pie(): ea = get_rva(ea)
+        color = args.color
+        ok("highlight ea={:#x} as {:#x}".format(ea, color))
+        sess.old_colors[ea] = sess.idc.get_color(ea, sess.idc.CIC_ITEM)
+        sess.idc.set_color(ea, sess.idc.CIC_ITEM, color)
         return
 
 
@@ -164,23 +188,19 @@ class RpycIdaHighlightDeleteCommand(RpycIdaHighlightCommand):
 
     @only_if_gdb_running
     @only_if_active_rpyc_session
-    def do_invoke(self, argv):
-        global sess
-        if not argv:
-            self.usage()
+    @parse_arguments({"location": "$pc",}, {})
+    def do_invoke(self, _: List[str], **kwargs: Any) -> None:
+        args = kwargs["arguments"]
+        ea = parse_address(args.location)
+        if is_current_elf_pie(): ea = get_rva(ea)
+
+        if ea not in sess.old_colors:
+            warn("{:#x} was not highlighted".format(ea))
             return
 
-        addr = current_arch.pc if not argv else parse_address(argv[0])
-        if is_current_elf_pie():
-            addr = get_rva(addr)
-
-        if addr not in sess["old_colors"]:
-            warn("{:#x} was not highlighted".format(addr))
-            return
-
-        color = sess["old_colors"].pop(addr)
-        ok("unhighlight ea={:#x} back to {:#x}".format(addr, color))
-        sess["sock"].root.idc.set_color(addr, sess["sock"].root.idc.CIC_ITEM, color)
+        color = sess.old_colors.pop(ea)
+        ok("unhighlight ea={:#x} back to {:#x}".format(ea, color))
+        sess.idc.set_color(ea, sess.idc.CIC_ITEM, color)
         return
 
 
@@ -197,7 +217,7 @@ class RpycIdaBreakpointCommand(RpycIdaCommand):
 
     @only_if_gdb_running
     @only_if_active_rpyc_session
-    def do_invoke(self, argv):
+    def do_invoke(self, _):
         pass
 
 
@@ -205,7 +225,7 @@ class RpycIdaBreakpointListCommand(RpycIdaBreakpointCommand):
     """RPyC IDA: breakpoint list command"""
     _cmdline_ = "ida-rpyc breakpoints list"
     _syntax_ = "{:s}".format(_cmdline_)
-    _aliases_ = []
+    _aliases_ = ["ida-rpyc bl", ]
     _example_ = "{:s}".format(_cmdline_)
 
     def __init__(self):
@@ -217,7 +237,7 @@ class RpycIdaBreakpointListCommand(RpycIdaBreakpointCommand):
     def do_invoke(self, argv):
         if not argv:
             self.usage()
-        pprint.pprint(sess["breakpoints"])
+        pprint.pprint(sess.breakpoints)
         return
 
 
@@ -235,11 +255,7 @@ class RpycIdaInfoSessionCommand(RpycIdaCommand):
     @only_if_gdb_running
     @only_if_active_rpyc_session
     def do_invoke(self, argv):
-        if not argv:
-            self.usage()
-            return
-
-        pprint.pprint(sess)
+        sess.print_info()
         return
 
 
@@ -256,12 +272,12 @@ class RpycIdaJumpCommand(RpycIdaCommand):
 
     @only_if_gdb_running
     @only_if_active_rpyc_session
-    def do_invoke(self, argv):
-        addr = current_arch.pc if not argv else parse_address(argv[0])
-        if is_current_elf_pie():
-            addr = get_rva(addr)
-        # ok("jumping to {:#x}".format(addr))
-        sess["sock"].root.idaapi.jumpto(addr)
+    @parse_arguments({"location": "$pc", }, {})
+    def do_invoke(self, _: List[str], **kwargs: Any) -> None:
+        args = kwargs["arguments"]
+        ea = parse_address(args.location)
+        if is_current_elf_pie(): ea = get_rva(ea)
+        sess.idaapi.jumpto(ea)
         return
 
 
@@ -278,16 +294,16 @@ class RpycIdaCommentCommand(RpycIdaCommand):
 
     @only_if_gdb_running
     @only_if_active_rpyc_session
-    def do_invoke(self, argv):
-        return
+    def do_invoke(self, _: List[str], **kwargs: Any) -> None:
+        pass
 
 
 class RpycIdaCommentAddCommand(RpycIdaCommentCommand):
     """RPyCIda add comment command"""
     _cmdline_ = "ida-rpyc comments add"
-    _syntax_ = "{:s} \"My comment\" [*0xaddress|register|symbol]".format(_cmdline_)
+    _syntax_ = "{:s} \"My comment\" --location [*0xaddress|register|symbol]".format(_cmdline_)
     _aliases_ = []
-    _example_ = "{:s} \"I was here\" $pc".format(_cmdline_)
+    _example_ = "{:s} \"I was here\" --location $pc".format(_cmdline_)
 
     def __init__(self):
         super(RpycIdaCommand, self).__init__(complete=gdb.COMPLETE_SYMBOL) #pylint: disable=bad-super-call
@@ -295,44 +311,54 @@ class RpycIdaCommentAddCommand(RpycIdaCommentCommand):
 
     @only_if_gdb_running
     @only_if_active_rpyc_session
-    def do_invoke(self, argv):
+    @parse_arguments({"comment": ""}, {"--location": "$pc", })
+    def do_invoke(self, _: List[str], **kwargs: Any) -> None:
+        args = kwargs["arguments"]
+        ea = parse_address(args.location)
+        if is_current_elf_pie(): ea = get_rva(ea)
+        comment = args.comment
         repeatable_comment = 1
+        sess.idc.set_cmt(ea, comment, repeatable_comment)
+        return
 
-        if not argv:
-            self.usage()
-            return
 
-        comment = argv[0]
-        ea = current_arch.pc
+class RpycIdaCommentDeleteCommand(RpycIdaCommentCommand):
+    """RPyCIda delete comment command"""
+    _cmdline_ = "ida-rpyc comments del"
+    _syntax_ = "{:s} [LOCATION]".format(_cmdline_)
+    _aliases_ = []
+    _example_ = "{:s} $pc".format(_cmdline_)
 
-        if len(argv) > 1:
-            ea = parse_address(argv[1])
+    def __init__(self):
+        super(RpycIdaCommand, self).__init__(complete=gdb.COMPLETE_SYMBOL) #pylint: disable=bad-super-call
+        return
 
-        if is_current_elf_pie():
-            ea = get_rva(ea)
-
-        idc = sess["sock"].root.idc
-        idc.set_cmt(ea, comment, repeatable_comment)
+    @only_if_gdb_running
+    @only_if_active_rpyc_session
+    @parse_arguments({"location": "$pc", }, {})
+    def do_invoke(self, _: List[str], **kwargs: Any) -> None:
+        args = kwargs["arguments"]
+        ea = parse_address(args.location)
+        if is_current_elf_pie(): ea = get_rva(ea)
+        repeatable_comment = 1
+        sess.idc.set_cmt(ea, "", repeatable_comment)
         return
 
 
 if __name__ == "__main__":
     cmds = [
         RpycIdaCommand,
-
         RpycIdaInfoSessionCommand,
         RpycIdaJumpCommand,
-
         RpycIdaBreakpointCommand,
         RpycIdaBreakpointListCommand,
-
         RpycIdaCommentCommand,
         RpycIdaCommentAddCommand,
-
+        RpycIdaCommentDeleteCommand,
         RpycIdaHighlightCommand,
         RpycIdaHighlightAddCommand,
         RpycIdaHighlightDeleteCommand,
     ]
 
     for cmd in cmds:
-        register_external_command(cmd())
+        register_external_command(cmd)

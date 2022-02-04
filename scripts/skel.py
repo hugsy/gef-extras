@@ -1,5 +1,5 @@
 __AUTHOR__ = "hugsy"
-__VERSION__ = 0.2
+__VERSION__ = 0.3
 
 import os
 import tempfile
@@ -44,6 +44,7 @@ if __name__ == "__main__":
 """
 
 
+@register_external_command
 class ExploitTemplateCommand(GenericCommand):
     """Generates a exploit template."""
     _cmdline_ = "exploit-template"
@@ -74,8 +75,8 @@ class ExploitTemplateCommand(GenericCommand):
         temp = TEMPLATE.format(
             target=target,
             port=port,
-            arch="amd64" if "x86-64" in get_arch() else "i386",
-            endian="big" if is_big_endian() else "little",
+            arch="amd64" if "x86-64" in gef.arch.arch else "i386",
+            endian="big" if gef.arch.endianness == Endianness.BIG_ENDIAN else "little",
             filepath=get_filepath(),
             bkps=bkps
         )
@@ -86,6 +87,3 @@ class ExploitTemplateCommand(GenericCommand):
         ok("Exploit generated in '{:s}'".format(fname))
         return
 
-
-if __name__ == "__main__":
-    register_external_command(ExploitTemplateCommand())

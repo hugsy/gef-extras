@@ -11,6 +11,7 @@ from pygments import highlight
 from pygments.lexers import CLexer
 from pygments.formatters import Terminal256Formatter
 
+@register_external_command
 class RetDecCommand(GenericCommand):
     """Decompile code from GDB context using RetDec API."""
 
@@ -21,19 +22,19 @@ class RetDecCommand(GenericCommand):
 
     def __init__(self):
         super(RetDecCommand, self).__init__(complete=gdb.COMPLETE_SYMBOL)
-        self.add_setting("path", GEF_TEMP_DIR, "Path to store the decompiled code")
-        self.add_setting("retdec_path", "", "Path to the retdec installation")
-        self.add_setting("theme", "default", "Theme for pygments syntax highlighting")
+        self["path"] = (GEF_TEMP_DIR, "Path to store the decompiled code")
+        self["retdec_path"] = ("", "Path to the retdec installation")
+        self["theme"] = ("default", "Theme for pygments syntax highlighting")
         return
 
     @only_if_gdb_running
     def do_invoke(self, argv):
-        arch = current_arch.arch.lower()
+        arch = gef.arch.arch.lower()
         if not arch:
             err("RetDec does not decompile '{:s}'".format(get_arch()))
             return
 
-        retdec_path = self.get_setting("retdec_path").strip()
+        retdec_path = self["retdec_path"].strip()
         if not retdec_path:
             msg = "Path to retdec installation not provided, use `gef config` to set the path"
             err(msg)
@@ -59,7 +60,7 @@ class RetDecCommand(GenericCommand):
         for opt, arg in opts:
             if opt == "-r":
                 range_from, range_to = map(lambda x: int(x, 16), arg.split("-", 1))
-                fd, filename = tempfile.mkstemp(dir=self.get_setting("path"))
+                fd, filename = tempfile.mkstemp(dir=self["path"])
                 with os.fdopen(fd, "wb") as f:
                     length = range_to - range_from
                     f.write(read_memory(range_from, length))
@@ -74,7 +75,7 @@ class RetDecCommand(GenericCommand):
                     err("No symbol named '{:s}'".format(arg))
                     return
                 range_from = int(value.address)
-                fd, filename = tempfile.mkstemp(dir=self.get_setting("path"))
+                fd, filename = tempfile.mkstemp(dir=self["path"])
                 with os.fdopen(fd, "wb") as f:
                     f.write(read_memory(range_from, get_function_length(arg)))
                 params["mode"] = "raw"
@@ -89,8 +90,8 @@ class RetDecCommand(GenericCommand):
                 return
 
         # Set up variables
-        path = self.get_setting("path")
-        theme = self.get_setting("theme")
+        path = self["path"]
+        theme = self["theme"]
         params["input_file"] = filename
         fname = "{}/{}.{}".format(path, os.path.basename(params["input_file"]), params["target_language"])
         logfile = "{}/{}.log".format(path, os.path.basename(params["input_file"]))
@@ -101,7 +102,7 @@ class RetDecCommand(GenericCommand):
                 "-e", params["raw_endian"],
                 "-f", "plain",
                 "-a", params["architecture"],
-                "-o", fname, 
+                "-o", fname,
                 "-l", params["target_language"],
                 params["input_file"],
                 "--cleanup"
@@ -109,10 +110,10 @@ class RetDecCommand(GenericCommand):
 
         else:
             cmd = [
-              retdec_decompiler, 
-              "-m", params["mode"], 
-              "--raw-section-vma", params["raw_section_vma"], 
-              "--raw-entry-point", params["raw_entry_point"], 
+              retdec_decompiler,
+              "-m", params["mode"],
+              "--raw-section-vma", params["raw_section_vma"],
+              "--raw-entry-point", params["raw_entry_point"],
               "-e", params["raw_endian"],
               "-f", "plain",
               "-a", params["architecture"],
@@ -152,7 +153,3 @@ class RetDecCommand(GenericCommand):
             return False
 
         return True
-
-
-if __name__ == "__main__":
-    register_external_command(RetDecCommand())

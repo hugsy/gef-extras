@@ -1,3 +1,4 @@
+@register_external_command
 class PeekPointers(GenericCommand):
     """Command to help find pointers belonging to other memory regions helpful in case
     of OOB Read when looking for specific pointers"""
@@ -55,7 +56,3 @@ class PeekPointers(GenericCommand):
 
             addr = lookup_address(addr.value + current_arch.ptrsize)
         return
-
-
-if __name__ == "__main__":
-    register_external_command(PeekPointers())

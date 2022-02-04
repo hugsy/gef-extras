@@ -33,7 +33,7 @@ class FtraceExitBreakpoint(gdb.FinishBreakpoint):
         else:
             retval = get_register(current_arch.return_register)
 
-        output = get_gef_setting("ftrace.output")
+        output = gef.config["ftrace.output"]
         use_color = False
 
         if output is None:
@@ -53,6 +53,7 @@ class FtraceExitBreakpoint(gdb.FinishBreakpoint):
         return False
 
 
+@register_external_command
 class FtraceCommand(GenericCommand):
     """Tracks a function given in parameter for arguments and return code."""
     _cmdline_ = "ftrace"
@@ -80,7 +81,3 @@ class FtraceCommand(GenericCommand):
             bp.delete()
         gdb.events.exited.disconnect(self.cleanup)
         return
-
-
-if __name__ == "__main__":
-    register_external_command(FtraceCommand())

@@ -1,4 +1,5 @@
-@register_command
+
+@register_external_command
 class XRefTelescopeCommand(SearchPatternCommand):
     """Recursively search for cross-references to a pattern in memory"""
 
@@ -13,13 +14,13 @@ class XRefTelescopeCommand(SearchPatternCommand):
             return
 
         if is_hex(pattern):
-            if get_endian() == Elf.BIG_ENDIAN:
+            if gef.arch.endianness == Endianness.BIG_ENDIAN:
                 pattern = "".join(["\\x" + pattern[i:i + 2] for i in range(2, len(pattern), 2)])
             else:
                 pattern = "".join(["\\x" + pattern[i:i + 2] for i in range(len(pattern) - 2, 0, -2)])
 
         locs = []
-        for section in get_process_maps():
+        for section in gef.memory.maps:
             if not section.permission & Permission.READ:
                 continue
             if section.path == "[vvar]":
@@ -68,7 +69,3 @@ class XRefTelescopeCommand(SearchPatternCommand):
         info("Recursively searching '{:s}' in memory"
              .format(Color.yellowify(pattern)))
         self.xref_telescope(pattern, depth)
-
-
-if __name__ == "__main__":
-    register_external_command(XRefTelescopeCommand())

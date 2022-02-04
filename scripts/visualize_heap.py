@@ -88,6 +88,7 @@ def collect_known_ranges()->list:
     return result
 
 
+@register_external_command
 class VisualizeHeapChunksCommand(GenericCommand):
     """Visual helper for glibc heap chunks"""
 
@@ -184,6 +185,3 @@ class VisualizeHeapChunksCommand(GenericCommand):
             idx += 1
         return
 
-
-if __name__ == "__main__":
-    register_external_command(VisualizeHeapChunksCommand())

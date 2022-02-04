@@ -2,6 +2,7 @@ __AUTHOR__ = "hugsy"
 __VERSION__ = 0.1
 
 
+@register_external_command
 class CurrentFrameStack(GenericCommand):
     """Show the entire stack of the current frame."""
     _cmdline_ = "current-stack-frame"
@@ -11,7 +12,7 @@ class CurrentFrameStack(GenericCommand):
 
     @only_if_gdb_running
     def do_invoke(self, argv):
-        ptrsize = current_arch.ptrsize
+        ptrsize = gef.arch.ptrsize
         frame = gdb.selected_frame()
 
         if not frame.older():
@@ -23,7 +24,7 @@ class CurrentFrameStack(GenericCommand):
         saved_ip = frame.older().pc()
         stack_hi = align_address(int(frame.older().read_register("sp")))
         stack_lo = align_address(int(frame.read_register("sp")))
-        should_stack_grow_down = get_gef_setting("context.grow_stack_down") == True
+        should_stack_grow_down = gef.config["context.grow_stack_down"] == True
         results = []
 
         for offset, address in enumerate(range(stack_lo, stack_hi, ptrsize)):
@@ -38,8 +39,7 @@ class CurrentFrameStack(GenericCommand):
         else:
             gef_print(titlify("Stack bottom (lower address)"))
 
-        for res in results:
-            gef_print(res)
+        gef_print(results)
 
         if should_stack_grow_down:
             gef_print(titlify("Stack bottom (lower address)"))
@@ -47,6 +47,3 @@ class CurrentFrameStack(GenericCommand):
             gef_print(titlify("Stack top (higher address)"))
         return
 
-
-if __name__ == "__main__":
-    register_external_command(CurrentFrameStack())

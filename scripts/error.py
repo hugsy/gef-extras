@@ -4,7 +4,7 @@ __VERSION__ = 0.1
 import gdb
 from ctypes import (CDLL, c_char_p, c_int32,)
 
-
+@register_external_command
 class ErrorCommand(GenericCommand):
     """windbg !error-like command"""
 
@@ -20,7 +20,7 @@ class ErrorCommand(GenericCommand):
     def do_invoke(self, argv):
         argc = len(argv)
         if not argc and is_alive():
-            value = get_register(current_arch.return_register)
+            value = gef.arch.register(gef.arch.return_register)
         elif argv[0].isdigit():
             value = int(argv[0])
         else:
@@ -30,9 +30,6 @@ class ErrorCommand(GenericCommand):
         __libc.strerror.restype = c_char_p
         __libc.strerror.argtypes = [c_int32, ]
         c_s = __libc.strerror(value).decode("utf8")
-        gef_print("{0:d} ({0:#x}) : {1:s}".format(value, Color.greenify(c_s)))
+        info("{0:d} ({0:#x}) : {1:s}".format(value, Color.greenify(c_s)))
         return
 
-
-if __name__ == "__main__":
-    register_external_command(ErrorCommand())

@@ -15,7 +15,7 @@ import getopt
 import gdb
 import os
 
-
+@register_external_command
 class BincompareCommand(GenericCommand):
     """BincompareCommand: compare an binary file with the memory position looking for badchars."""
     _cmdline_ = "bincompare"
@@ -136,6 +136,3 @@ class BincompareCommand(GenericCommand):
                   .format(line, l[0], l[1], l[2], l[3], l[4], l[5], l[6], l[7], l[8],
                           l[9], l[10], l[11], l[12], l[13], l[14], l[15], label))
 
-
-if __name__ == "__main__":
-    register_external_command(BincompareCommand())

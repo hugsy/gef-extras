@@ -363,7 +363,7 @@ def __windbg_prompt__(current_prompt):
 
 
 def __default_prompt__(x):
-    if get_gef_setting("gef.use-windbg-prompt") is True:
+    if gef.config["gef.use-windbg-prompt"] is True:
         return __windbg_prompt__(x)
     else:
         return __gef_prompt__(x)
@@ -415,4 +415,4 @@ windbg_commands = [
 ]
 
 for _ in windbg_commands:
-    register_external_command(_())
+    register_external_command(_)
