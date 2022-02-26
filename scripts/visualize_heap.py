@@ -6,17 +6,17 @@ import gdb
 
 
 def fastbin_index(sz):
-    return (sz >> 4) - 2 if current_arch.ptrsize == 8 else (sz >> 3) - 2
+    return (sz >> 4) - 2 if gef.arch.ptrsize == 8 else (sz >> 3) - 2
 
 
 def nfastbins():
-    return fastbin_index( (80 * current_arch.ptrsize // 4)) - 1
+    return fastbin_index( (80 * gef.arch.ptrsize // 4)) - 1
 
 
 def get_tcache_count():
     if get_libc_version() < (2, 27):
         return 0
-    count_addr = HeapBaseFunction.heap_base() + 2*current_arch.ptrsize
+    count_addr = gef.heap.base_address + 2*gef.arch.ptrsize
     count = p8(count_addr) if get_libc_version() < (2, 30) else p16(count_addr)
     return count
 
@@ -103,8 +103,8 @@ class VisualizeHeapChunksCommand(GenericCommand):
 
     @only_if_gdb_running
     def do_invoke(self, argv):
-        ptrsize = current_arch.ptrsize
-        heap_base_address = HeapBaseFunction.heap_base()
+        ptrsize = gef.arch.ptrsize
+        heap_base_address =  gef.heap.base_address
         arena = get_glibc_arena()
         if not arena.top:
             err("The heap has not been initialized")
@@ -125,8 +125,8 @@ class VisualizeHeapChunksCommand(GenericCommand):
             aggregate_nuls = 0
 
             if base == top:
-                gef_print("{}    {}   {}".format(format_address(addr), format_address(read_int_from_memory(addr)) , Color.colorify(LEFT_ARROW + "Top Chunk", "red bold")))
-                gef_print("{}    {}   {}".format(format_address(addr+ptrsize), format_address(read_int_from_memory(addr+ptrsize)) , Color.colorify(LEFT_ARROW + "Top Chunk Size", "red bold")))
+                gef_print("{}    {}   {}".format(format_address(addr), format_address(gef.memory.read_integer(addr)) , Color.colorify(LEFT_ARROW + "Top Chunk", "red bold")))
+                gef_print("{}    {}   {}".format(format_address(addr+ptrsize), format_address(gef.memory.read_integer(addr+ptrsize)) , Color.colorify(LEFT_ARROW + "Top Chunk Size", "red bold")))
                 break
 
             if cur.size == 0:
@@ -135,7 +135,7 @@ class VisualizeHeapChunksCommand(GenericCommand):
 
             for off in range(0, cur.size, cur.ptrsize):
                 addr = base + off
-                value = read_int_from_memory(addr)
+                value = gef.memory.read_integer(addr)
                 if value == 0:
                     if off != 0 and off != cur.size - cur.ptrsize:
                         aggregate_nuls += 1
@@ -149,7 +149,7 @@ class VisualizeHeapChunksCommand(GenericCommand):
                     aggregate_nuls = 0
 
 
-                text = "".join([chr(b) if 0x20 <= b < 0x7F else "." for b in read_memory(addr, cur.ptrsize)])
+                text = "".join([chr(b) if 0x20 <= b < 0x7F else "." for b in gef.memory.read(addr, cur.ptrsize)])
                 line = "{}    {}".format(format_address(addr),  Color.colorify(format_address(value), colors[idx % len(colors)]))
                 line+= "    {}".format(text)
                 derefs = dereference_from(addr)
