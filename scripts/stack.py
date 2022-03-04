@@ -39,7 +39,7 @@ class CurrentFrameStack(GenericCommand):
         else:
             gef_print(titlify("Stack bottom (lower address)"))
 
-        gef_print(results)
+        gef_print("\n".join(results))
 
         if should_stack_grow_down:
             gef_print(titlify("Stack bottom (lower address)"))
