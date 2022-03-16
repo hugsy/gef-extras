@@ -69,7 +69,7 @@ class BincompareCommand(GenericCommand):
             return
 
         try:
-            memory_data = gdb.selected_inferior().read_memory(start_addr, size).tobytes()
+            memory_data = gef.memory.read(start_addr, size)
         except gdb.MemoryError:
             err("Cannot reach memory {:#x}".format(start_addr))
             return
