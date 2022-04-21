@@ -58,12 +58,12 @@ class WindbgSxeCommand(GenericCommand):
 def windbg_execute_until(cnt, cmd, stop_condition):
     while cnt:
         cnt -= 1
-        set_gef_setting("context.enable", False)
+        gef.config["context.enable"] = False
         gdb.execute(cmd)
         insn = gef_current_instruction(gef.arch.pc)
         if stop_condition(insn):
             break
-    set_gef_setting("context.enable", True)
+    gef.config["context.enable"] = True
     return
 
 
