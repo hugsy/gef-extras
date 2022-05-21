@@ -11,7 +11,7 @@ Author: SWW13
 @register_architecture
 class ARM_M(ARM):
     arch = "ARM-M"
-    aliases = ("ARM-M", )
+    aliases = ("ARM-M", Elf.Abi.ARM)
 
     all_registers = ARM.all_registers[:-1] + ["$xpsr", ]
     flag_register = "$xpsr"
