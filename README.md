@@ -47,7 +47,7 @@ gef➤  gef config context.libc_args True
 gef➤  gef config context.libc_args_path /path/to/gef-extras/glibc-function-args
 ```
 
-Check out the [complete doc](glibc_function_args.md) on libc argument support.
+Check out the [complete doc](docs/glibc_function_args.md) on libc argument support.
 
 
 Now run and enjoy all the fun!
