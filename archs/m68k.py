@@ -7,8 +7,10 @@ Original PR: https://github.com/hugsy/gef/pull/453
 Author: zhuyifei1999
 """
 
+@register_architecture
 class M68K(Architecture):
     arch = "M68K"
+    aliases = ("M68K", )
     mode = ""
 
     nop_insn = b"\x4e\x71"
@@ -105,5 +107,3 @@ class M68K(Architecture):
     @classmethod
     def mprotect_asm(cls, addr, size, perm):
         raise NotImplementedError()
-
-SUPPORTED_ARCHITECTURES["M68K"] = (M68K, Elf.M68K: M68K)

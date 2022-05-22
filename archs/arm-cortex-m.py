@@ -22,3 +22,7 @@ class ARM_M(ARM):
         28: "overflow",
         24: "thumb",
     }
+
+    @staticmethod
+    def supports_gdb_arch(gdb_arch: str) -> Optional[bool]:
+        return bool(re.search("^armv.*-m$", gdb_arch))
