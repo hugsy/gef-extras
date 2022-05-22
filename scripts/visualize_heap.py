@@ -1,33 +1,33 @@
 __AUTHOR__ = "hugsy"
-__VERSION__ = 0.1
+__VERSION__ = 0.2
 
 import os
 import gdb
 
 
 def fastbin_index(sz):
-    return (sz >> 4) - 2 if current_arch.ptrsize == 8 else (sz >> 3) - 2
+    return (sz >> 4) - 2 if gef.arch.ptrsize == 8 else (sz >> 3) - 2
 
 
 def nfastbins():
-    return fastbin_index( (80 * current_arch.ptrsize // 4)) - 1
+    return fastbin_index( (80 * gef.arch.ptrsize // 4)) - 1
 
 
 def get_tcache_count():
-    if get_libc_version() < (2, 27):
+    if gef.libc.version < (2, 27):
         return 0
-    count_addr = HeapBaseFunction.heap_base() + 2*current_arch.ptrsize
-    count = p8(count_addr) if get_libc_version() < (2, 30) else p16(count_addr)
+    count_addr = gef.heap.base + 2*gef.arch.ptrsize
+    count = p8(count_addr) if gef.libc.version < (2, 30) else p16(count_addr)
     return count
 
 
 @lru_cache(128)
 def collect_known_values() -> dict:
-    arena = get_glibc_arena()
+    arena = gef.heap.main_arena
     result = {} # format is { 0xaddress : "name" ,}
 
     # tcache
-    if get_libc_version() >= (2, 27):
+    if gef.libc.version() >= (2, 27):
         tcache_addr = GlibcHeapTcachebinsCommand.find_tcache()
         for i in range(GlibcHeapTcachebinsCommand.TCACHE_MAX_BINS):
             chunk, _ = GlibcHeapTcachebinsCommand.tcachebin(tcache_addr, i)
@@ -80,7 +80,7 @@ def collect_known_values() -> dict:
 @lru_cache(128)
 def collect_known_ranges()->list:
     result = []
-    for entry in get_process_maps():
+    for entry in gef.memory.maps:
         if not entry.path:
             continue
         path = os.path.basename(entry.path)
@@ -103,9 +103,9 @@ class VisualizeHeapChunksCommand(GenericCommand):
 
     @only_if_gdb_running
     def do_invoke(self, argv):
-        ptrsize = current_arch.ptrsize
-        heap_base_address = HeapBaseFunction.heap_base()
-        arena = get_glibc_arena()
+        ptrsize = gef.arch.ptrsize
+        heap_base_address = gef.heap.base_address
+        arena = gef.heap.main_arena
         if not arena.top:
             err("The heap has not been initialized")
             return
@@ -125,8 +125,10 @@ class VisualizeHeapChunksCommand(GenericCommand):
             aggregate_nuls = 0
 
             if base == top:
-                gef_print("{}    {}   {}".format(format_address(addr), format_address(read_int_from_memory(addr)) , Color.colorify(LEFT_ARROW + "Top Chunk", "red bold")))
-                gef_print("{}    {}   {}".format(format_address(addr+ptrsize), format_address(read_int_from_memory(addr+ptrsize)) , Color.colorify(LEFT_ARROW + "Top Chunk Size", "red bold")))
+                gef_print(
+                    "{}    {}   {}".format(format_address(addr), format_address(read_int_from_memory(addr)) , Color.colorify(LEFT_ARROW + "Top Chunk", "red bold")),
+                    "{}    {}   {}".format(format_address(addr+ptrsize), format_address(read_int_from_memory(addr+ptrsize)) , Color.colorify(LEFT_ARROW + "Top Chunk Size", "red bold"))
+                )
                 break
 
             if cur.size == 0:
@@ -135,7 +137,7 @@ class VisualizeHeapChunksCommand(GenericCommand):
 
             for off in range(0, cur.size, cur.ptrsize):
                 addr = base + off
-                value = read_int_from_memory(addr)
+                value = gef.memory.read_integer(addr)
                 if value == 0:
                     if off != 0 and off != cur.size - cur.ptrsize:
                         aggregate_nuls += 1
@@ -143,32 +145,37 @@ class VisualizeHeapChunksCommand(GenericCommand):
                             continue
 
                 if aggregate_nuls > 2:
-                    gef_print("        ↓")
-                    gef_print("      [...]")
-                    gef_print("        ↓")
+                    gef_print(
+                        "        ↓",
+                        "      [...]",
+                        "        ↓"
+                    )
                     aggregate_nuls = 0
 
-
-                text = "".join([chr(b) if 0x20 <= b < 0x7F else "." for b in read_memory(addr, cur.ptrsize)])
-                line = "{}    {}".format(format_address(addr),  Color.colorify(format_address(value), colors[idx % len(colors)]))
-                line+= "    {}".format(text)
+                text = "".join([chr(b) if 0x20 <= b < 0x7F else "." for b in gef.memory.read(addr, cur.ptrsize)])
+                line = f"{format_address(addr)}    {Color.colorify(format_address(value), colors[idx % len(colors)])}"
+                line+= f"    {text}"
                 derefs = dereference_from(addr)
                 if len(derefs) > 2:
-                    line+= "    [{}{}]".format(LEFT_ARROW, derefs[-1])
+                    line+= f"    [{LEFT_ARROW}{derefs[-1]}]"
 
                 if off == 0:
-                    line+= "    Chunk[{}]".format(idx)
+                    line+= f"    Chunk[{idx}]"
                 if off == cur.ptrsize:
-                    line+= "    {}{}{}{}".format(value&~7, "|NON_MAIN_ARENA" if value&4 else "", "|IS_MMAPED" if value&2 else "", "|PREV_INUSE" if value&1 else "")
+
+                    line+= f"    {value&~7}" \
+                        f"{'|NON_MAIN_ARENA' if value&4 else ''}" \
+                        f"{'|IS_MMAPED' if value&2 else ''}" \
+                        f"{'PREV_INUSE' if value&1 else ''}"
 
                 # look in mapping
                 for x in known_ranges:
                     if value in x[0]:
-                        line+= " (in {})".format(Color.redify(x[1]))
+                        line+= f" (in {Color.redify(x[1])})"
 
                 # look in known values
                 if value in known_values:
-                    line += "{}{}".format(RIGHT_ARROW, Color.cyanify(known_values[value]))
+                    line += f"{RIGHT_ARROW}{Color.cyanify(known_values[value])}"
 
                 gef_print(line)
 
