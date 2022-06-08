@@ -11,7 +11,7 @@ from pygments import highlight
 from pygments.lexers import CLexer
 from pygments.formatters import Terminal256Formatter
 
-@register_external_command
+@register
 class RetDecCommand(GenericCommand):
     """Decompile code from GDB context using RetDec API."""
 

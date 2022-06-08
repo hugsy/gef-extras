@@ -1,5 +1,5 @@
 
-@register_external_command
+@register
 class XRefTelescopeCommand(SearchPatternCommand):
     """Recursively search for cross-references to a pattern in memory"""
 

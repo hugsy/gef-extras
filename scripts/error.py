@@ -4,7 +4,7 @@ __VERSION__ = 0.1
 import gdb
 from ctypes import (CDLL, c_char_p, c_int32,)
 
-@register_external_command
+@register
 class ErrorCommand(GenericCommand):
     """windbg !error-like command"""
 

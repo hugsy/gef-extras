@@ -53,7 +53,7 @@ class FtraceExitBreakpoint(gdb.FinishBreakpoint):
         return False
 
 
-@register_external_command
+@register
 class FtraceCommand(GenericCommand):
     """Tracks a function given in parameter for arguments and return code."""
     _cmdline_ = "ftrace"

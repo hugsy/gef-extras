@@ -88,7 +88,7 @@ def collect_known_ranges()->list:
     return result
 
 
-@register_external_command
+@register
 class VisualizeHeapChunksCommand(GenericCommand):
     """Visual helper for glibc heap chunks"""
 

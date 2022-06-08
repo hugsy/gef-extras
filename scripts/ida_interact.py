@@ -361,4 +361,4 @@ if __name__ == "__main__":
     ]
 
     for cmd in cmds:
-        register_external_command(cmd)
+        register(cmd)

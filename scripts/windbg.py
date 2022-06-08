@@ -415,4 +415,4 @@ windbg_commands = [
 ]
 
 for _ in windbg_commands:
-    register_external_command(_)
+    register(_)

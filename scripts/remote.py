@@ -42,7 +42,7 @@ class DisableStreamBufferContext(contextlib.ContextDecorator):
         return False
 
 
-@register_external_command
+@register
 class GefRemoteCommand(GenericCommand):
     """A better way of remoting to GDB, using rpyc"""
 

@@ -36,7 +36,7 @@ def format_compressed(addr):
     return "{:s}{:s}".format(Color.colorify("0x{:08x}".format(addr>>32), "gray"),
                                Color.colorify("{:08x}".format(addr&0xffffffff), heap_color))
 
-@register_external_command
+@register
 class V8DereferenceCommand(GenericCommand):
     """(v8) Dereference recursively from an address and display information. Handles v8 specific values like tagged and compressed pointers"""
 

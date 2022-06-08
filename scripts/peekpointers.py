@@ -1,4 +1,4 @@
-@register_external_command
+@register
 class PeekPointers(GenericCommand):
     """Command to help find pointers belonging to other memory regions helpful in case
     of OOB Read when looking for specific pointers"""
