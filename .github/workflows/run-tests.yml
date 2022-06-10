@@ -1,4 +1,4 @@
-name: CI Test for GEF
+name: CI Test for GEF-EXTRAS
 
 on:
   push:
