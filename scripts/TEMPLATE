@@ -16,4 +16,4 @@ class MyCommand(GenericCommand):
     def do_invoke(self, argv):
         return
 
-register_external_command(MyCommand())
+register(MyCommand)
