@@ -1,9 +1,11 @@
 
 import sys
 import os
+from typing import Dict, Optional, Tuple, Union
 
 import capstone
 import unicorn
+
 
 def get_arch(arch: Optional[str] = None, mode: Optional[str] = None, endian: Optional[bool] = None, to_string: bool = False) -> Union[Tuple[None, None], Tuple[str, Union[int, str]]]:
     unicorn = sys.modules["unicorn"]
@@ -39,14 +41,14 @@ class UnicornEmulateCommand(GenericCommand):
     the next instruction from current PC."""
 
     _cmdline_ = "unicorn-emulate"
-    _syntax_  = (f"{_cmdline_} [--start LOCATION] [--until LOCATION] [--skip-emulation] [--output-file PATH] [NB_INSTRUCTION]"
-                 "\n\t--start LOCATION specifies the start address of the emulated run (default $pc)."
-                 "\t--until LOCATION specifies the end address of the emulated run."
-                 "\t--skip-emulation\t do not execute the script once generated."
-                 "\t--output-file /PATH/TO/SCRIPT.py writes the persistent Unicorn script into this file."
-                 "\tNB_INSTRUCTION indicates the number of instructions to execute"
-                 "\nAdditional options can be setup via `gef config unicorn-emulate`")
-    _aliases_ = ["emulate",]
+    _syntax_ = (f"{_cmdline_} [--start LOCATION] [--until LOCATION] [--skip-emulation] [--output-file PATH] [NB_INSTRUCTION]"
+                "\n\t--start LOCATION specifies the start address of the emulated run (default $pc)."
+                "\t--until LOCATION specifies the end address of the emulated run."
+                "\t--skip-emulation\t do not execute the script once generated."
+                "\t--output-file /PATH/TO/SCRIPT.py writes the persistent Unicorn script into this file."
+                "\tNB_INSTRUCTION indicates the number of instructions to execute"
+                "\nAdditional options can be setup via `gef config unicorn-emulate`")
+    _aliases_ = ["emulate", ]
     _example_ = f"{_cmdline_} --start $pc 10 --output-file /tmp/my-gef-emulation.py"
 
     def __init__(self) -> None:
@@ -60,8 +62,10 @@ class UnicornEmulateCommand(GenericCommand):
     def do_invoke(self, _: List[str], **kwargs: Any) -> None:
         args = kwargs["arguments"]
         start_address = parse_address(str(args.start or gef.arch.pc))
-        end_address = parse_address(str(args.until or self.get_unicorn_end_addr(start_address, args.nb)))
-        self.run_unicorn(start_address, end_address, skip_emulation=args.skip_emulation, to_file=args.output_file)
+        end_address = parse_address(
+            str(args.until or self.get_unicorn_end_addr(start_address, args.nb)))
+        self.run_unicorn(start_address, end_address,
+                         skip_emulation=args.skip_emulation, to_file=args.output_file)
         return
 
     def get_unicorn_end_addr(self, start_addr: int, nb: int) -> int:
@@ -85,7 +89,8 @@ class UnicornEmulateCommand(GenericCommand):
             to_file = open(to_file, "w")
             tmp_fd = to_file.fileno()
         else:
-            tmp_fd, tmp_filename = tempfile.mkstemp(suffix=".py", prefix="gef-uc-")
+            tmp_fd, tmp_filename = tempfile.mkstemp(
+                suffix=".py", prefix="gef-uc-")
 
         if is_x86():
             # need to handle segmentation (and pagination) via MSR
@@ -174,7 +179,8 @@ def reset():
 
 {context_block}
 """.format(pythonbin=PYTHONBIN, fname=fname, start=start_insn_addr, end=end_insn_addr,
-           regs=",".join([f"'{k.strip()}': {unicorn_registers[k]}" for k in unicorn_registers]),
+           regs=",".join(
+               [f"'{k.strip()}': {unicorn_registers[k]}" for k in unicorn_registers]),
            verbose="True" if verbose else "False",
            syscall_reg=gef.arch.syscall_register,
            cs_arch=cs_arch, cs_mode=cs_mode,
@@ -204,9 +210,9 @@ def reset():
                 continue
 
             page_start = sect.page_start
-            page_end   = sect.page_end
-            size       = sect.size
-            perm       = sect.permission
+            page_end = sect.page_end
+            size = sect.size
+            perm = sect.permission
 
             content += f"    # Mapping {sect.path}: {page_start:#x}-{page_end:#x}\n"
             content += f"    emu.mem_map({page_start:#x}, {size:#x}, {perm.value:#o})\n"
