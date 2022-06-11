@@ -1,0 +1,5 @@
+pylint
+pytest
+pytest-xdist
+pytest-benchmark
+coverage
