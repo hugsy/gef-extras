@@ -89,3 +89,6 @@ ENV/
 .ropeproject
 
 .vscode
+.benchmarks
+.pytest_cache
+
