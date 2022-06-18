@@ -242,9 +242,17 @@ class WindbgRCommand(GenericCommand):
                 yield l[ii:ii + n]
 
         def print_reg(reg, width=16):
+
+
+<< << << < HEAD
             fmt = "%s=%0{\}x".format(width)
             regval = get_register(
                 "\$" + reg) & ((1 << (current_arch.ptrsize * 8)) - 1)
+== == == =
+            fmt = "%s=%0{}x".format(width)
+            regval = get_register(
+                "$" + reg) & ((1 << (current_arch.ptrsize * 8)) - 1)
+>>>>>> > 27c37f51d1de16904b40cbb7c8ff52af6f623dca
             print(fmt % (reg.rjust(max_reg_len), regval), end="")
 
         for regs in chunks(reg_list, n):
