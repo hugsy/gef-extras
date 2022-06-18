@@ -2,23 +2,34 @@ __AUTHOR__ = "hugsy"
 __VERSION__ = 0.2
 
 
+from typing import TYPE_CHECKING, List
+
+if TYPE_CHECKING:
+    from . import *
+    from . import gdb
+
 import subprocess
+
+import gdb
 
 
 class BreakOnLoadSharedLibrary(gdb.Breakpoint):
     def __init__(self, module_name):
-        super(BreakOnLoadSharedLibrary, self).__init__("dlopen", type=gdb.BP_BREAKPOINT, internal=False)
+        super(BreakOnLoadSharedLibrary, self).__init__(
+            "dlopen", type=gdb.BP_BREAKPOINT, internal=False)
         self.module_name = module_name
         self.silent = True
         self.enabled = True
         return
 
     def stop(self):
+        if len(gef.arch.function_parameters) == 0:
+            return False
         reg = gef.arch.function_parameters[0]
-        addr = lookup_address(get_register(reg))
+        addr = lookup_address(gef.arch.register(reg))
         if addr.value == 0:
             return False
-        path = gef.memory.read_cstring(addr.value, max_length=None)
+        path = gef.memory.read_cstring(addr.value)
         if path.endswith(self.module_name):
             return True
         return False
@@ -27,8 +38,8 @@ class BreakOnLoadSharedLibrary(gdb.Breakpoint):
 class WindbgSxeCommand(GenericCommand):
     """WinDBG compatibility layer: sxe (set-exception-enable): break on loading libraries."""
     _cmdline_ = "sxe"
-    _syntax_ = "{:s} [ld,ud]:module".format(_cmdline_)
-    _example_ = "{:s} ld:mylib.so".format(_cmdline_)
+    _syntax_ = "{:s\} [ld,ud]:module".format(_cmdline_)
+    _example_ = "{:s\} ld:mylib.so".format(_cmdline_)
 
     def __init__(self):
         super(WindbgSxeCommand, self).__init__(complete=gdb.COMPLETE_NONE)
@@ -70,7 +81,7 @@ def windbg_execute_until(cnt, cmd, stop_condition):
 class WindbgTcCommand(GenericCommand):
     """WinDBG compatibility layer: tc - trace until next call."""
     _cmdline_ = "tc"
-    _syntax_ = "{:s} [COUNT]".format(_cmdline_)
+    _syntax_ = "{:s\} [COUNT]".format(_cmdline_)
 
     @only_if_gdb_running
     def do_invoke(self, argv):
@@ -83,7 +94,7 @@ class WindbgTcCommand(GenericCommand):
 class WindbgPcCommand(GenericCommand):
     """WinDBG compatibility layer: pc - run until next call."""
     _cmdline_ = "pc"
-    _syntax_ = "{:s} [COUNT]".format(_cmdline_)
+    _syntax_ = "{:s\} [COUNT]".format(_cmdline_)
 
     @only_if_gdb_running
     def do_invoke(self, argv):
@@ -96,7 +107,7 @@ class WindbgPcCommand(GenericCommand):
 class WindbgTtCommand(GenericCommand):
     """WinDBG compatibility layer: tt - trace until next return."""
     _cmdline_ = "tt"
-    _syntax_ = "{:s} [COUNT]".format(_cmdline_)
+    _syntax_ = "{:s\} [COUNT]".format(_cmdline_)
 
     @only_if_gdb_running
     def do_invoke(self, argv):
@@ -109,7 +120,7 @@ class WindbgTtCommand(GenericCommand):
 class WindbgPtCommand(GenericCommand):
     """WinDBG compatibility layer: pt - run until next return."""
     _cmdline_ = "pt"
-    _syntax_ = "{:s} [COUNT]".format(_cmdline_)
+    _syntax_ = "{:s\} [COUNT]".format(_cmdline_)
 
     @only_if_gdb_running
     def do_invoke(self, argv):
@@ -122,7 +133,7 @@ class WindbgPtCommand(GenericCommand):
 class WindbgPtcCommand(GenericCommand):
     """WinDBG compatibility layer: ptc - run until next call or return."""
     _cmdline_ = "ptc"
-    _syntax_ = "{:s} [COUNT]".format(_cmdline_)
+    _syntax_ = "{:s\} [COUNT]".format(_cmdline_)
 
     @only_if_gdb_running
     def do_invoke(self, argv):
@@ -139,12 +150,12 @@ class WindbgPtcCommand(GenericCommand):
 class WindbgHhCommand(GenericCommand):
     """WinDBG compatibility layer: hh - open help in web browser."""
     _cmdline_ = "hh"
-    _syntax_ = "{:s}".format(_cmdline_)
+    _syntax_ = "{:s\}".format(_cmdline_)
 
     def do_invoke(self, argv):
         url = "https://gef.readthedocs.io/en/master/"
         if len(argv):
-            url += "search.html?q={}".format(argv[0])
+            url += "search.html?q={\}".format(argv[0])
         subprocess.Popen(["xdg-open", url],
                          cwd="/",
                          stdout=subprocess.PIPE,
@@ -155,20 +166,20 @@ class WindbgHhCommand(GenericCommand):
 class WindbgGoCommand(GenericCommand):
     """WinDBG compatibility layer: g - go."""
     _cmdline_ = "g"
-    _syntax_ = "{:s}".format(_cmdline_)
+    _syntax_ = "{:s\}".format(_cmdline_)
 
     def do_invoke(self, argv):
         if is_alive():
             gdb.execute("continue")
         else:
-            gdb.execute("run {}".format(" ".join(argv)))
+            gdb.execute("run {\}".format(" ".join(argv)))
         return
 
 
 class WindbgUCommand(GenericCommand):
     """WinDBG compatibility layer: u - disassemble."""
     _cmdline_ = "u"
-    _syntax_ = "{:s}".format(_cmdline_)
+    _syntax_ = "{:s\}".format(_cmdline_)
 
     def __init__(self):
         super(WindbgUCommand, self).__init__(complete=gdb.COMPLETE_LOCATION)
@@ -197,7 +208,7 @@ class WindbgUCommand(GenericCommand):
 class WindbgXCommand(GenericCommand):
     """WinDBG compatibility layer: x - search symbol."""
     _cmdline_ = "xs"
-    _syntax_ = "{:s} REGEX".format(_cmdline_)
+    _syntax_ = "{:s\} REGEX".format(_cmdline_)
 
     def __init__(self):
         super(WindbgXCommand, self).__init__(complete=gdb.COMPLETE_LOCATION)
@@ -210,8 +221,8 @@ class WindbgXCommand(GenericCommand):
 
         sym = argv[0]
         try:
-            gdb.execute("info function {}".format(sym))
-            gdb.execute("info address {}".format(sym))
+            gdb.execute("info function {\}".format(sym))
+            gdb.execute("info address {\}".format(sym))
         except gdb.error:
             pass
         return
@@ -220,7 +231,7 @@ class WindbgXCommand(GenericCommand):
 class WindbgRCommand(GenericCommand):
     """WinDBG compatibility layer: r - register info"""
     _cmdline_ = "r"
-    _syntax_ = "{:s} [REGISTER[=VALUE]]".format(_cmdline_)
+    _syntax_ = "{:s\} [REGISTER[=VALUE]]".format(_cmdline_)
 
     def print_regs(self, reg_list, width=16):
         n = self.arch_reg_width()
@@ -231,8 +242,9 @@ class WindbgRCommand(GenericCommand):
                 yield l[ii:ii + n]
 
         def print_reg(reg, width=16):
-            fmt = "%s=%0{}x".format(width)
-            regval = get_register("$" + reg) & ((1 << (current_arch.ptrsize * 8)) - 1)
+            fmt = "%s=%0{\}x".format(width)
+            regval = get_register(
+                "\$" + reg) & ((1 << (current_arch.ptrsize * 8)) - 1)
             print(fmt % (reg.rjust(max_reg_len), regval), end="")
 
         for regs in chunks(reg_list, n):
@@ -337,9 +349,9 @@ class WindbgRCommand(GenericCommand):
 
             if "=" in combined:
                 (regstr, valstr) = combined.split("=")
-                reg = "$" + regstr
+                reg = "\$" + regstr
                 val = int(valstr, 16)
-                gdb.execute("set {:s} = {:#x}".format(reg, val))
+                gdb.execute("set {:s\} = {:#x\}".format(reg, val))
             else:
                 regs = combined.split(",")
                 self.print_regs(regs)
@@ -350,9 +362,9 @@ class WindbgRCommand(GenericCommand):
 def __windbg_prompt__(current_prompt):
     """WinDBG prompt function."""
     p = "0:000 "
-    p += "\u27a4  "
+    p += "\\u27a4  "
 
-    if gef.config["gef.readline_compat"] is True or \
+    if gef.config["gef.readline_compat"] is True or \\
        gef.config["gef.disable_color"] is True:
         return gef_prompt
 
@@ -370,7 +382,8 @@ def __default_prompt__(x):
 
 
 # Prompt
-gef.config["gef.use-windbg-prompt"] = GefSetting(False, description="Use WinDBG like prompt")
+gef.config["gef.use-windbg-prompt"] = GefSetting(
+    False, description="Use WinDBG like prompt")
 gdb.prompt_hook = __default_prompt__
 
 # Aliases
