@@ -28,16 +28,16 @@ __LICENSE__ = "MIT"
 class BincompareCommand(GenericCommand):
     """Compare an binary file with the memory position looking for badchars."""
     _cmdline_ = "bincompare"
-    _syntax_ = f"{_cmdline_} -f FILE -a MEMORY_ADDRESS [-h]"
+    _syntax_ = f"{_cmdline_} MEMORY_ADDRESS FILE"
 
     def __init__(self):
         super().__init__(complete=gdb.COMPLETE_FILENAME)
         return
 
     def usage(self):
-        h = self._syntax_
-        h += "\n\t-f FILE specifies the binary file to be compared.\n"
-        h += "\t-a MEMORY_ADDRESS sepecifies the memory address.\n"
+        h = (self._syntax_ + "\n" +
+             "\tMEMORY_ADDRESS sepecifies the memory address.\n" +
+             "\tFILE specifies the binary file to be compared.")
         info(h)
         return
 
