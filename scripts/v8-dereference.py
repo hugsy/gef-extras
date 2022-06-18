@@ -1,52 +1,75 @@
-def to_int32(v):
+__AUTHOR__ = "lordidiot"
+__VERSION__ = 0.2
+__LICENSE__ = "MIT"
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from . import *
+    from . import gdb
+
+
+def __to_int32(v: gdb.Value):
     """Cast a gdb.Value to int32"""
     return int(v.cast(gdb.Value(2**32-1).type))
 
-def lookup_symbol_hack(symbol):
+
+def __lookup_symbol_hack(symbol):
     """Hacky way to lookup symbol's address, I've tried other options like parse_and_eval but they
        throw errors like `No symbol "v8" in current context.`. I would like to replace this function
        once I figure out the proper way.
     """
     return int(gdb.execute("info address {}".format(symbol), to_string=True).split(" is at ")[1].split(" ")[0], 16)
 
+
 isolate_root = None
+
+
 def get_isolate_root():
     global isolate_root
     if isolate_root:
         return isolate_root
     else:
         try:
-            isolate_key_addr = lookup_symbol_hack("v8::internal::Isolate::isolate_key_")
-            isolate_key = to_int32(gdb.parse_and_eval("*(int *){}".format(isolate_key_addr)))
+            isolate_key_addr = __lookup_symbol_hack(
+                "v8::internal::Isolate::isolate_key_")
+            isolate_key = __to_int32(gdb.parse_and_eval(
+                "*(int *){}".format(isolate_key_addr)))
         except:
             err("Failed to get value of v8::internal::Isolate::isolate_key_")
             return None
 
-        getthreadlocal_addr = lookup_symbol_hack("v8::base::Thread::GetThreadLocal")
-        res = gdb.execute("call (void*){}({})".format(getthreadlocal_addr, isolate_key), to_string=True)
+        getthreadlocal_addr = __lookup_symbol_hack(
+            "v8::base::Thread::GetThreadLocal")
+        res = gdb.execute(
+            "call (void*){}({})".format(getthreadlocal_addr, isolate_key), to_string=True)
         isolate_root = int(res.split("0x")[1], 16)
         return isolate_root
+
 
 def del_isolate_root(event):
     global isolate_root
     isolate_root = None
 
+
 def format_compressed(addr):
     heap_color = gef.config["theme.address_heap"]
-    return "{:s}{:s}".format(Color.colorify("0x{:08x}".format(addr>>32), "gray"),
-                               Color.colorify("{:08x}".format(addr&0xffffffff), heap_color))
+    return "{:s}{:s}".format(Color.colorify("0x{:08x}".format(addr >> 32), "gray"),
+                             Color.colorify("{:08x}".format(addr & 0xffffffff), heap_color))
+
 
 @register
 class V8DereferenceCommand(GenericCommand):
     """(v8) Dereference recursively from an address and display information. Handles v8 specific values like tagged and compressed pointers"""
 
     _cmdline_ = "vereference"
-    _syntax_  = "{:s} [LOCATION] [l[NB]]".format(_cmdline_)
+    _syntax_ = f"{_cmdline_} [LOCATION] [l[NB]]"
     _aliases_ = ["v8"]
-    _example_ = "{:s} $sp l20".format(_cmdline_)
+    _example_ = f"{_cmdline_} $sp l20"
 
     def __init__(self):
-        super(V8DereferenceCommand, self).__init__(complete=gdb.COMPLETE_LOCATION)
+        super().__init__(
+            complete=gdb.COMPLETE_LOCATION)
         self["max_recursion"] = (7, "Maximum level of pointer recursion")
         gef_on_exit_hook(del_isolate_root)
         return
@@ -56,16 +79,16 @@ class V8DereferenceCommand(GenericCommand):
         base_address_color = gef.config["theme.dereference_base_address"]
         registers_color = gef.config["theme.dereference_register_value"]
 
-        regs = [(k, get_register(k)) for k in current_arch.all_registers]
+        regs = [(k, gef.arch.register(k)) for k in gef.arch.registers]
 
         sep = " {:s} ".format(RIGHT_ARROW)
-        memalign = current_arch.ptrsize
+        memalign = gef.arch.ptrsize
 
         offset = off * memalign
         current_address = align_address(addr + offset)
         addrs = V8DereferenceCommand.dereference_from(current_address)
         if addrs[1]:
-            l  = ""
+            l = ""
             addr_l0 = format_address(int(addrs[0][0], 16))
             l += "{:s}{:s}+{:#06x}: {:{ma}s}".format(Color.colorify(addr_l0, base_address_color),
                                                      VERTICAL_LINE, offset,
@@ -92,7 +115,7 @@ class V8DereferenceCommand(GenericCommand):
             offset += memalign
             pass
         else:
-            l  = ""
+            l = ""
             addr_l = format_address(int(addrs[0][0], 16))
             l += "{:s}{:s}+{:#06x}: {:{ma}s}".format(Color.colorify(addr_l, base_address_color),
                                                      VERTICAL_LINE, offset,
@@ -105,12 +128,12 @@ class V8DereferenceCommand(GenericCommand):
                     register_hints.append(regname)
 
             if register_hints:
-                m = "\t{:s}{:s}".format(LEFT_ARROW, ", ".join(list(register_hints)))
+                m = "\t{:s}{:s}".format(
+                    LEFT_ARROW, ", ".join(list(register_hints)))
                 l += Color.colorify(m, registers_color)
 
             offset += memalign
         return l
-
 
     @only_if_gdb_running
     def do_invoke(self, argv):
@@ -132,7 +155,7 @@ class V8DereferenceCommand(GenericCommand):
 
         addr = int(addr)
         # Remove tagging (tagged pointers)
-        addr = addr & (2**(8*current_arch.ptrsize)-2)
+        addr = addr & (2**(8*gef.arch.ptrsize)-2)
         if process_lookup_address(addr) is None:
             err("Unmapped address")
             return
@@ -153,46 +176,52 @@ class V8DereferenceCommand(GenericCommand):
 
         return
 
-
     @staticmethod
     def dereference_from(addr):
         if not is_alive():
-            return ([format_address(addr),], None)
+            return ([format_address(addr), ], None)
 
         code_color = gef.config["theme.dereference_code"]
         string_color = gef.config["theme.dereference_string"]
         max_recursion = gef.config["dereference.max_recursion"] or 10
         addr = lookup_address(align_address(int(addr)))
-        msg = ([format_address(addr.value),], [])
-        seen_addrs = set()#tuple(set(), set())
+        msg = ([format_address(addr.value), ], [])
+        seen_addrs = set()  # tuple(set(), set())
 
         # Is this address pointing to a normal pointer?
         deref = addr.dereference()
         if deref is None:
-            pass # Regular execution if so
+            pass  # Regular execution if so
         else:
             # Is this address pointing to compressed pointers instead?
             # Only for valid for 64-bit address space
-            if current_arch.ptrsize == 8:
+            if gef.arch.ptrsize == 8:
                 isolate_root = get_isolate_root()
-                addr0 = lookup_address(align_address(isolate_root + (deref & 0xffffffff)))
-                addr1 = lookup_address(align_address(isolate_root + (deref >> 32)))
+                addr0 = lookup_address(align_address(
+                    isolate_root + (deref & 0xffffffff)))
+                addr1 = lookup_address(align_address(
+                    isolate_root + (deref >> 32)))
                 compressed = [False, False]
-                compressed[0] = addr0.dereference() and addr0.value > isolate_root + 0x0c000 and addr0.value & 1
-                compressed[1] = addr1.dereference() and addr1.value > isolate_root + 0x0c000 and addr1.value & 1
+                compressed[0] = addr0.dereference(
+                ) and addr0.value > isolate_root + 0x0c000 and addr0.value & 1
+                compressed[1] = addr1.dereference(
+                ) and addr1.value > isolate_root + 0x0c000 and addr1.value & 1
                 if True in compressed:
                     msg[1].append(format_address(addr.value+4))
                     for i in range(2):
                         if compressed[i]:
-                            msg[i].append(format_compressed(addr0.value if not i else addr1.value))
+                            msg[i].append(format_compressed(
+                                addr0.value if not i else addr1.value))
                         else:
-                            val = int(deref & 0xffffffff) if not i else int(deref >> 32)
-                            if not (val & 1): # Maybe SMI
-                                msg[i].append("        {:#0{ma}x} (SMI: {:#x})".format( val, val >> 1, ma=( 10 )) )
+                            val = int(deref & 0xffffffff) if not i else int(
+                                deref >> 32)
+                            if not (val & 1):  # Maybe SMI
+                                msg[i].append("        {:#0{ma}x} (SMI: {:#x})".format(
+                                    val, val >> 1, ma=(10)))
                             else:
-                                msg[i].append("        {:#0{ma}x}".format( val, ma=( 10 )) )
+                                msg[i].append(
+                                    "        {:#0{ma}x}".format(val, ma=(10)))
                     return msg
-
 
         while addr.section and max_recursion:
             if addr.value in seen_addrs:
@@ -220,7 +249,8 @@ class V8DereferenceCommand(GenericCommand):
             if addr.section:
                 if addr.section.is_executable() and addr.is_in_text_segment() and not is_ascii_string(addr.value):
                     insn = gef_current_instruction(addr.value)
-                    insn_str = "{} {} {}".format(insn.location, insn.mnemonic, ", ".join(insn.operands))
+                    insn_str = "{} {} {}".format(
+                        insn.location, insn.mnemonic, ", ".join(insn.operands))
                     msg[0].append(Color.colorify(insn_str, code_color))
                     break
 
@@ -228,17 +258,21 @@ class V8DereferenceCommand(GenericCommand):
                     if is_ascii_string(addr.value):
                         s = read_cstring_from_memory(addr.value)
                         if len(s) < get_memory_alignment():
-                            txt = '{:s} ("{:s}"?)'.format(format_address(deref), Color.colorify(s, string_color))
+                            txt = '{:s} ("{:s}"?)'.format(format_address(
+                                deref), Color.colorify(s, string_color))
                         elif len(s) > 50:
-                            txt = Color.colorify('"{:s}[...]"'.format(s[:50]), string_color)
+                            txt = Color.colorify(
+                                '"{:s}[...]"'.format(s[:50]), string_color)
                         else:
-                            txt = Color.colorify('"{:s}"'.format(s), string_color)
+                            txt = Color.colorify(
+                                '"{:s}"'.format(s), string_color)
 
                         msg[0].append(txt)
                         break
 
             # if not able to parse cleanly, simply display and break
-            val = "{:#0{ma}x}".format(int(deref & 0xFFFFFFFFFFFFFFFF), ma=(current_arch.ptrsize * 2 + 2))
+            val = "{:#0{ma}x}".format(
+                int(deref & 0xFFFFFFFFFFFFFFFF), ma=(gef.arch.ptrsize * 2 + 2))
             msg[0].append(val)
             break
 
