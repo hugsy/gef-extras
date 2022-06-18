@@ -35,7 +35,7 @@ def decode_line(expression: Optional[str] = None) -> Tuple[str,
                                                            Union[None, List[Symtab_and_line]]]: ...
 
 
-def prompt_hook(current_prompt): ...
+def prompt_hook(current_prompt: Callable[[Callable], str]) -> str: ...
 
 
 class error(RuntimeError):
@@ -73,6 +73,8 @@ class Value:
         self, encoding: Optional[str] = None, length: Optional[int] = None) -> str: ...
 
     def fetch_lazy(self) -> None: ...
+
+    def __abs__(self) -> int: ...
 
 
 def lookup_type(name, block: Optional[Block] = None) -> Type: ...
@@ -674,18 +676,18 @@ class LineTable:
 
 BreakpointType = int
 
-BP_BREAKPOINT = BreakpointType
-BP_WATCHPOINT = BreakpointType
-BP_HARDWARE_WATCHPOINT = BreakpointType
-BP_READ_WATCHPOINT = BreakpointType
-BP_ACCESS_WATCHPOINT = BreakpointType
+BP_BREAKPOINT: BreakpointType
+BP_WATCHPOINT: BreakpointType
+BP_HARDWARE_WATCHPOINT: BreakpointType
+BP_READ_WATCHPOINT: BreakpointType
+BP_ACCESS_WATCHPOINT: BreakpointType
 
 
 WatchpointType = int
 
-WP_READ = WatchpointType
-WP_WRITE = WatchpointType
-WP_ACCESS = WatchpointType
+WP_READ: WatchpointType
+WP_WRITE: WatchpointType
+WP_ACCESS: WatchpointType
 
 
 class Breakpoint:
