@@ -2,20 +2,28 @@ __AUTHOR__ = "hugsy"
 __VERSION__ = 0.2
 
 
+from typing import TYPE_CHECKING, List
+
+if TYPE_CHECKING:
+    from . import *
+
 import subprocess
 
 
 class BreakOnLoadSharedLibrary(gdb.Breakpoint):
     def __init__(self, module_name):
-        super(BreakOnLoadSharedLibrary, self).__init__("dlopen", type=gdb.BP_BREAKPOINT, internal=False)
+        super(BreakOnLoadSharedLibrary, self).__init__(
+            "dlopen", type=gdb.BP_BREAKPOINT, internal=False)
         self.module_name = module_name
         self.silent = True
         self.enabled = True
         return
 
     def stop(self):
+        if len(gef.arch.function_parameters) == 0:
+            return False
         reg = gef.arch.function_parameters[0]
-        addr = lookup_address(get_register(reg))
+        addr = lookup_address(gef.arch.register(reg))
         if addr.value == 0:
             return False
         path = gef.memory.read_cstring(addr.value, max_length=None)
@@ -232,7 +240,8 @@ class WindbgRCommand(GenericCommand):
 
         def print_reg(reg, width=16):
             fmt = "%s=%0{}x".format(width)
-            regval = get_register("$" + reg) & ((1 << (current_arch.ptrsize * 8)) - 1)
+            regval = get_register(
+                "$" + reg) & ((1 << (current_arch.ptrsize * 8)) - 1)
             print(fmt % (reg.rjust(max_reg_len), regval), end="")
 
         for regs in chunks(reg_list, n):
@@ -370,7 +379,8 @@ def __default_prompt__(x):
 
 
 # Prompt
-gef.config["gef.use-windbg-prompt"] = GefSetting(False, description="Use WinDBG like prompt")
+gef.config["gef.use-windbg-prompt"] = GefSetting(
+    False, description="Use WinDBG like prompt")
 gdb.prompt_hook = __default_prompt__
 
 # Aliases
