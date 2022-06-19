@@ -407,6 +407,7 @@ class RecordFunctionSegment:
 
 
 class Command:
+    repeat_count: int
     def __init__(self, name: str, command_class: Optional[CommandClass] = None,
                  completer_class: Optional[CompleteClass] = None, prefix: Optional[bool] = None): ...
 
