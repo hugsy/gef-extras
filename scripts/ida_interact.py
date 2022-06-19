@@ -19,7 +19,6 @@ __AUTHOR__ = "hugsy"
 __VERSION__ = 0.2
 
 
-@register
 class RemoteDecompilerSession:
     sock: Optional[int] = None
     breakpoints: Set[str] = set()

@@ -13,7 +13,10 @@ class XRefTelescopeCommand(SearchPatternCommand):
 
     _cmdline_ = "xref-telescope"
     _syntax_ = f"{_cmdline_} PATTERN [depth]"
-    _example_ = f"{_cmdline_} AAAAAAAA\\n{_cmdline_} 0x555555554000 15"
+    _example_ = [
+        f"{_cmdline_} AAAAAAAA",
+        f"{_cmdline_} 0x555555554000 15"
+    ]
 
     def xref_telescope_(self, pattern, depth, tree_heading):
         """Recursively search a pattern within the whole userland memory."""
