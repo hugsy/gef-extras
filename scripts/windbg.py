@@ -12,7 +12,7 @@ import subprocess
 
 import gdb
 
-GEF_DOCS_URL = "https://gef.readthedocs.io/en/master/"
+GEF_DOCS_URL = "https://hugsy.github.io/gef/"
 SEARCH_URL = f"https://www.google.com/search?q=site:{GEF_DOCS_URL}"
 
 

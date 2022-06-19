@@ -27,7 +27,7 @@ The biggest requirement for GEF-Extras to work is of course `GEF`. Please refer 
 Execute and run the installation script from GEF repository.
 
 ```bash
-$ wget -q -O- https://github.com/hugsy/gef/raw/master/scripts/gef-extras.sh | sh
+$ wget -q -O- https://github.com/hugsy/gef/raw/main/scripts/gef-extras.sh | sh
 ```
 
 The script will download (via git) GEF-Extras, and set up your `~/.gef.rc` file so that you can start straight away.
