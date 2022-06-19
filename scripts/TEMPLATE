@@ -3,17 +3,21 @@ Describe thoroughly what your command does. In addition, complete the documentat
 in /docs/ and adding the reference in /mkdocs.yml
 """
 
-__AUTHOR__    = "your_name"
-__VERSION__   = 0.1
-__LICENSE__   = "MIT"
+__AUTHOR__ = "your_name"
+__VERSION__ = 0.1
+__LICENSE__ = "MIT"
+
+from typing import TYPE_CHECKING, List
+
+if TYPE_CHECKING:
+    from . import *  # this will allow linting for GEF and GDB
 
 
+@register
 class MyCommand(GenericCommand):
     """Template of a new command."""
     _cmdline_ = "my-command"
-    _syntax_  = "{:s}".format(_cmdline_)
+    _syntax_ = "{:s}".format(_cmdline_)
 
-    def do_invoke(self, argv):
+    def do_invoke(self, argv: List[str]):
         return
-
-register(MyCommand)

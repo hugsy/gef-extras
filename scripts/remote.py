@@ -4,22 +4,27 @@ A slightly better way to remote with GDB/GEF
 gdb -ex 'source /path/to/gef-extras/scripts/remote.py' -ex rpyc-remote -ex quit
 """
 
-from typing import Any
 
-import rpyc
-import gdb
-import sys
 import contextlib
+import sys
+from typing import TYPE_CHECKING, Any
+
+import gdb
+import rpyc
+
+if TYPE_CHECKING:
+    from . import *
+    from . import gdb
 
 __AUTHOR__ = "hugsy"
-__VERSION__ = 0.1
+__VERSION__ = 0.2
 
 
 class GefRemoteService(rpyc.Service):
     """The RPYC service for interacting with GEF"""
 
     def exposed_gdb(self, cmd: str) -> str:
-        return gdb.execute(cmd, to_string=True)
+        return gdb.execute(cmd, to_string=True) or ""
 
     def exposed_gef(self, cmd: str) -> Any:
         return eval(cmd)
@@ -27,6 +32,7 @@ class GefRemoteService(rpyc.Service):
 
 class DisableStreamBufferContext(contextlib.ContextDecorator):
     """Because stream buffering doesn't play well with rpyc"""
+
     def __enter__(self) -> None:
         info("Backuping context")
         self.old_stream_buffer = gef.ui.stream_buffer
@@ -42,13 +48,13 @@ class DisableStreamBufferContext(contextlib.ContextDecorator):
         return False
 
 
-@register_external_command
+@register
 class GefRemoteCommand(GenericCommand):
     """A better way of remoting to GDB, using rpyc"""
 
     _cmdline_ = "rpyc-remote"
     _aliases_ = []
-    _syntax_  = f"{_cmdline_:s}"
+    _syntax_ = f"{_cmdline_:s}"
     _example_ = f"{_cmdline_:s}"
 
     def __init__(self) -> None:
@@ -59,8 +65,10 @@ class GefRemoteCommand(GenericCommand):
 
     def do_invoke(self, _) -> None:
         with DisableStreamBufferContext():
-            info(f"Listening on {self['host']}:{self['port']}, press Ctrl+C to stop")
-            server = rpyc.utils.server.ThreadedServer(GefRemoteService, port=12345)
+            info(
+                f"Listening on {self['host']}:{self['port']}, press Ctrl+C to stop")
+            server = rpyc.utils.server.ThreadedServer(
+                GefRemoteService, port=12345)
             try:
                 server.start()
             except KeyboardInterrupt:

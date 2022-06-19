@@ -1,13 +1,23 @@
+"""
+
+Script to control headlessly IDA from GEF using RPyC
+
+"""
+
 import functools
-from typing import Any, List, Set, Dict, Optional
+import pprint
+from typing import TYPE_CHECKING, Any, List, Set, Dict, Optional
+
 import gdb
 import rpyc
-import pprint
 
+if TYPE_CHECKING:
+    from . import *
+    from . import gdb
 
 __AUTHOR__ = "hugsy"
 __VERSION__ = 0.2
-__DESCRIPTION_ = """Control headlessly IDA from GEF using RPyC"""
+
 
 class RemoteDecompilerSession:
     sock: Optional[int] = None
@@ -66,7 +76,8 @@ def is_current_elf_pie():
 
 
 def get_rva(addr):
-    base_address = [x.page_start for x in gef.memory.maps if x.path == get_filepath()][0]
+    base_address = [
+        x.page_start for x in gef.memory.maps if x.path == get_filepath()][0]
     return addr - base_address
 
 
@@ -89,15 +100,17 @@ def only_if_active_rpyc_session(f):
     return wrapper
 
 
+@register
 class RpycIdaCommand(GenericCommand):
     """RPyCIda root command"""
     _cmdline_ = "ida-rpyc"
-    _syntax_ = "{:s} (breakpoints|comments|info|highlight|jump)".format(_cmdline_)
+    _syntax_ = "{:s} (breakpoints|comments|info|highlight|jump)".format(
+        _cmdline_)
     _example_ = "{:s}".format(_cmdline_)
 
     def __init__(self):
         global sess
-        super(RpycIdaCommand, self).__init__(prefix=True)
+        super().__init__(prefix=True)
         self["host"] = ("127.0.0.1", "IDA host IP address")
         self["port"] = (18812, "IDA host port")
         self["sync_cursor"] = (False, "Enable real-time $pc synchronisation")
@@ -119,8 +132,10 @@ class RpycIdaCommand(GenericCommand):
         """Submit all active breakpoint addresses to IDA/BN."""
         pc = gef.arch.pc
         vmmap = gef.memory.maps
-        base_address = min([x.page_start for x in vmmap if x.path == get_filepath()])
-        end_address = max([x.page_end for x in vmmap if x.path == get_filepath()])
+        base_address = min(
+            [x.page_start for x in vmmap if x.path == get_filepath()])
+        end_address = max(
+            [x.page_end for x in vmmap if x.path == get_filepath()])
         if not (base_address <= pc < end_address):
             return
 
@@ -133,6 +148,7 @@ class RpycIdaCommand(GenericCommand):
         return
 
 
+@register
 class RpycIdaHighlightCommand(RpycIdaCommand):
     """RPyC IDA: highlight root command"""
     _cmdline_ = "ida-rpyc highlight"
@@ -141,7 +157,8 @@ class RpycIdaHighlightCommand(RpycIdaCommand):
     _example_ = "{:s}".format(_cmdline_)
 
     def __init__(self):
-        super(RpycIdaCommand, self).__init__(prefix=True) #pylint: disable=bad-super-call
+        super(RpycIdaCommand, self).__init__(
+            prefix=True)  # pylint: disable=bad-super-call
         return
 
     @only_if_gdb_running
@@ -150,6 +167,7 @@ class RpycIdaHighlightCommand(RpycIdaCommand):
         pass
 
 
+@register
 class RpycIdaHighlightAddCommand(RpycIdaHighlightCommand):
     """RPyC IDA: highlight a specific line in the IDB"""
     _cmdline_ = "ida-rpyc highlight add"
@@ -158,7 +176,8 @@ class RpycIdaHighlightAddCommand(RpycIdaHighlightCommand):
     _example_ = "{:s} main".format(_cmdline_)
 
     def __init__(self):
-        super(RpycIdaCommand, self).__init__(complete=gdb.COMPLETE_SYMBOL) #pylint: disable=bad-super-call
+        super(RpycIdaCommand, self).__init__(
+            complete=gdb.COMPLETE_SYMBOL)  # pylint: disable=bad-super-call
         return
 
     @only_if_gdb_running
@@ -167,7 +186,8 @@ class RpycIdaHighlightAddCommand(RpycIdaHighlightCommand):
     def do_invoke(self, _: List[str], **kwargs: Any) -> None:
         args = kwargs["arguments"]
         ea = parse_address(args.location)
-        if is_current_elf_pie(): ea = get_rva(ea)
+        if is_current_elf_pie():
+            ea = get_rva(ea)
         color = args.color
         ok("highlight ea={:#x} as {:#x}".format(ea, color))
         sess.old_colors[ea] = sess.idc.get_color(ea, sess.idc.CIC_ITEM)
@@ -175,6 +195,7 @@ class RpycIdaHighlightAddCommand(RpycIdaHighlightCommand):
         return
 
 
+@register
 class RpycIdaHighlightDeleteCommand(RpycIdaHighlightCommand):
     """RPyC IDA: remove the highlighting of the given line in the IDB"""
     _cmdline_ = "ida-rpyc highlight del"
@@ -183,16 +204,18 @@ class RpycIdaHighlightDeleteCommand(RpycIdaHighlightCommand):
     _example_ = "{:s} main".format(_cmdline_)
 
     def __init__(self):
-        super(RpycIdaCommand, self).__init__(complete=gdb.COMPLETE_SYMBOL) #pylint: disable=bad-super-call
+        super(RpycIdaCommand, self).__init__(
+            complete=gdb.COMPLETE_SYMBOL)  # pylint: disable=bad-super-call
         return
 
     @only_if_gdb_running
     @only_if_active_rpyc_session
-    @parse_arguments({"location": "$pc",}, {})
+    @parse_arguments({"location": "$pc", }, {})
     def do_invoke(self, _: List[str], **kwargs: Any) -> None:
         args = kwargs["arguments"]
         ea = parse_address(args.location)
-        if is_current_elf_pie(): ea = get_rva(ea)
+        if is_current_elf_pie():
+            ea = get_rva(ea)
 
         if ea not in sess.old_colors:
             warn("{:#x} was not highlighted".format(ea))
@@ -204,6 +227,7 @@ class RpycIdaHighlightDeleteCommand(RpycIdaHighlightCommand):
         return
 
 
+@register
 class RpycIdaBreakpointCommand(RpycIdaCommand):
     """RPyC IDA: breakpoint root command"""
     _cmdline_ = "ida-rpyc breakpoints"
@@ -212,7 +236,8 @@ class RpycIdaBreakpointCommand(RpycIdaCommand):
     _example_ = "{:s}".format(_cmdline_)
 
     def __init__(self):
-        super(RpycIdaCommand, self).__init__(prefix=True) #pylint: disable=bad-super-call
+        super(RpycIdaCommand, self).__init__(
+            prefix=True)  # pylint: disable=bad-super-call
         return
 
     @only_if_gdb_running
@@ -221,6 +246,7 @@ class RpycIdaBreakpointCommand(RpycIdaCommand):
         pass
 
 
+@register
 class RpycIdaBreakpointListCommand(RpycIdaBreakpointCommand):
     """RPyC IDA: breakpoint list command"""
     _cmdline_ = "ida-rpyc breakpoints list"
@@ -229,7 +255,8 @@ class RpycIdaBreakpointListCommand(RpycIdaBreakpointCommand):
     _example_ = "{:s}".format(_cmdline_)
 
     def __init__(self):
-        super(RpycIdaBreakpointCommand, self).__init__() #pylint: disable=bad-super-call
+        super(RpycIdaBreakpointCommand, self).__init__(
+        )  # pylint: disable=bad-super-call
         return
 
     @only_if_gdb_running
@@ -241,6 +268,7 @@ class RpycIdaBreakpointListCommand(RpycIdaBreakpointCommand):
         return
 
 
+@register
 class RpycIdaInfoSessionCommand(RpycIdaCommand):
     """RPyC IDA: display info about the current session"""
     _cmdline_ = "ida-rpyc info"
@@ -249,7 +277,8 @@ class RpycIdaInfoSessionCommand(RpycIdaCommand):
     _example_ = "{:s}".format(_cmdline_)
 
     def __init__(self):
-        super(RpycIdaCommand, self).__init__() #pylint: disable=bad-super-call
+        super(RpycIdaCommand, self).__init__(
+        )  # pylint: disable=bad-super-call
         return
 
     @only_if_gdb_running
@@ -259,6 +288,7 @@ class RpycIdaInfoSessionCommand(RpycIdaCommand):
         return
 
 
+@register
 class RpycIdaJumpCommand(RpycIdaCommand):
     """RPyC IDA: display info about the current session"""
     _cmdline_ = "ida-rpyc jump"
@@ -267,7 +297,8 @@ class RpycIdaJumpCommand(RpycIdaCommand):
     _example_ = "{:s} main".format(_cmdline_)
 
     def __init__(self):
-        super(RpycIdaCommand, self).__init__(complete=gdb.COMPLETE_SYMBOL) #pylint: disable=bad-super-call
+        super(RpycIdaCommand, self).__init__(
+            complete=gdb.COMPLETE_SYMBOL)  # pylint: disable=bad-super-call
         return
 
     @only_if_gdb_running
@@ -276,11 +307,13 @@ class RpycIdaJumpCommand(RpycIdaCommand):
     def do_invoke(self, _: List[str], **kwargs: Any) -> None:
         args = kwargs["arguments"]
         ea = parse_address(args.location)
-        if is_current_elf_pie(): ea = get_rva(ea)
+        if is_current_elf_pie():
+            ea = get_rva(ea)
         sess.idaapi.jumpto(ea)
         return
 
 
+@register
 class RpycIdaCommentCommand(RpycIdaCommand):
     """RPyCIda comment root command"""
     _cmdline_ = "ida-rpyc comments"
@@ -289,7 +322,8 @@ class RpycIdaCommentCommand(RpycIdaCommand):
     _example_ = "{:s}".format(_cmdline_)
 
     def __init__(self):
-        super(RpycIdaCommand, self).__init__(prefix=True) #pylint: disable=bad-super-call
+        super(RpycIdaCommand, self).__init__(
+            prefix=True)  # pylint: disable=bad-super-call
         return
 
     @only_if_gdb_running
@@ -298,15 +332,18 @@ class RpycIdaCommentCommand(RpycIdaCommand):
         pass
 
 
+@register
 class RpycIdaCommentAddCommand(RpycIdaCommentCommand):
     """RPyCIda add comment command"""
     _cmdline_ = "ida-rpyc comments add"
-    _syntax_ = "{:s} \"My comment\" --location [*0xaddress|register|symbol]".format(_cmdline_)
+    _syntax_ = "{:s} \"My comment\" --location [*0xaddress|register|symbol]".format(
+        _cmdline_)
     _aliases_ = []
     _example_ = "{:s} \"I was here\" --location $pc".format(_cmdline_)
 
     def __init__(self):
-        super(RpycIdaCommand, self).__init__(complete=gdb.COMPLETE_SYMBOL) #pylint: disable=bad-super-call
+        super(RpycIdaCommand, self).__init__(
+            complete=gdb.COMPLETE_SYMBOL)  # pylint: disable=bad-super-call
         return
 
     @only_if_gdb_running
@@ -315,13 +352,15 @@ class RpycIdaCommentAddCommand(RpycIdaCommentCommand):
     def do_invoke(self, _: List[str], **kwargs: Any) -> None:
         args = kwargs["arguments"]
         ea = parse_address(args.location)
-        if is_current_elf_pie(): ea = get_rva(ea)
+        if is_current_elf_pie():
+            ea = get_rva(ea)
         comment = args.comment
         repeatable_comment = 1
         sess.idc.set_cmt(ea, comment, repeatable_comment)
         return
 
 
+@register
 class RpycIdaCommentDeleteCommand(RpycIdaCommentCommand):
     """RPyCIda delete comment command"""
     _cmdline_ = "ida-rpyc comments del"
@@ -330,7 +369,8 @@ class RpycIdaCommentDeleteCommand(RpycIdaCommentCommand):
     _example_ = "{:s} $pc".format(_cmdline_)
 
     def __init__(self):
-        super(RpycIdaCommand, self).__init__(complete=gdb.COMPLETE_SYMBOL) #pylint: disable=bad-super-call
+        super(RpycIdaCommand, self).__init__(
+            complete=gdb.COMPLETE_SYMBOL)  # pylint: disable=bad-super-call
         return
 
     @only_if_gdb_running
@@ -339,26 +379,8 @@ class RpycIdaCommentDeleteCommand(RpycIdaCommentCommand):
     def do_invoke(self, _: List[str], **kwargs: Any) -> None:
         args = kwargs["arguments"]
         ea = parse_address(args.location)
-        if is_current_elf_pie(): ea = get_rva(ea)
+        if is_current_elf_pie():
+            ea = get_rva(ea)
         repeatable_comment = 1
         sess.idc.set_cmt(ea, "", repeatable_comment)
         return
-
-
-if __name__ == "__main__":
-    cmds = [
-        RpycIdaCommand,
-        RpycIdaInfoSessionCommand,
-        RpycIdaJumpCommand,
-        RpycIdaBreakpointCommand,
-        RpycIdaBreakpointListCommand,
-        RpycIdaCommentCommand,
-        RpycIdaCommentAddCommand,
-        RpycIdaCommentDeleteCommand,
-        RpycIdaHighlightCommand,
-        RpycIdaHighlightAddCommand,
-        RpycIdaHighlightDeleteCommand,
-    ]
-
-    for cmd in cmds:
-        register_external_command(cmd)

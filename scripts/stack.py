@@ -2,7 +2,7 @@ __AUTHOR__ = "hugsy"
 __VERSION__ = 0.1
 
 
-@register_external_command
+@register
 class CurrentFrameStack(GenericCommand):
     """Show the entire stack of the current frame."""
     _cmdline_ = "current-stack-frame"

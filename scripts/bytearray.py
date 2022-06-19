@@ -15,7 +15,7 @@ import getopt
 import gdb
 import re
 
-@register_external_command
+@register
 class BytearrayCommand(GenericCommand):
     """BytearrayCommand: Generate a bytearray to be compared with possible badchars.
 Function ported from mona.py"""
