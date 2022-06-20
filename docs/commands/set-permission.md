@@ -9,11 +9,13 @@ stub. For example, for x86, the following stub will be inserted:
 
 ```
 pushad
+pushfd
 mov eax, mprotect_syscall_num
 mov ebx, address_of_the_page
 mov ecx, size_of_the_page
 mov edx, permission_to_set
 int 0x80
+popfd
 popad
 ```
 
