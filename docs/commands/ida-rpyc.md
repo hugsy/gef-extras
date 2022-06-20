@@ -1,9 +1,7 @@
 ## Command ida-interact ##
 
 `gef` provides a simple XML-RPC client designed to communicate with a server
-running inside a specific IDA Python plugin, called `ida_gef.py` (which
-can be downloaded freely
-[here](https://raw.githubusercontent.com/hugsy/gef/master/scripts/ida_gef.py)).
+running inside a specific IDA Python plugin, called `ida_gef.py`.
 
 Simply download this script, and run it inside IDA. When the server is running,
 you should see some output:
