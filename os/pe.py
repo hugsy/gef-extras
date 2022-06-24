@@ -14,6 +14,7 @@ __VERSION__ = 0.2
 __LICENSE__ = "MIT"
 
 
+import collections
 import enum
 import pathlib
 import struct
@@ -29,7 +30,7 @@ class Pe(FileFormat):
 
     class Constants(enum.IntEnum):
         DOS_MAGIC = 0x4d5a
-        NT_MAGIC = 0x5045
+        NT_MAGIC = 0x50450000
 
     class MachineType(enum.IntEnum):
         UNKNOWN = 0
@@ -126,6 +127,21 @@ class Pe(FileFormat):
         VirtualAddress: int
         Size: int
 
+    class ImageSectionHeader(FileFormatSection):
+        Name: bytes
+        VirtualSize: int
+        VirtualAddress: int
+        SizeOfRawData: int
+        PointerToRawData: int
+        PointerToRelocations: int
+        PointerToLinenumbers: int
+        NumberOfRelocations: int
+        NumberOfLinenumbers: int
+        Characteristics: "Pe.ImageSectionFlags"
+
+        def __str__(self) -> str:
+            return f"{self.Name}, VA={self.VirtualAddress:#x}, Size={self.SizeOfRawData:#x} Flags={str(self.Characteristics)}"
+
     class FileCharacteristics(enum.IntFlag):
         IMAGE_FILE_RELOCS_STRIPPED = 0x0001
         IMAGE_FILE_EXECUTABLE_IMAGE = 0x0002
@@ -167,11 +183,48 @@ class Pe(FileFormat):
         def __str__(self) -> str:
             return super().__str__().lstrip(self.__class__.__name__+".")
 
+    class ImageSectionFlags(enum.IntFlag):
+        IMAGE_SCN_TYPE_NO_PAD = 0x00000008
+        IMAGE_SCN_CNT_CODE = 0x00000020
+        IMAGE_SCN_CNT_INITIALIZED_DATA = 0x00000040
+        IMAGE_SCN_CNT_UNINITIALIZED_DATA = 0x00000080
+        IMAGE_SCN_LNK_OTHER = 0x00000100
+        IMAGE_SCN_LNK_INFO = 0x00000200
+        IMAGE_SCN_LNK_REMOVE = 0x00000800
+        IMAGE_SCN_LNK_COMDAT = 0x00001000
+        IMAGE_SCN_GPREL = 0x00008000
+        IMAGE_SCN_MEM_PURGEABLE = 0x00020000
+        IMAGE_SCN_MEM_16BIT = 0x00020000
+        IMAGE_SCN_MEM_LOCKED = 0x00040000
+        IMAGE_SCN_MEM_PRELOAD = 0x00080000
+        IMAGE_SCN_ALIGN_1BYTES = 0x00100000
+        IMAGE_SCN_ALIGN_2BYTES = 0x00200000
+        IMAGE_SCN_ALIGN_4BYTES = 0x00300000
+        IMAGE_SCN_ALIGN_8BYTES = 0x00400000
+        IMAGE_SCN_ALIGN_16BYTES = 0x00500000
+        IMAGE_SCN_ALIGN_32BYTES = 0x00600000
+        IMAGE_SCN_ALIGN_64BYTES = 0x00700000
+        IMAGE_SCN_ALIGN_128BYTES = 0x00800000
+        IMAGE_SCN_ALIGN_256BYTES = 0x00900000
+        IMAGE_SCN_ALIGN_512BYTES = 0x00A00000
+        IMAGE_SCN_ALIGN_1024BYTES = 0x00B00000
+        IMAGE_SCN_ALIGN_2048BYTES = 0x00C00000
+        IMAGE_SCN_ALIGN_4096BYTES = 0x00D00000
+        IMAGE_SCN_ALIGN_8192BYTES = 0x00E00000
+        IMAGE_SCN_LNK_NRELOC_OVFL = 0x01000000
+        IMAGE_SCN_MEM_DISCARDABLE = 0x02000000
+        IMAGE_SCN_MEM_NOT_CACHED = 0x04000000
+        IMAGE_SCN_MEM_NOT_PAGED = 0x08000000
+        IMAGE_SCN_MEM_SHARED = 0x10000000
+        IMAGE_SCN_MEM_EXECUTE = 0x20000000
+        IMAGE_SCN_MEM_READ = 0x40000000
+        IMAGE_SCN_MEM_WRITE = 0x80000000
+
     dos: DosHeader
     file_header: ImageFileHeader
     optional_header: OptionalHeader
-    shdrs: List["Shdr"]
     name: str = "PE"
+    __sections: List[FileFormatSection]
     __entry_point: Optional[int] = None
     __checksec: Dict[str, bool]
 
@@ -195,30 +248,33 @@ class Pe(FileFormat):
         with self.path.open("rb") as self.fd:
             # Parse IMAGE_DOS_HEADER
             self.dos = self.DosHeader()
-
             self.dos.e_magic = self.read_and_unpack("!H")[0]
             if self.dos.e_magic != Pe.Constants.DOS_MAGIC:
                 raise RuntimeError(
                     f"Corrupted DOS file (bad DOS magic, expected '{Pe.Constants.DOS_MAGIC:x}', got '{self.dos.e_magic:x}'")
 
-            self.fd.seek(0x3c, 0)
-            self.dos.e_lfanew = u32(self.fd.read(4))
+            self.seek(0x3c)
+            self.dos.e_lfanew = self.read_and_unpack(f"{endian}H")[0]
 
-            self.fd.seek(self.dos.e_lfanew, 0)
-            if u16(self.fd.read(2), e=Endianness.BIG_ENDIAN) != Pe.Constants.NT_MAGIC:
+            self.seek(self.dos.e_lfanew)
+            pe_magic = self.read_and_unpack("!I")[0]
+            if pe_magic != Pe.Constants.NT_MAGIC:
                 raise RuntimeError("Corrupted PE file (bad PE magic)")
 
             # Parse IMAGE_FILE_HEADER
             self.file_header = self.ImageFileHeader()
+            offsetImageFileHeader = self.fd.seek(0, 1)
+            sizeOfImageFileHeader = struct.calcsize("HHIIIHH")
 
-            machine, self.file_header.NumberOfSections = self.read_and_unpack(
-                f"{endian}HH")
+            machine, \
+                self.file_header.NumberOfSections, \
+                self.file_header.TimeDateStamp, \
+                self.file_header.PointerToSymbolTable, \
+                self.file_header.NumberOfSymbols, \
+                self.file_header.SizeOfOptionalHeader, \
+                pe_characteristics = self.read_and_unpack(f"{endian}HHIIIHH")
+
             self.file_header.Machine = Pe.MachineType(machine)
-
-            self.file_header.TimeDateStamp, self.file_header.PointerToSymbolTable, \
-                self.file_header.NumberOfSymbols, self.file_header.SizeOfOptionalHeader, \
-                pe_characteristics = self.read_and_unpack(f"{endian}IIIHH")
-
             self.file_header.Characteristics = Pe.FileCharacteristics(
                 pe_characteristics)
 
@@ -227,34 +283,56 @@ class Pe(FileFormat):
 
             self.fd.seek(0x10, 1)
 
-            for attr in (
-                "AddressOfEntryPoint",
-                "BaseOfCode",
-                "BaseOfData",
-                "ImageBase",
-                "SectionAlignment",
-                "FileAlignment",
-                "MajorOperatingSystemVersion",
-                "MinorOperatingSystemVersion",
-                "MajorImageVersion",
-                "MinorImageVersion",
-                "MajorSubsystemVersion",
-                "MinorSubsystemVersion",
-                "Reserved1",
-                "SizeOfImage",
-                "SizeOfHeaders",
-                "CheckSum",
-                "Subsystem",
-                "DllCharacteristics",
-                "SizeOfStackReserve",
-                "SizeOfStackCommit",
-                "SizeOfHeapReserve",
-                "SizeOfHeapCommit",
-                "LoaderFlags",
-                "NumberOfRvaAndSizes",
-            ):
-                value = self.read_and_unpack(f"{endian}I")[0]
-                setattr(self.optional_header, attr, value)
+            self.optional_header.AddressOfEntryPoint, \
+                self.optional_header.BaseOfCode, \
+                self.optional_header.BaseOfData, \
+                self.optional_header.ImageBase, \
+                self.optional_header.SectionAlignment, \
+                self.optional_header.FileAlignment, \
+                self.optional_header.MajorOperatingSystemVersion, \
+                self.optional_header.MinorOperatingSystemVersion, \
+                self.optional_header.MajorImageVersion, \
+                self.optional_header.MinorImageVersion, \
+                self.optional_header.MajorSubsystemVersion, \
+                self.optional_header.MinorSubsystemVersion, \
+                self.optional_header.Reserved1, \
+                self.optional_header.SizeOfImage, \
+                self.optional_header.SizeOfHeaders, \
+                self.optional_header.CheckSum, \
+                self.optional_header.Subsystem, \
+                self.optional_header.DllCharacteristics, \
+                self.optional_header.SizeOfStackReserve, \
+                self.optional_header.SizeOfStackCommit, \
+                self.optional_header.SizeOfHeapReserve, \
+                self.optional_header.SizeOfHeapCommit, \
+                self.optional_header.LoaderFlags, \
+                self.optional_header.NumberOfRvaAndSizes = self.read_and_unpack(
+                    f"{endian}IIIIIIIIIIIIIIIIIIIIIIII")
+
+            # go to sections
+            self.fd.seek(offsetImageFileHeader + sizeOfImageFileHeader +
+                         self.file_header.SizeOfOptionalHeader)
+
+            offsetSectionHeaders = self.fd.seek(0, 1)
+            sizeOfSectionHeaders = struct.calcsize("8sIIIIIIHHI")
+
+            self.__sections = []
+
+            for i in range(self.file_header.NumberOfSections):
+                section = Pe.ImageSectionHeader()
+                section.Name, \
+                    section.VirtualSize, \
+                    section.VirtualAddress, \
+                    section.SizeOfRawData, \
+                    section.PointerToRawData, \
+                    section.PointerToRelocations, \
+                    section.PointerToLinenumbers, \
+                    section.NumberOfRelocations, \
+                    section.NumberOfLinenumbers, \
+                    characteristics = self.read_and_unpack(
+                        f"{endian}8sIIIIIIHHI")
+                section.Characteristics = Pe.ImageSectionFlags(characteristics)
+                self.__sections.append(section)
 
             self.__entry_point = self.optional_header.AddressOfEntryPoint
         return
@@ -290,3 +368,7 @@ class Pe(FileFormat):
         if self.__entry_point is None:
             raise RuntimeError("PE parsing failed to retrieve the entry point")
         return self.__entry_point
+
+    @property
+    def sections(self) -> List[FileFormatSection]:
+        return self.__sections

@@ -181,6 +181,10 @@ class Endianness(enum.Enum):
     def __int__(self) -> int: ...
 
 
+class FileFormatSection:
+    misc: Any
+
+
 class FileFormat:
     name: str
     path: pathlib.Path
