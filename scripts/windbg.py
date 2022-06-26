@@ -384,7 +384,7 @@ def __windbg_prompt__(current_prompt: Callable) -> str:
         return Color.colorify(p, attrs="bold red")
 
 
-def __default_prompt__(x):
+def __select_prompt__(x):
     if gef.config["gef.use-windbg-prompt"] is False \
             or gef.config["gef.readline_compat"] is True:
         return __gef_prompt__(x)
@@ -392,10 +392,14 @@ def __default_prompt__(x):
     return __windbg_prompt__(x)
 
 
+def prompt_select_wrapper():
+    return __select_prompt__(None)
+
+
 # Prompt
 gef.config["gef.use-windbg-prompt"] = GefSetting(
-    False, description="Use WinDBG like prompt")
-gdb.prompt_hook = __default_prompt__
+    False, description="Use WinDBG like prompt", hooks={"on_write": prompt_select_wrapper})
+gdb.prompt_hook = __select_prompt__
 
 # Aliases
 GefAlias("da", "display/s", completer_class=gdb.COMPLETE_LOCATION)

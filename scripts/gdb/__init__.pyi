@@ -2,6 +2,7 @@ from typing import (Callable, Dict, Iterator, List, Optional, Tuple, Union,
                     overload)
 
 PYTHONDIR: str
+VERSION: str
 
 
 def execute(command, from_tty=False, to_string=False) -> Union[None, str]: ...
