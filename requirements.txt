@@ -1,7 +1,0 @@
-retdec-python
-pygments
-rpyc
-keystone-engine
-capstone
-unicorn
-ropper
