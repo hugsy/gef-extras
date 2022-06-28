@@ -15,21 +15,26 @@ class CurrentFrameStack(GenericCommand):
         ptrsize = gef.arch.ptrsize
         frame = gdb.selected_frame()
 
-        if not frame.older():
+        if frame.older():
+            saved_ip = frame.older().pc()
+            stack_hi = align_address(int(frame.older().read_register("sp")))
+        # This ensures that frame.older() does not return None due to another error
+        elif frame.level() == 0:
+            saved_ip = None
+            stack_hi = align_address(int(frame.read_register("bp")))
+        else:
             #reason = frame.unwind_stop_reason()
             reason_str = gdb.frame_stop_reason_string( frame.unwind_stop_reason() )
             warn("Cannot determine frame boundary, reason: {:s}".format(reason_str))
             return
-
-        saved_ip = frame.older().pc()
-        stack_hi = align_address(int(frame.older().read_register("sp")))
+        
         stack_lo = align_address(int(frame.read_register("sp")))
         should_stack_grow_down = gef.config["context.grow_stack_down"] == True
         results = []
 
         for offset, address in enumerate(range(stack_lo, stack_hi, ptrsize)):
             pprint_str = DereferenceCommand.pprint_dereferenced(stack_lo, offset)
-            if dereference(address) == saved_ip:
+            if saved_ip and dereference(address) == saved_ip:
                 pprint_str += " " + Color.colorify("($savedip)", attrs="gray underline")
             results.append(pprint_str)
 
