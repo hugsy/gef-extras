@@ -13,8 +13,8 @@ GDBINIT_BACKUP = $(GDBINIT_TMP)
 GEFRC_TMP = $(shell mktemp)
 GEFRC_BACKUP = $(GEFRC_TMP)
 TMPDIR ?= $(shell mktemp -d)
-GEF_PATH := $(TMPDIR)/gef.py
 WORKING_DIR := $(TMPDIR)
+GEF_PATH := $(WORKING_DIR)/gef.py
 PYTEST_PARAMETERS := --verbose --forked --numprocesses=$(NB_CORES)
 BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
 
@@ -22,39 +22,32 @@ BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
 .PHONY: test test_% Test% testbins clean lint
 
 
-test: setup testbins
-	WORKING_DIR=$(WORKING_DIR) GEF_PATH=$(GEF_PATH) python3 -m pytest $(PYTEST_PARAMETERS) -k "not benchmark"
+setup:
+	@echo "[+] Downloading gef.py -> '$(GEF_PATH)'"
+	@wget -O $(GEF_PATH) -q https://gef.blah.cat/dev
 
-test_%: setup testbins
-	WORKING_DIR=$(WORKING_DIR) GEF_PATH=$(GEF_PATH) python3 -m pytest $(PYTEST_PARAMETERS) -k $@
+test: testbins setup
+	TMPDIR=$(WORKING_DIR) GEF_PATH=$(GEF_PATH) python3 -m pytest $(PYTEST_PARAMETERS) -k "not benchmark"
+
+test_%: testbins setup
+	TMPDIR=$(WORKING_DIR) GEF_PATH=$(GEF_PATH) python3 -m pytest $(PYTEST_PARAMETERS) -k $@
 
 testbins: $(wildcard tests/binaries/*.c)
-	@WORKING_DIR=$(WORKING_DIR) $(MAKE) -j $(NB_CORES) -C tests/binaries TARGET=$(TARGET) all
+	@TMPDIR=$(WORKING_DIR) $(MAKE) -j $(NB_CORES) -C tests/binaries TARGET=$(TARGET) TMPDIR=$(WORKING_DIR) all
 
 clean:
-	WORKING_DIR=$(WORKING_DIR) $(MAKE) -j $(NB_CORES) -C tests/binaries clean
-	@rm -rf $(WORKING_DIR) || true
-
-restore:
-	@mv $(GDBINIT_BACKUP) ~/.gdbinit || true
-	@mv $(GEFRC_BACKUP) ~/.gef.rc || true
+	TMPDIR=$(WORKING_DIR) $(MAKE) -j $(NB_CORES) -C tests/binaries clean
+	@rm -rf $(WORKING_DIR)/gef-* $(WORKING_DIR)/gef.py || true
 
 lint:
-	python3 -m pylint $(PYLINT_PARAMETERS) $(wildcard $(ROOT_DIR)/scripts/*.py)
-	python3 -m pylint $(PYLINT_PARAMETERS) $(wildcard tests/commands/*.py)
+	python3 -m pylint $(PYLINT_PARAMETERS) $(GEF_PATH)
+	python3 -m pylint $(PYLINT_PARAMETERS) $(wildcard tests/*/*.py)
 
 coverage:
 	@! ( [ -d $(COVERAGE_DIR) ] && echo "COVERAGE_DIR=$(COVERAGE_DIR) exists already")
 	@mkdir -p $(COVERAGE_DIR)
 	@COVERAGE_DIR=$(COVERAGE_DIR) $(MAKE) test
 	@coverage combine $(COVERAGE_DIR)/*
-	@coverage html --include $(TMPGEF) "/$(ROOT_DIR)/scripts/*.py"
+	@coverage html --include "*/gef.py"
 	@rm -rf $(COVERAGE_DIR)
-
-setup:
-	wget -O $(GEF_PATH) -q https://gef.blah.cat/py
-	mv ~/.gdbinit $(GDBINIT_BACKUP) || true
-	mv ~/.gef.rc $(GEFRC_BACKUP) || true
-	echo source $(GEF_PATH) > ~/.gdbinit
-	echo gef config gef.extra_plugins_dir $(ROOT_DIR)/scripts >> ~/.gdbinit
 

@@ -126,7 +126,12 @@ class AssembleCommand(GenericCommand):
                 f"invalid endianness '{endian_s}' for arch/mode '{arch_s}:{mode_s}'")
 
         ks_arch: int = getattr(keystone, f"KS_ARCH_{arch_s}")
-        ks_mode: int = getattr(keystone, f"KS_MODE_{mode_s}")
+        # manual fixups
+        # * aarch64
+        if arch_s == "ARM64" and mode_s == "0":
+            ks_mode = 0
+        else:
+            ks_mode: int = getattr(keystone, f"KS_MODE_{mode_s}")
         ks_endian: int = getattr(
             keystone, f"KS_MODE_{endian_s}_ENDIAN")
         insns = [x.strip()
@@ -220,7 +225,7 @@ class ChangePermissionCommand(GenericCommand):
             err("Invalid address")
             return
 
-        loc = int(loc)
+        loc = int(abs(loc))
         sect = process_lookup_address(loc)
         if sect is None:
             err("Unmapped address")
@@ -231,7 +236,7 @@ class ChangePermissionCommand(GenericCommand):
 
         info(f"Generating sys_mprotect({sect.page_start:#x}, {size:#x}, "
              f"'{perm!s}') stub for arch {get_arch()}")
-        stub = self.get_stub_by_arch(sect.page_start, size, perm)
+        stub = self.get_arch_and_mode(sect.page_start, size, perm)
         if stub is None:
             err("Failed to generate mprotect opcodes")
             return
@@ -250,8 +255,25 @@ class ChangePermissionCommand(GenericCommand):
         gdb.execute("continue")
         return
 
-    def get_stub_by_arch(self, addr: int, size: int, perm: Permission) -> Union[str, bytearray, None]:
+    def get_arch_and_mode(self, addr: int, size: int, perm: Permission) -> Union[bytes, None]:
         code = gef.arch.mprotect_asm(addr, size, perm)
-        arch, mode = get_keystone_arch()
-        raw_insns = ks_assemble(code, arch, mode, raw=True)
-        return raw_insns
+
+        # arch, mode and endianness as seen by GEF
+        arch_s = gef.arch.arch.upper()
+        mode_s = gef.arch.mode.upper()
+        endian_s = repr(gef.arch.endianness).upper()
+
+        if arch_s not in VALID_ARCH_MODES:
+            raise AttributeError(f"invalid arch '{arch_s}'")
+
+        # convert them to arch, mode and endianness for keystone
+        ks_arch: int = getattr(keystone, f"KS_ARCH_{arch_s}")
+        if arch_s == "ARM64" and mode_s == "":
+            ks_mode = 0
+        else:
+            ks_mode: int = getattr(keystone, f"KS_MODE_{mode_s}")
+        ks_endian: int = getattr(
+            keystone, f"KS_MODE_{endian_s}")
+
+        addr = gef.arch.pc
+        return ks_assemble(code, ks_arch, ks_mode | ks_endian, addr)

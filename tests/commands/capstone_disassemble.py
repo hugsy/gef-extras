@@ -3,32 +3,33 @@ capstone-disassemble command test module
 """
 
 import pytest
-import capstone
 
-
-from tests.utils import (
-    ARCH,
-    gdb_start_silent_cmd,
-    gdb_run_silent_cmd,
-    gdb_run_cmd,
-    GefUnitTestGeneric,
-    removeuntil,
-)
+from tests.utils import (ARCH, GefUnitTestGeneric, gdb_run_cmd,
+                         gdb_run_silent_cmd, gdb_start_silent_cmd, removeuntil)
 
 
 @pytest.mark.skipif(ARCH in ("mips64el", "ppc64le", "riscv64"), reason=f"Skipped for {ARCH}")
 class CapstoneDisassembleCommand(GefUnitTestGeneric):
     """`capstone-disassemble` command test module"""
 
+    def setUp(self) -> None:
+        try:
+            import capstone  # pylint: disable=W0611
+        except ImportError:
+            pytest.skip("capstone-engine not available",
+                        allow_module_level=True)
+        return super().setUp()
+
     def test_cmd_capstone_disassemble(self):
-        self.assertNotIn("capstone", gdb_run_silent_cmd("gef missing"))
         self.assertFailIfInactiveSession(gdb_run_cmd("capstone-disassemble"))
         res = gdb_start_silent_cmd("capstone-disassemble")
         self.assertNoException(res)
         self.assertTrue(len(res.splitlines()) > 1)
 
-        self.assertFailIfInactiveSession(gdb_run_cmd("cs --show-opcodes"))
-        res = gdb_start_silent_cmd("cs --show-opcodes --length 5 $pc")
+        self.assertFailIfInactiveSession(
+            gdb_run_cmd("capstone-disassemble --show-opcodes"))
+        res = gdb_start_silent_cmd(
+            "capstone-disassemble --show-opcodes --length 5 $pc")
         self.assertNoException(res)
         self.assertTrue(len(res.splitlines()) >= 5)
         # jump to the output buffer
