@@ -17,11 +17,13 @@ class RopperCommand(GenericCommand):
 
     def __init__(self) -> None:
         super().__init__(complete=gdb.COMPLETE_NONE)
+        self.__readline = None
         return
 
     @only_if_gdb_running
     def do_invoke(self, argv: List[str]) -> None:
-        readline = __import__("readline")
+        if not self.__readline:
+            self.__readline = __import__("readline")
         ropper = sys.modules["ropper"]
         if "--file" not in argv:
             path = gef.session.file
@@ -35,14 +37,14 @@ class RopperCommand(GenericCommand):
             argv.append(f"{sect.page_start:#x}")
 
         # ropper set up own autocompleter after which gdb/gef autocomplete don't work
-        old_completer_delims = readline.get_completer_delims()
-        old_completer = readline.get_completer()
+        old_completer_delims = self.__readline.get_completer_delims()
+        old_completer = self.__readline.get_completer()
 
         try:
             ropper.start(argv)
         except RuntimeWarning:
             return
 
-        readline.set_completer(old_completer)
-        readline.set_completer_delims(old_completer_delims)
+        self.__readline.set_completer(old_completer)
+        self.__readline.set_completer_delims(old_completer_delims)
         return
