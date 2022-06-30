@@ -1,9 +1,8 @@
 __AUTHOR__    = "hugsy"
-__VERSION__   = 0.1
+__VERSION__   = 0.2
 __NAME__      = "ropper"
 
 import sys
-import readline
 
 import gdb
 import ropper
@@ -22,6 +21,7 @@ class RopperCommand(GenericCommand):
 
     @only_if_gdb_running
     def do_invoke(self, argv: List[str]) -> None:
+        readline = __import__("readline")
         ropper = sys.modules["ropper"]
         if "--file" not in argv:
             path = gef.session.file
