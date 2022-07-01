@@ -12,6 +12,7 @@ nav:
 - Home: index.md
 - Installation: install.md
 - Commands:
+
   - assemble: commands/assemble.md
   - bincompare: commands/bincompare.md
   - bytearray: commands/bytearray.md
@@ -21,9 +22,11 @@ nav:
   - exploit-template: commands/skel.md
   - ftrace: commands/ftrace.md
   - ida-rpyc: commands/ida-rpyc.md
+  - is-syscall: commands/is-syscall.md
   - peekpointers: commands/peekpointers.md
   - retdec: commands/retdec.md
   - ropper: commands/ropper.md
   - set-permission: commands/set-permission.md
+  - syscall-args: commands/syscall-args.md
   - visualize_heap: commands/visualize_heap.md
   - windbg: commands/windbg.md
