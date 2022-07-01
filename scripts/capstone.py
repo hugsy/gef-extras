@@ -108,7 +108,7 @@ class CapstoneDisassembleCommand(GenericCommand):
 
     def post_load(self) -> None:
         super().post_load()
-        if self["use-capstone"] is True:
+        if self["use-capstone"]:
             ctx = gef.gdb.commands["context"]
             assert isinstance(ctx, ContextCommand)
             ctx.instruction_iterator = cs_disassemble
