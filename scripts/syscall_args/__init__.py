@@ -118,12 +118,17 @@ class SyscallArgsCommand(GenericCommand):
         return getattr(_mod, "syscall_table")
 
 
-def pane_content() -> None:
+def __syscall_args_pane_condition() -> bool:
+    insn = gef_current_instruction(gef.arch.pc)
+    return is_syscall(insn)
+
+
+def __syscall_args_pane_content() -> None:
     gdb.execute("syscall-args")
     return
 
 
-def pane_title() -> str:
+def __syscall_args_pane_title() -> str:
     return CONTEXT_PANE_DESCRIPTION
 
 
@@ -131,4 +136,4 @@ def pane_title() -> str:
 # Register a callback to `syscall-args` to automatically detect when a syscall is hit
 #
 register_external_context_pane(
-    CONTEXT_PANE_INDEX, pane_content, pane_title_function=pane_title)
+    CONTEXT_PANE_INDEX, __syscall_args_pane_content, pane_title_function=__syscall_args_pane_title, condition=__syscall_args_pane_condition)
