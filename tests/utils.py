@@ -2,6 +2,7 @@
 Utility functions for testing
 """
 
+import enum
 import os
 import pathlib
 import platform
@@ -9,47 +10,52 @@ import re
 import subprocess
 import tempfile
 import unittest
-from urllib.request import urlopen
 import warnings
-import enum
-
-from typing import Iterable, Union, List, Optional
+from typing import Iterable, List, Optional, Union
+from urllib.request import urlopen
 
 TMPDIR = pathlib.Path(tempfile.gettempdir())
 ARCH = (os.getenv("GEF_CI_ARCH") or platform.machine()).lower()
 BIN_SH = pathlib.Path("/bin/sh")
 CI_VALID_ARCHITECTURES_32B = ("i686", "armv7l")
-CI_VALID_ARCHITECTURES_64B = ("x86_64", "aarch64", "mips64el", "ppc64le", "riscv64")
+CI_VALID_ARCHITECTURES_64B = (
+    "x86_64", "aarch64", "mips64el", "ppc64le", "riscv64")
 CI_VALID_ARCHITECTURES = CI_VALID_ARCHITECTURES_64B + CI_VALID_ARCHITECTURES_32B
 COVERAGE_DIR = os.getenv("COVERAGE_DIR", "")
+STRIP_ANSI_DEFAULT = True
 DEFAULT_CONTEXT = "-code -stack"
 DEFAULT_TARGET = TMPDIR / "default.out"
 GEF_DEFAULT_PROMPT = "gef➤  "
 GEF_DEFAULT_TEMPDIR = "/tmp/gef"
-GEF_PATH = pathlib.Path(os.getenv("GEF_PATH", "gef.py"))
-STRIP_ANSI_DEFAULT = True
+GEF_PATH = pathlib.Path(os.getenv("GEF_PATH", "../gef/gef.py"))
+GEF_EXTRAS_TEST_DIR_PATH = pathlib.Path(__file__).absolute().parent
+GEF_EXTRAS_ROOT_PATH = GEF_EXTRAS_TEST_DIR_PATH.parent
+GEF_EXTRAS_SCRIPTS_PATH = GEF_EXTRAS_ROOT_PATH / "scripts"
+GEF_EXTRAS_OS_PATH = GEF_EXTRAS_ROOT_PATH / "os"
+GEF_EXTRAS_STRUCTS_PATH = GEF_EXTRAS_ROOT_PATH / "structs"
 
 
 CommandType = Union[str, Iterable[str]]
 
+
 class Color(enum.Enum):
     """Used to colorify terminal output."""
-    NORMAL         = "\x1b[0m"
-    GRAY           = "\x1b[1;38;5;240m"
-    LIGHT_GRAY     = "\x1b[0;37m"
-    RED            = "\x1b[31m"
-    GREEN          = "\x1b[32m"
-    YELLOW         = "\x1b[33m"
-    BLUE           = "\x1b[34m"
-    PINK           = "\x1b[35m"
-    CYAN           = "\x1b[36m"
-    BOLD           = "\x1b[1m"
-    UNDERLINE      = "\x1b[4m"
-    UNDERLINE_OFF  = "\x1b[24m"
-    HIGHLIGHT      = "\x1b[3m"
-    HIGHLIGHT_OFF  = "\x1b[23m"
-    BLINK          = "\x1b[5m"
-    BLINK_OFF      = "\x1b[25m"
+    NORMAL = "\x1b[0m"
+    GRAY = "\x1b[1;38;5;240m"
+    LIGHT_GRAY = "\x1b[0;37m"
+    RED = "\x1b[31m"
+    GREEN = "\x1b[32m"
+    YELLOW = "\x1b[33m"
+    BLUE = "\x1b[34m"
+    PINK = "\x1b[35m"
+    CYAN = "\x1b[36m"
+    BOLD = "\x1b[1m"
+    UNDERLINE = "\x1b[4m"
+    UNDERLINE_OFF = "\x1b[24m"
+    HIGHLIGHT = "\x1b[3m"
+    HIGHLIGHT_OFF = "\x1b[23m"
+    BLINK = "\x1b[5m"
+    BLINK_OFF = "\x1b[25m"
 
 
 class GdbAssertionError(AssertionError):
@@ -77,14 +83,16 @@ class GefUnitTestGeneric(unittest.TestCase):
                 or "'gdb.error'" in buf
                 or "Exception raised" in buf
                 or "failed to execute properly, reason:" in buf):
-            raise GdbAssertionError(f"Unexpected GDB Exception raised in {buf}")
+            raise GdbAssertionError(
+                f"Unexpected GDB Exception raised in {buf}")
 
         if "is deprecated and will be removed in a feature release." in buf:
             lines = [l for l in buf.splitlines()
                      if "is deprecated and will be removed in a feature release." in l]
             deprecated_api_names = {x.split()[1] for x in lines}
             warnings.warn(
-                UserWarning(f"Use of deprecated API(s): {', '.join(deprecated_api_names)}")
+                UserWarning(
+                    f"Use of deprecated API(s): {', '.join(deprecated_api_names)}")
             )
 
     @staticmethod
@@ -119,7 +127,8 @@ def gdb_run_cmd(cmd: CommandType, before: CommandType = (), after: CommandType =
     before (resp. after) the command to test."""
     command = ["gdb", "-q", "-nx"]
     if COVERAGE_DIR:
-        coverage_file = pathlib.Path(COVERAGE_DIR) / os.getenv("PYTEST_XDIST_WORKER", "gw0")
+        coverage_file = pathlib.Path(
+            COVERAGE_DIR) / os.getenv("PYTEST_XDIST_WORKER", "gw0")
         command += _add_command([
             "pi from coverage import Coverage",
             f"pi cov = Coverage(data_file=\"{coverage_file}\","
@@ -129,6 +138,8 @@ def gdb_run_cmd(cmd: CommandType, before: CommandType = (), after: CommandType =
     command += _add_command([
         f"source {GEF_PATH}",
         "gef config gef.debug True",
+        f"gef config gef.extra_plugins_dir {GEF_EXTRAS_SCRIPTS_PATH.absolute()}",
+        f"gef config pcustom.struct_path {GEF_EXTRAS_STRUCTS_PATH.absolute()}",
     ])
     command += _add_command(before)
     command += _add_command(cmd)
@@ -137,7 +148,8 @@ def gdb_run_cmd(cmd: CommandType, before: CommandType = (), after: CommandType =
         command += _add_command(["pi cov.stop()", "pi cov.save()"])
     command += ["-ex", "quit", "--", str(target)]
 
-    lines = subprocess.check_output(command, stderr=subprocess.STDOUT).strip().splitlines()
+    lines = subprocess.check_output(
+        command, stderr=subprocess.STDOUT).strip().splitlines()
     output = b"\n".join(lines)
     result = None
 
@@ -314,7 +326,6 @@ def removeuntil(substring: str, buffer: str, included: bool = False) -> str:
         idx += len(substring)
 
     return buffer[idx:]
-
 
 
 def download_file(url: str) -> Optional[bytes]:

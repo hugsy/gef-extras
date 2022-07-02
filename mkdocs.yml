@@ -25,4 +25,5 @@ nav:
   - retdec: commands/retdec.md
   - ropper: commands/ropper.md
   - set-permission: commands/set-permission.md
+  - visualize_heap: commands/visualize_heap.md
   - windbg: commands/windbg.md
