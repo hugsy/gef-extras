@@ -1647,7 +1647,7 @@ class GefHeapManager(GefManager):
 
 class GefSetting:
     def __init__(self, value: Any,
-                 cls: Optional[type] = None, description: Optional[str] = None) -> None: ...
+                 cls: Optional[type] = None, description: Optional[str] = None, hooks: Optional[Dict[str, Callable]] = None) -> None: ...
 
 
 class GefSettingsManager(dict):
