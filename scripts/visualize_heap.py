@@ -214,7 +214,7 @@ class VisualizeHeapChunksCommand(GenericCommand):
 
                 # The first entry of the chunk gets added some extra info about the chunk itself
                 if current == base:
-                    line += f"   Chunk[{chunk_idx}], Flag={chunk.flags_as_string()}"
+                    line += f"   Chunk[{chunk_idx}], Flag={chunk.flags!s}"
                     chunk_idx += 1
 
                 # Populate information for known ranges, if any
