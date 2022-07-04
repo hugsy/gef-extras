@@ -196,11 +196,7 @@ class VisualizeHeapChunksCommand(GenericCommand):
 
                 if aggregate_nuls > 2:
                     # If here, we have some aggregated null bytes, print a small thing to mention that
-                    gef_print(
-                        "        ↓",
-                        "      [...]",
-                        "        ↓"
-                    )
+                    gef_print("        ↓        [...]        ↓")
                     aggregate_nuls = 0
 
                 # Read the context in a hexdump-like format
@@ -222,9 +218,9 @@ class VisualizeHeapChunksCommand(GenericCommand):
                     chunk_idx += 1
 
                 # Populate information for known ranges, if any
-                for x in known_ranges:
-                    if value in x[0]:
-                        line += f" (in {Color.redify(x[1])})"
+                for _range, _value in known_ranges:
+                    if value in _range:
+                        line += f" (in {Color.redify(_value)})"
 
                 # Populate information from other chunks/bins, if any
                 if value in known_values:
