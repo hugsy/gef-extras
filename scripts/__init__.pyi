@@ -809,7 +809,7 @@ class NamedBreakpoint(gdb.Breakpoint):
     def stop(self) -> bool: ...
 
 
-def register_external_context_pane(pane_name: str, display_pane_function: Callable[[], None], pane_title_function: Callable[[], Optional[str]]) -> None:
+def register_external_context_pane(pane_name: str, display_pane_function: Callable[[], None], pane_title_function: Callable[[], Optional[str]], condition: Optional[Callable[[], bool]]) -> None:
     def display_pane() -> None:  ...
     def pane_title() -> str:  ...
 
@@ -1647,7 +1647,7 @@ class GefHeapManager(GefManager):
 
 class GefSetting:
     def __init__(self, value: Any,
-                 cls: Optional[type] = None, description: Optional[str] = None) -> None: ...
+                 cls: Optional[type] = None, description: Optional[str] = None, hooks: Optional[Dict[str, Callable]] = None) -> None: ...
 
 
 class GefSettingsManager(dict):
