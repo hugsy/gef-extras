@@ -11,4 +11,4 @@ Currently only the glibc heap support is implemented. The command doesn't take a
 gef➤  visualize-libc-heap-chunks
 ```
 
-![img](https://i.imgur.com/IKHlLlp.png)
+![img](https://i.imgur.com/jQYaiyB.png)
