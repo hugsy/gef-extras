@@ -24,4 +24,4 @@ class VisualizeLibcHeapChunksCommand(GefUnitTestGeneric):
 
         for i in range(4):
             self.assertIn(
-                f"0x0000000000000000    ........    Chunk[{i}]", res)
+                f"0x0000000000000000    ........   Chunk[{i}]", res)
