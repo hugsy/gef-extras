@@ -34,13 +34,13 @@ This plugin is a set of commands, aliases and extensions to mimic some of the mo
   - `ea` : `patch string`
   - `dps` : `dereference`
   - `bp` : `break`
-  - `bl` : "info`breakpoints`
-  - `bd` : "disable`breakpoints`
-  - `bc` : "delete`breakpoints`
-  - `be` : "enable`breakpoints`
+  - `bl` : `info breakpoints`
+  - `bd` : `disable breakpoints`
+  - `bc` : `delete breakpoints`
+  - `be` : `enable breakpoints`
   - `tbp` : `tbreak`
   - `s` : `grep`
   - `pa` : `advance`
-  - `kp` : "info`stack`
+  - `kp` : `info stack`
   - `ptc` : `finish`
   - `uf` : `disassemble`
