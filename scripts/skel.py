@@ -82,7 +82,7 @@ class ExploitTemplateCommand(GenericCommand):
             port=port,
             arch="amd64" if "x86-64" in gef.arch.arch else "i386",
             endian="big" if gef.arch.endianness == Endianness.BIG_ENDIAN else "little",
-            filepath=gef.file.path,
+            filepath=gef.binary.path,
             bkps=bkps
         )
         fd, fname = tempfile.mkstemp(suffix='.py', prefix='gef_')
