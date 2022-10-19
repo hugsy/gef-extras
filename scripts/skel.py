@@ -1,5 +1,5 @@
 __AUTHOR__ = "hugsy"
-__VERSION__ = 0.4
+__VERSION__ = 0.4.2
 
 import os
 import tempfile
@@ -80,7 +80,7 @@ class ExploitTemplateCommand(GenericCommand):
         temp = TEMPLATE.format(
             target=target,
             port=port,
-            arch="amd64" if "x86-64" in gef.arch.arch else "i386",
+            arch="amd64" if isinstance(gef.arch, X86_64) else "i386",
             endian="big" if gef.arch.endianness == Endianness.BIG_ENDIAN else "little",
             filepath=gef.binary.path,
             bkps=bkps
