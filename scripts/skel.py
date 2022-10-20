@@ -1,5 +1,5 @@
 __AUTHOR__ = "hugsy"
-__VERSION__ = 0.4.2
+__VERSION__ = 1.0
 
 import os
 import tempfile
