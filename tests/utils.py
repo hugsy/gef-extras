@@ -26,7 +26,7 @@ DEFAULT_CONTEXT              = "-code -stack"
 DEFAULT_TARGET               = TMPDIR / "default.out"
 GEF_DEFAULT_PROMPT           = "gef➤  "
 GEF_DEFAULT_TEMPDIR          = "/tmp/gef"
-GEF_PATH                     = pathlib.Path(os.getenv("GEF_PATH", "../gef/gef.py"))
+GEF_PATH                     = pathlib.Path(os.getenv("GEF_PATH", "../gef/gef.py")).resolve()
 GEF_EXTRAS_TEST_DIR_PATH     = pathlib.Path(__file__).absolute().parent
 GEF_EXTRAS_ROOT_PATH         = GEF_EXTRAS_TEST_DIR_PATH.parent
 GEF_EXTRAS_SCRIPTS_PATH      = GEF_EXTRAS_ROOT_PATH / "scripts"
@@ -63,6 +63,11 @@ class GdbAssertionError(AssertionError):
 
 class GefUnitTestGeneric(unittest.TestCase):
     """Generic class for command testing, that defines all helpers"""
+
+    def setUp(self) -> None:
+        if not GEF_PATH.exists():
+            raise FileNotFoundError(f"Missing gef.py (expected: '{GEF_PATH.absolute()}')")
+        return super().setUp()
 
     @staticmethod
     def assertException(buf):
