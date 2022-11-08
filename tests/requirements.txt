@@ -2,4 +2,5 @@ pylint
 pytest
 pytest-xdist
 pytest-benchmark
+pytest-forked
 coverage
