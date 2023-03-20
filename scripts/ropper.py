@@ -1,11 +1,10 @@
-__AUTHOR__    = "hugsy"
-__VERSION__   = 0.2
-__NAME__      = "ropper"
-
-import sys
-
-import gdb
+from typing import List
 import ropper
+import gdb
+import sys
+__AUTHOR__ = "hugsy"
+__VERSION__ = 0.3
+__NAME__ = "ropper"
 
 
 @register
@@ -13,7 +12,7 @@ class RopperCommand(GenericCommand):
     """Ropper (https://scoding.de/ropper/) plugin."""
 
     _cmdline_ = "ropper"
-    _syntax_  = f"{_cmdline_} [ROPPER_OPTIONS]"
+    _syntax_ = f"{_cmdline_} [ROPPER_OPTIONS]"
 
     def __init__(self) -> None:
         super().__init__(complete=gdb.COMPLETE_NONE)
@@ -30,6 +29,7 @@ class RopperCommand(GenericCommand):
             if not path:
                 err("No file provided")
                 return
+            path = str(path)
             sect = next(filter(lambda x: x.path == path, gef.memory.maps))
             argv.append("--file")
             argv.append(path)
@@ -41,6 +41,7 @@ class RopperCommand(GenericCommand):
         old_completer = self.__readline.get_completer()
 
         try:
+            print(argv)
             ropper.start(argv)
         except RuntimeWarning:
             return
