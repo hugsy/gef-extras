@@ -41,7 +41,6 @@ class RopperCommand(GenericCommand):
         old_completer = self.__readline.get_completer()
 
         try:
-            print(argv)
             ropper.start(argv)
         except RuntimeWarning:
             return
