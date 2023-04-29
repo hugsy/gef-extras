@@ -1,8 +1,22 @@
+"""
+Provide an ascii-based graphical representation of the heap layout.
+
+Note: Mostly done for x64, other architectures were not throughly tested.
+"""
+
 __AUTHOR__ = "hugsy"
-__VERSION__ = 0.2
+__VERSION__ = 0.4
+__LICENSE__ = "MIT"
 
 import os
+from functools import lru_cache
+from typing import TYPE_CHECKING, Dict, List, Tuple
+
 import gdb
+
+if TYPE_CHECKING:
+    from . import *
+    from . import gdb
 
 
 def fastbin_index(sz):
@@ -10,24 +24,38 @@ def fastbin_index(sz):
 
 
 def nfastbins():
-    return fastbin_index( (80 * gef.arch.ptrsize // 4)) - 1
+    return fastbin_index((80 * gef.arch.ptrsize // 4)) - 1
 
 
 def get_tcache_count():
-    if gef.libc.version < (2, 27):
+    version = gef.libc.version
+    if version is None:
+        raise RuntimeError("Cannot get the libc version")
+    if version < (2, 27):
         return 0
-    count_addr = gef.heap.base + 2*gef.arch.ptrsize
-    count = p8(count_addr) if gef.libc.version < (2, 30) else p16(count_addr)
+    base = gef.heap.base_address
+    if not base:
+        raise RuntimeError(
+            "Failed to get the heap base address. Heap not initialized?")
+    count_addr = base + 2*gef.arch.ptrsize
+    count = p8(count_addr) if version < (2, 30) else p16(count_addr)
     return count
 
 
 @lru_cache(128)
-def collect_known_values() -> dict:
+def collect_known_values() -> Dict[int, str]:
     arena = gef.heap.main_arena
-    result = {} # format is { 0xaddress : "name" ,}
+    if not arena:
+        raise RuntimeError
+
+    version = gef.libc.version
+    if not version:
+        raise RuntimeError
+
+    result: Dict[int, str] = {}  # format is { 0xaddress : "name" ,}
 
     # tcache
-    if gef.libc.version() >= (2, 27):
+    if version >= (2, 27):
         tcache_addr = GlibcHeapTcachebinsCommand.find_tcache()
         for i in range(GlibcHeapTcachebinsCommand.TCACHE_MAX_BINS):
             chunk, _ = GlibcHeapTcachebinsCommand.tcachebin(tcache_addr, i)
@@ -35,9 +63,11 @@ def collect_known_values() -> dict:
             while True:
                 if chunk is None:
                     break
-                result[chunk.data_address] = "tcachebins[{}/{}] (size={:#x})".format(i, j, (i+1)*0x10+0x10)
+                sz = (i+1)*0x10+0x10
+                result[chunk.data_address] = f"tcachebins[{i}/{j}] (size={sz:#x})"
                 next_chunk_address = chunk.get_fwd_ptr(True)
-                if not next_chunk_address: break
+                if not next_chunk_address:
+                    break
                 next_chunk = GlibcChunk(next_chunk_address)
                 j += 1
                 chunk = next_chunk
@@ -49,43 +79,66 @@ def collect_known_values() -> dict:
         while True:
             if chunk is None:
                 break
-            result[chunk.data_address] = "fastbins[{}/{}]".format(i, j)
+            result[chunk.data_address] = f"fastbins[{i}/{j}]"
             next_chunk_address = chunk.get_fwd_ptr(True)
-            if not next_chunk_address: break
+            if not next_chunk_address:
+                break
             next_chunk = GlibcChunk(next_chunk_address)
             j += 1
             chunk = next_chunk
 
     # other bins
     for name in ["unorderedbins", "smallbins", "largebins"]:
-        fw, bk = arena.bin(i)
-        if bk==0x00 and fw==0x00: continue
-        head = GlibcChunk(bk, from_base=True).fwd
-        if head == fw: continue
-
-        chunk = GlibcChunk(head, from_base=True)
-        j = 0
+        i = 0
         while True:
-            if chunk is None: break
-            result[chunk.data_address] = "{}[{}/{}]".format(name, i, j)
-            next_chunk_address = chunk.get_fwd_ptr(True)
-            if not next_chunk_address: break
-            next_chunk = GlibcChunk(next_chunk_address, from_base=True)
-            j += 1
-            chunk = next_chunk
+            (fw, bk) = arena.bin(i)
+            if (fw, bk) == (0, 0):
+                break
+
+            head = GlibcChunk(bk, from_base=True).fwd
+            if head == fw:
+                continue
+
+            chunk = GlibcChunk(head, from_base=True)
+            j = 0
+            while True:
+                if chunk is None:
+                    break
+                result[chunk.data_address] = f"{name}[{i}/{j}]"
+                next_chunk_address = chunk.get_fwd_ptr(True)
+                if not next_chunk_address:
+                    break
+                next_chunk = GlibcChunk(next_chunk_address, from_base=True)
+                j += 1
+                chunk = next_chunk
 
     return result
 
 
 @lru_cache(128)
-def collect_known_ranges()->list:
+def collect_known_ranges() -> List[Tuple[range, str]]:
     result = []
     for entry in gef.memory.maps:
         if not entry.path:
             continue
         path = os.path.basename(entry.path)
-        result.append( (range(entry.page_start, entry.page_end), path) )
+        result.append((range(entry.page_start, entry.page_end), path))
     return result
+
+
+def is_corrupted(chunk: GlibcChunk, arena: GlibcArena) -> bool:
+    """Various checks to see if a chunk is corrupted"""
+
+    if chunk.base_address > chunk.data_address:
+        return False
+
+    if chunk.base_address > arena.top:
+        return True
+
+    if chunk.size == 0:
+        return True
+
+    return False
 
 
 @register
@@ -93,102 +146,89 @@ class VisualizeHeapChunksCommand(GenericCommand):
     """Visual helper for glibc heap chunks"""
 
     _cmdline_ = "visualize-libc-heap-chunks"
-    _syntax_  = "{:s}".format(_cmdline_)
-    _aliases_ = ["heap-view",]
-    _example_ = "{:s}".format(_cmdline_)
+    _syntax_ = f"{_cmdline_:s}"
+    _aliases_ = ["heap-view", ]
+    _example_ = f"{_cmdline_:s}"
 
     def __init__(self):
-        super(VisualizeHeapChunksCommand, self).__init__(complete=gdb.COMPLETE_SYMBOL)
+        super().__init__(complete=gdb.COMPLETE_SYMBOL)
         return
 
     @only_if_gdb_running
-    def do_invoke(self, argv):
-        ptrsize = gef.arch.ptrsize
-        heap_base_address = gef.heap.base_address
-        arena = gef.heap.main_arena
-        if not arena.top:
+    def do_invoke(self, _):
+        if not gef.heap.main_arena or not gef.heap.base_address:
             err("The heap has not been initialized")
             return
 
-        top =  align_address(int(arena.top))
-        base = align_address(heap_base_address)
+        ptrsize = gef.arch.ptrsize
+        arena = gef.heap.main_arena
 
-        colors = [ "cyan", "red", "yellow", "blue", "green" ]
-        cur = GlibcChunk(base, from_base=True)
-        idx = 0
+        colors = ("cyan", "red", "yellow", "blue", "green")
+        color_idx = 0
+        chunk_idx = 0
 
         known_ranges = collect_known_ranges()
-        known_values = collect_known_values()
+        known_values = []  # collect_known_values()
 
-        while True:
-            base = cur.base_address
+        for chunk in gef.heap.chunks:
+            if is_corrupted(chunk, arena):
+                err("Corrupted heap, cannot continue.")
+                return
+
             aggregate_nuls = 0
+            base = chunk.base_address
 
-            if base == top:
+            if base == arena.top:
                 gef_print(
-                    "{}    {}   {}".format(format_address(addr), format_address(read_int_from_memory(addr)) , Color.colorify(LEFT_ARROW + "Top Chunk", "red bold")),
-                    "{}    {}   {}".format(format_address(addr+ptrsize), format_address(read_int_from_memory(addr+ptrsize)) , Color.colorify(LEFT_ARROW + "Top Chunk Size", "red bold"))
+                    f"{format_address(base)}    {format_address(gef.memory.read_integer(base))}   {Color.colorify(LEFT_ARROW + 'Top Chunk', 'red bold')}\n"
+                    f"{format_address(base+ptrsize)}    {format_address(gef.memory.read_integer(base+ptrsize))}   {Color.colorify(LEFT_ARROW + 'Top Chunk Size', 'red bold')}"
                 )
                 break
 
-            if cur.size == 0:
-                warn("incorrect size, heap is corrupted")
-                break
-
-            for off in range(0, cur.size, cur.ptrsize):
-                addr = base + off
-                value = gef.memory.read_integer(addr)
+            for current in range(base, base + chunk.size, ptrsize):
+                value = gef.memory.read_integer(current)
                 if value == 0:
-                    if off != 0 and off != cur.size - cur.ptrsize:
+                    if current != base and current != (base + chunk.size - ptrsize):
+                        # Only aggregate null bytes that are not starting/finishing the chunk
                         aggregate_nuls += 1
                         if aggregate_nuls > 1:
                             continue
 
                 if aggregate_nuls > 2:
-                    gef_print(
-                        "        ↓",
-                        "      [...]",
-                        "        ↓"
-                    )
+                    # If here, we have some aggregated null bytes, print a small thing to mention that
+                    gef_print("        ↓        [...]        ↓")
                     aggregate_nuls = 0
 
-                text = "".join([chr(b) if 0x20 <= b < 0x7F else "." for b in gef.memory.read(addr, cur.ptrsize)])
-                line = f"{format_address(addr)}    {Color.colorify(format_address(value), colors[idx % len(colors)])}"
-                line+= f"    {text}"
-                derefs = dereference_from(addr)
+                # Read the context in a hexdump-like format
+                hexdump = "".join(map(lambda b: chr(b) if 0x20 <= b < 0x7F else ".",
+                                      gef.memory.read(current, ptrsize)))
+
+                if gef.arch.endianness == Endianness.LITTLE_ENDIAN:
+                    hexdump = hexdump[::-1]
+
+                line = f"{format_address(current)}    {Color.colorify(format_address(value), colors[color_idx])}"
+                line += f"    {hexdump}"
+                derefs = dereference_from(current)
                 if len(derefs) > 2:
-                    line+= f"    [{LEFT_ARROW}{derefs[-1]}]"
+                    line += f"    [{LEFT_ARROW}{derefs[-1]}]"
 
-                if off == 0:
-                    line+= f"    Chunk[{idx}]"
-                if off == cur.ptrsize:
+                # The first entry of the chunk gets added some extra info about the chunk itself
+                if current == base:
+                    line += f"   Chunk[{chunk_idx}], Flag={chunk.flags!s}"
+                    chunk_idx += 1
 
-                    line+= f"    {value&~7}" \
-                        f"{'|NON_MAIN_ARENA' if value&4 else ''}" \
-                        f"{'|IS_MMAPED' if value&2 else ''}" \
-                        f"{'PREV_INUSE' if value&1 else ''}"
+                # Populate information for known ranges, if any
+                for _range, _value in known_ranges:
+                    if value in _range:
+                        line += f" (in {Color.redify(_value)})"
 
-                # look in mapping
-                for x in known_ranges:
-                    if value in x[0]:
-                        line+= f" (in {Color.redify(x[1])})"
-
-                # look in known values
+                # Populate information from other chunks/bins, if any
                 if value in known_values:
                     line += f"{RIGHT_ARROW}{Color.cyanify(known_values[value])}"
 
+                # All good, print it out
                 gef_print(line)
 
-            next_chunk = cur.get_next_chunk()
-            if next_chunk is None:
-                break
+            color_idx = (color_idx + 1) % len(colors)
 
-            next_chunk_addr = Address(value=next_chunk.data_address)
-            if not next_chunk_addr.valid:
-                warn("next chunk probably corrupted")
-                break
-
-            cur = next_chunk
-            idx += 1
         return
-

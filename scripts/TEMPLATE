@@ -19,5 +19,14 @@ class MyCommand(GenericCommand):
     _cmdline_ = "my-command"
     _syntax_ = "{:s}".format(_cmdline_)
 
+    def pre_load(self) -> None:
+        super().pre_load()
+
+    def __init__(self) -> None:
+        super().__init__(complete=gdb.COMPLETE_NONE)
+
+    def post_load(self) -> None:
+        super().post_load()
+
     def do_invoke(self, argv: List[str]):
         return

@@ -3,8 +3,8 @@ __AUTHOR__ = "hugsy"
 __VERSION__ = 0.2
 __LICENSE__ = "MIT"
 
-import sys
-from typing import TYPE_CHECKING, Any, Generator, List, Optional, Tuple
+from typing import (TYPE_CHECKING, Any, Callable, Generator, List, Optional,
+                    Tuple)
 
 import capstone
 
@@ -102,16 +102,30 @@ class CapstoneDisassembleCommand(GenericCommand):
 
     def __init__(self) -> None:
         super().__init__(complete=gdb.COMPLETE_LOCATION)
-        self["use-capstone"] = (False,
-                                "Replace the GDB disassembler in the `context` with Capstone")
+        gef.config[f"{self._cmdline_}.use-capstone"] = GefSetting(
+            False, bool, "Replace the GDB disassembler in the `context` with Capstone", hooks={"on_write": self.switch_disassembler})
+        self.__original_disassembler: Optional[Callable[[
+            int, int, Any], Generator[Instruction, None, None]]] = None
         return
 
-    def post_load(self) -> None:
-        super().post_load()
-        if self["use-capstone"] is True:
-            ctx = gef.gdb.commands["context"]
-            assert isinstance(ctx, ContextCommand)
+    def switch_disassembler(self) -> None:
+        ctx = gef.gdb.commands["context"]
+        assert isinstance(ctx, ContextCommand)
+        if gef.config[f"{self._cmdline_}.use-capstone"] == True:
+            self.__original_disassembler = ctx.instruction_iterator
             ctx.instruction_iterator = cs_disassemble
+        else:
+            # `use-capstone` set to False
+            if ctx.instruction_iterator == cs_disassemble and self.__original_disassembler:
+                # restore the original
+                ctx.instruction_iterator = self.__original_disassembler
+        return
+
+    def __del__(self):
+        ctx = gef.gdb.commands["context"]
+        assert isinstance(ctx, ContextCommand)
+        if ctx.instruction_iterator == cs_disassemble and self.__original_disassembler:
+            ctx.instruction_iterator = self.__original_disassembler
         return
 
     @only_if_gdb_running
