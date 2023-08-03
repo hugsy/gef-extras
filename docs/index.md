@@ -51,7 +51,7 @@ As a reward, your Github avatar will be immortalize in the list below of contrib
 
 ### Feature requests
 
-Well, that's ok! Just create an [Issue](https://github.com/hugsy/gef-extras/issues) explaining what cool feature/idea/command you had in mind! Even better, writethe documentation (Markdown format) for your command. It'll make easier forpeople who wants to integrate it!
+Well, that's ok! Just create an [Issue](https://github.com/hugsy/gef-extras/issues) explaining what cool feature/idea/command you had in mind! Even better, write the documentation (Markdown format) for your command. It'll make easier for people who wants to integrate it!
 
 
 ### Sponsoring
