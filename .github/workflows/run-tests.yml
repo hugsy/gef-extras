@@ -42,7 +42,7 @@ jobs:
         echo GEF_CACHE_DIR=`python3 -m pip cache dir` >> $GITHUB_ENV
         echo GEF_BRANCH=`git rev-parse --abbrev-ref HEAD` >> $GITHUB_ENV
         echo GEF_PATH=`realpath ../gef` >> $GITHUB_ENV
-        echo GEF_SCRIPT=`realpath ../gef/gef.py` >> $GITHUB_ENV
+        echo GEF_SCRIPT="${GEF_PATH}/gef.py" >> $GITHUB_ENV
 
     - name: Cache dependencies
       uses: actions/cache@v3
