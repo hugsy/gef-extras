@@ -112,7 +112,7 @@ jobs:
     - name: Checkout GEF & GEF-Extras
       run: |
         mkdir -p ${{ env.GEF_PATH_DIR }} ${{ env.GEF_EXTRAS_PATH }}
-        curl -fSsL https://raw.githubusercontent.com/hugsy/gef/${{ env.BRANCH }}/gef.py > ${{ env.GEF_PATH }}
+        wget -O ${{ env.GEF_PATH }} https://raw.githubusercontent.com/hugsy/gef/${{ env.BRANCH }}/gef.py
         echo "source ${{ env.GEF_PATH }}" > ~/.gdbinit
         wget -O ./gef-extras.sh https://github.com/hugsy/gef/raw/${{ env.BRANCH }}/scripts/gef-extras.sh
         chmod +x ./gef-extras.sh
