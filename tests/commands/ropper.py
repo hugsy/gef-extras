@@ -5,7 +5,8 @@
 
 import pytest
 
-from tests.utils import ARCH, GefUnitTestGeneric, gdb_run_cmd, gdb_run_silent_cmd
+from tests.utils import (ARCH, GefUnitTestGeneric, gdb_run_cmd,
+                         gdb_run_silent_cmd)
 
 
 class RopperCommand(GefUnitTestGeneric):
@@ -13,7 +14,7 @@ class RopperCommand(GefUnitTestGeneric):
 
     def setUp(self) -> None:
         try:
-            import ropper # pylint: disable=W0611
+            import ropper  # pylint: disable=W0611
         except ImportError:
             pytest.skip("ropper not available", allow_module_level=True)
         return super().setUp()
