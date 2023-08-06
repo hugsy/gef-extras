@@ -2,86 +2,48 @@
   <img src="https://i.imgur.com/KW9Bt8D.png" alt="logo"/>
 </p>
 
+<p align="center">
+    <a href="https://discord.gg/HCS8Hg7"><img alt="Discord" src="https://img.shields.io/badge/Discord-BlahCats-yellow"></a>
+  <a href="https://hugsy.github.io/gef-extras"><img alt="Docs" src="https://img.shields.io/badge/Docs-gh--pages-brightgreen"></a>
+  <a title="Use the IDs: gef/gef-demo" href="https://demo.gef.blah.cat"><img alt="Try GEF" src="https://img.shields.io/badge/Demo-Try%20GEF%20Live-blue"></a>
+</p>
 
-## Extra goodies for [`GEF`](https://github.com/hugsy/gef) 
+## Extra goodies for [`GEF`](https://github.com/hugsy/gef)
 
-| **Documentation** | **Community** | **Try it** |
-|--|--|--|
-| [![Documentation Status](https://readthedocs.org/projects/gef-extras/badge/?version=latest&token=05e48c43fba3df26ad1ccf33353180e4b515681b727e2f3011013a915f953084)](https://gef-extras.readthedocs.io/en/latest/?badge=latest) | [![Discord](https://img.shields.io/badge/Discord-GDB--GEF-yellow)](https://discordapp.com/channels/705160148813086841/705160148813086843) | [![live](https://img.shields.io/badge/GEF-Live-brightgreen)](https://demo.gef.blah.cat) (`gef`/`gef-demo`) |
 
 This is an open repository of external scripts and structures to be used by [GDB Enhanced Features (GEF)](https://github.com/hugsy/gef). To use those scripts once `gef` is setup, simply clone this repository and update your GEF settings like this:
 
 
-### How-to use ###
 
-#### Run the install script ####
+## Get Started
+
+Getting started with GEF-Extras couldn't be easier: make sure you have a working GDB and GEF already installed, then run the following command:
+
 ```bash
-$ wget -q -O- https://github.com/hugsy/gef/raw/master/scripts/gef-extras.sh | sh
-```
-
-#### Do it manually ####
-
-Start with cloning this repo:
-```bash
-$ git clone https://github.com/hugsy/gef-extras
-```
-
-Add the path to the external scripts to GEF's config:
-```
-gef➤  gef config gef.extra_plugins_dir /path/to/gef-extras/scripts
-```
-
-And same for the structures (to be used by [`pcustom` command](https://gef.readthedocs.io/en/master/commands/pcustom/)):
-```
-gef➤  gef config pcustom.struct_path /path/to/gef-extras/structs
-```
-
-And for the syscall tables:
-```
-gef➤  gef config syscall-args.path /path/to/gef-extras/syscall-tables
-```
-
-And finally for the glibc function call args definition:
-```
-gef➤  gef config context.libc_args True
-gef➤  gef config context.libc_args_path /path/to/gef-extras/glibc-function-args
-```
-
-Check out the [complete doc](glibc_function_args.md) on libc argument support.
-
-
-Now run and enjoy all the fun!
-
-
-Note that it is possible to specify multiple directories, separating the paths with
-a semi-colon:
-
-```
-gef➤  gef config gef.extra_plugins_dir /path/to/dir1;/path/to/dir2
-```
-
-And don't forget to save your settings.
-
-```
-gef➤ gef save
+$ wget -q -O- https://github.com/hugsy/gef/raw/main/scripts/gef-extras.sh | sh
 ```
 
 
-### Contributions ###
 
-#### I can code! ####
+## Documentation ##
 
-Good for you! This repository is open to anyone, no filtering is done! Simply [drop a PR](https://github.com/hugsy/gef-scripts/pulls) with the command you want to share :smile: And useful scripts will eventually be integrated directly to GEF.
-
-Check out [GEF API page](https://gef.readthedocs.io/en/latest/api/) to start writing powerful GDB commands using GEF!
+Just like [GEF](https://hugsy.github.io/gef), GEF-Extras aims to have and keep to-date [a through documentation](https://hugsy.github.io/gef-extras/). Users are recommended to refer to it as it may help them in their attempts to use GEF. In particular, new users should navigate through it (see the [FAQ](https://hugsy.github.io/gef/faq/) for common installation problems), and the problem persists, try to reach out for help on the Discord channel or submit an issue.
 
 
-#### I can't code 🤔 ####
+## Current status ##
 
-Well, that's ok! Just create an [Issue](https://github.com/hugsy/gef-extras/issues)
-explaining what cool feature/idea/command you had in mind! Even better, write
-the documentation (Markdown format) for your command. It'll make easier for
-people who wants to integrate it!
+|                                                                                 Documentation                                                                                  |                                                                      License                                                                      | Compatibility                                                                                        | CI Tests (`main`)                                                                                                                                                               | CI Tests (`dev`)                                                                                                                                                                           |
+| :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [![Documentation](https://github.com/hugsy/gef-extras/actions/workflows/generate-docs.yml/badge.svg)](https://github.com/hugsy/gef-extras/actions/workflows/generate-docs.yml) | [![MIT](https://img.shields.io/packagist/l/doctrine/orm.svg?maxAge=2592000?style=plastic)](https://github.com/hugsy/gef-extras/blob/main/LICENSE) | [![Python 3](https://img.shields.io/badge/Python-3-green.svg)](https://github.com/hugsy/gef-extras/) | [![CI Test for GEF-Extras](https://github.com/hugsy/gef-extras/actions/workflows/run-tests.yml/badge.svg)](https://github.com/hugsy/gef-extras/actions/workflows/run-tests.yml) | [![CI Test for GEF-Extras](https://github.com/hugsy/gef-extras/actions/workflows/run-tests.yml/badge.svg?branch=dev)](https://github.com/hugsy/gef-extras/actions/workflows/run-tests.yml) |
 
 
-### Enjoy and happy hacking ! ###
+## Contribute ##
+
+To get involved, refer to the [Contribution documentation](https://hugsy.github.io/gef-extras/#contribution) and the [GEF guidelines](https://github.com/hugsy/gef/blob/dev/.github/CONTRIBUTING.md) to start.
+
+## Sponsors ##
+
+Another way to contribute to keeping the project alive is by sponsoring it! Check out [the sponsoring documentation](https://hugsy.github.io/gef/#sponsors) for details so you can be part of the list of those [awesome sponsors](https://github.com/sponsors/hugsy).
+
+
+## Happy Hacking 🍻 ##

@@ -8,12 +8,11 @@ Author: SWW13
 """
 
 
-@register_architecture
 class ARM_M(ARM):
     arch = "ARM-M"
     aliases = ("ARM-M", Elf.Abi.ARM)
 
-    all_registers = ARM.all_registers[:-1] + ["$xpsr", ]
+    all_registers = ARM.all_registers[:-1] + ("$xpsr",)
     flag_register = "$xpsr"
     flags_table = {
         31: "negative",
@@ -22,3 +21,7 @@ class ARM_M(ARM):
         28: "overflow",
         24: "thumb",
     }
+
+    @staticmethod
+    def supports_gdb_arch(gdb_arch: str) -> Optional[bool]:
+        return bool(re.search("^armv.*-m$", gdb_arch))

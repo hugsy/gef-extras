@@ -50,4 +50,4 @@ class MyStructure(Structure):
     _values_ = []
 ```
 
-See [`pcustom`](https://gef.readthedocs.io/en/master/commands/pcustom/) for complete documentation
+See [`pcustom`](https://hugsy.github.io/commands/pcustom/) for complete documentation

@@ -11,57 +11,56 @@
 # gef> bincompare -f /path/to/bytearray.bin -a memory_address
 #
 
-import getopt
+import pathlib
+from typing import TYPE_CHECKING, Any, List
+
 import gdb
-import os
+
+if TYPE_CHECKING:
+    from . import *
+
+__AUTHOR__ = "@helviojunior"
+__VERSION__ = 0.2
+__LICENSE__ = "MIT"
 
 
+@register
 class BincompareCommand(GenericCommand):
-    """BincompareCommand: compare an binary file with the memory position looking for badchars."""
+    """Compare an binary file with the memory position looking for badchars."""
     _cmdline_ = "bincompare"
-    _syntax_ = "{:s} -f FILE -a MEMORY_ADDRESS [-h]".format(_cmdline_)
+    _syntax_ = f"{_cmdline_} MEMORY_ADDRESS FILE"
 
     def __init__(self):
-        super(BincompareCommand, self).__init__(complete=gdb.COMPLETE_FILENAME)
+        super().__init__(complete=gdb.COMPLETE_FILENAME)
         return
 
     def usage(self):
-        h = self._syntax_
-        h += "\n\t-f FILE specifies the binary file to be compared.\n"
-        h += "\t-a MEMORY_ADDRESS sepecifies the memory address.\n"
+        h = (self._syntax_ + "\n" +
+             "\tMEMORY_ADDRESS sepecifies the memory address.\n" +
+             "\tFILE specifies the binary file to be compared.")
         info(h)
         return
 
     @only_if_gdb_running
-    def do_invoke(self, argv):
-        filename = None
-        start_addr = None
+    @parse_arguments({"address": "", "filename": ""}, {})
+    def do_invoke(self, _: List[str], **kwargs: Any) -> None:
         size = 0
         file_data = None
         memory_data = None
 
-        opts, args = getopt.getopt(argv, "f:a:ch")
-        for o, a in opts:
-            if o == "-f":
-                filename = a
-            elif o == "-a":
-                start_addr = int(gdb.parse_and_eval(a))
-            elif o == "-h":
-                self.usage()
-                return
-
-        if not filename or not start_addr:
+        args = kwargs["arguments"]
+        if not args.address or not args.filename:
             err("No file and/or address specified")
             return
 
-        if not os.path.isfile(filename):
-            err("Especified file '{:s}' not exists".format(filename))
+        start_addr = parse_address(args.address)
+        filename = pathlib.Path(args.filename)
+
+        if not filename.exists():
+            err(f"Specified file '{filename}' not exists")
             return
 
-        f = open(filename, "rb")
-        file_data = f.read()
-        f.close()
-
+        file_data = filename.open("rb").read()
         size = len(file_data)
 
         if size < 8:
@@ -69,7 +68,7 @@ class BincompareCommand(GenericCommand):
             return
 
         try:
-            memory_data = read_memory(start_addr, size)
+            memory_data = gef.memory.read(start_addr, size)
         except gdb.MemoryError:
             err("Cannot reach memory {:#x}".format(start_addr))
             return
@@ -87,7 +86,8 @@ class BincompareCommand(GenericCommand):
                 result_table.append((hexchar, "  "))
                 corrupted = -1
             else:
-                result_table.append((hexchar, "{:02x}".format(memory_data[cnt])))
+                result_table.append(
+                    (hexchar, "{:02x}".format(memory_data[cnt])))
                 if len(badchars) == 0:
                     badchars = hexchar
                 else:
@@ -135,7 +135,3 @@ class BincompareCommand(GenericCommand):
         gef_print(" {:s} |{:s} {:s} {:s} {:s} {:s} {:s} {:s} {:s} {:s} {:s} {:s} {:s} {:s} {:s} {:s} {:s}| {:s}"
                   .format(line, l[0], l[1], l[2], l[3], l[4], l[5], l[6], l[7], l[8],
                           l[9], l[10], l[11], l[12], l[13], l[14], l[15], label))
-
-
-if __name__ == "__main__":
-    register_external_command(BincompareCommand())

@@ -1,3 +1,4 @@
+
 """
 M68K support for GEF
 
@@ -9,16 +10,17 @@ Author: zhuyifei1999
 
 class M68K(Architecture):
     arch = "M68K"
+    aliases = ("M68K", )
     mode = ""
 
     nop_insn = b"\x4e\x71"
     flag_register = "$ps"
-    all_registers = ["$d0", "$d1", "$d2", "$d3", "$d4", "$d5", "$d6", "$d7",
+    all_registers = ("$d0", "$d1", "$d2", "$d3", "$d4", "$d5", "$d6", "$d7",
                      "$a0", "$a1", "$a2", "$a3", "$a4", "$a5", "$fp", "$sp",
-                     "$ps", "$pc"]
+                     "$ps", "$pc")
     instruction_length = None
     return_register = "$d0"
-    function_parameters = ["$sp", ]
+    function_parameters = ("$sp",)
     flags_table = {
         0: "carry",
         1: "overflow",
@@ -29,7 +31,7 @@ class M68K(Architecture):
         13: "supervisor",
     }
     syscall_register = "$d0"
-    syscall_instructions = ["trap #0"]
+    syscall_instructions = ("trap #0",)
 
     def flag_register_to_human(self, val=None):
         reg = self.flag_register
@@ -105,5 +107,3 @@ class M68K(Architecture):
     @classmethod
     def mprotect_asm(cls, addr, size, perm):
         raise NotImplementedError()
-
-SUPPORTED_ARCHITECTURES["M68K"] = (M68K, Elf.M68K: M68K)

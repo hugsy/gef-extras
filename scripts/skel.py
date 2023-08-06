@@ -1,10 +1,15 @@
 __AUTHOR__ = "hugsy"
-__VERSION__ = 0.2
+__VERSION__ = 1.0
 
 import os
 import tempfile
+from typing import TYPE_CHECKING
+import gdb
 
-TEMPLATE="""#!/usr/bin/env python3
+if TYPE_CHECKING:
+    from gef import *
+
+TEMPLATE = """#!/usr/bin/env python3
 import sys, os
 from pwn import *
 context.update(
@@ -44,10 +49,11 @@ if __name__ == "__main__":
 """
 
 
+@register
 class ExploitTemplateCommand(GenericCommand):
     """Generates a exploit template."""
     _cmdline_ = "exploit-template"
-    _syntax_  = "{:s} [local|remote TARGET:PORT]".format(_cmdline_)
+    _syntax_ = f"{_cmdline_} [local|remote TARGET:PORT]"
     _aliases_ = ["skeleton", ]
 
     @only_if_gdb_running
@@ -74,9 +80,9 @@ class ExploitTemplateCommand(GenericCommand):
         temp = TEMPLATE.format(
             target=target,
             port=port,
-            arch="amd64" if "x86-64" in get_arch() else "i386",
-            endian="big" if is_big_endian() else "little",
-            filepath=get_filepath(),
+            arch="amd64" if isinstance(gef.arch, X86_64) else "i386",
+            endian="big" if gef.arch.endianness == Endianness.BIG_ENDIAN else "little",
+            filepath=gef.binary.path,
             bkps=bkps
         )
         fd, fname = tempfile.mkstemp(suffix='.py', prefix='gef_')
@@ -85,7 +91,3 @@ class ExploitTemplateCommand(GenericCommand):
 
         ok("Exploit generated in '{:s}'".format(fname))
         return
-
-
-if __name__ == "__main__":
-    register_external_command(ExploitTemplateCommand())

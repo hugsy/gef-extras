@@ -1,12 +1,32 @@
-site_name: GEF Extras - Extra goodies for GEF by and for the community
-theme: readthedocs
+site_name: GEF - GDB Enhanced Features documentation
+theme:
+  name: material
+  font:
+    text: Roboto
+    code: Roboto Mono
+  features:
+    - navigation.instant
+    - navigation.tabs
+
 nav:
 - Home: index.md
-- BinCompare: bincompare.md
-- ByteArray: bytearray.md
-- FTrace: ftrace.md
-- PeekPointers: peekpointers.md
-- RetDec: retdec.md
-- Skeleton: skel.md
-- WinDbg: windbg.md
-- Error: error.md
+- Installation: install.md
+- Commands:
+
+  - assemble: commands/assemble.md
+  - bincompare: commands/bincompare.md
+  - bytearray: commands/bytearray.md
+  - capstone: commands/capstone-disassemble.md
+  - emulate: commands/unicorn-emulate.md
+  - error: commands/error.md
+  - exploit-template: commands/skel.md
+  - ftrace: commands/ftrace.md
+  - ida-rpyc: commands/ida-rpyc.md
+  - is-syscall: commands/is-syscall.md
+  - peekpointers: commands/peekpointers.md
+  - retdec: commands/retdec.md
+  - ropper: commands/ropper.md
+  - set-permission: commands/set-permission.md
+  - syscall-args: commands/syscall-args.md
+  - visualize_heap: commands/visualize_heap.md
+  - windbg: commands/windbg.md
