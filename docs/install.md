@@ -44,7 +44,7 @@ Because GEF-Extras allows external dependencies, you must make sure to have the 
 Thankfully this is easily done in Python, as such:
 
 ```
-wget -O /tmp/requirements.txt https://raw.githubusercontent.com/hugsy/gef-extras/dev/requirements.txt
+wget -O /tmp/requirements.txt https://raw.githubusercontent.com/hugsy/gef-extras/main/requirements.txt
 python -m pip install --user --upgrade /tmp/requirements.txt
 ```
 

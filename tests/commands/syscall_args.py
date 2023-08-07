@@ -25,7 +25,7 @@ class SyscallArgsCommand(GefUnitTestGeneric):
             prefix=GEF_DEFAULT_TEMPDIR)
         self.tempdirpath = pathlib.Path(self.tempdirfd.name).absolute()
         # download some syscall tables from gef-extras
-        base = "https://raw.githubusercontent.com/hugsy/gef-extras/main/syscall-tables"
+        base = "https://raw.githubusercontent.com/hugsy/gef-extras/main/scripts/syscall_args/syscall-tables"
         # todo: maybe add "PowerPC", "PowerPC64", "SPARC", "SPARC64"
         for arch in ("ARM", "ARM_OABI", "X86", "X86_64"):
             url = f"{base}/{arch}.py"

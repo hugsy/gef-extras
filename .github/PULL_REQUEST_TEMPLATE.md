@@ -15,16 +15,15 @@
  * [ ] x86-64
  * [ ] ARM
  * [ ] AARCH64
- * [ ] MIPS        
- * [ ] POWERPC     
- * [ ] SPARC       
- * [ ] RISC-V 
-  
+ * [ ] MIPS
+ * [ ] POWERPC
+ * [ ] SPARC
+ * [ ] RISC-V
+
 ## Checklist
 
 <!-- N.B.: Your patch won't be reviewed unless fulfilling the following base requirements: -->
 <!--- Put an `x` in all the boxes that are complete, or that don't apply -->
-- [ ] My PR was done against the `dev` branch, not `main`.
 - [ ] My code follows the code style of this project.
 - [ ] My change includes a change to the documentation, if required.
 - [ ] If my change adds new code, [adequate tests](https://hugsy.github.io/gef/testing) have been added.
