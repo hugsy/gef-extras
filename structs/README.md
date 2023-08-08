@@ -4,7 +4,7 @@ Open repositories of custom structures for GDB Enhanced Features (GEF). Structur
 
 Example:
 
-```
+```text
 gef➤  pcustom list
 [+] Listing custom structures from '/tmp/structs'
  →  /tmp/structs/elf64_t.py (elf64_t)

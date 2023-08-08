@@ -25,25 +25,25 @@ $ wget -q -O- https://github.com/hugsy/gef/raw/main/scripts/gef-extras.sh | sh
 
 
 
-## Documentation ##
+## Documentation
 
 Just like [GEF](https://hugsy.github.io/gef), GEF-Extras aims to have and keep to-date [a through documentation](https://hugsy.github.io/gef-extras/). Users are recommended to refer to it as it may help them in their attempts to use GEF. In particular, new users should navigate through it (see the [FAQ](https://hugsy.github.io/gef/faq/) for common installation problems), and the problem persists, try to reach out for help on the Discord channel or submit an issue.
 
 
-## Current status ##
+## Current status
 
 |                                                                                 Documentation                                                                                  |                                                                      License                                                                      | Compatibility                                                                                        | CI Tests (`main`)                                                                                                                                                               | CI Tests (`dev`)                                                                                                                                                                           |
 | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | [![Documentation](https://github.com/hugsy/gef-extras/actions/workflows/generate-docs.yml/badge.svg)](https://github.com/hugsy/gef-extras/actions/workflows/generate-docs.yml) | [![MIT](https://img.shields.io/packagist/l/doctrine/orm.svg?maxAge=2592000?style=plastic)](https://github.com/hugsy/gef-extras/blob/main/LICENSE) | [![Python 3](https://img.shields.io/badge/Python-3-green.svg)](https://github.com/hugsy/gef-extras/) | [![CI Test for GEF-Extras](https://github.com/hugsy/gef-extras/actions/workflows/run-tests.yml/badge.svg)](https://github.com/hugsy/gef-extras/actions/workflows/run-tests.yml) | [![CI Test for GEF-Extras](https://github.com/hugsy/gef-extras/actions/workflows/run-tests.yml/badge.svg?branch=dev)](https://github.com/hugsy/gef-extras/actions/workflows/run-tests.yml) |
 
 
-## Contribute ##
+## Contribute
 
 To get involved, refer to the [Contribution documentation](https://hugsy.github.io/gef-extras/#contribution) and the [GEF guidelines](https://github.com/hugsy/gef/blob/dev/.github/CONTRIBUTING.md) to start.
 
-## Sponsors ##
+## Sponsors
 
 Another way to contribute to keeping the project alive is by sponsoring it! Check out [the sponsoring documentation](https://hugsy.github.io/gef/#sponsors) for details so you can be part of the list of those [awesome sponsors](https://github.com/sponsors/hugsy).
 
 
-## Happy Hacking 🍻 ##
+## Happy Hacking 🍻

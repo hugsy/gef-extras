@@ -1,4 +1,4 @@
-## Command `peekpointers` ##
+## Command `peekpointers`
 
 _Author_: [bkth](https://github.com/bkth)
 

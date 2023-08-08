@@ -15,12 +15,12 @@ gef➤ error
 
 Otherwise, an argument is expected: this argument can be a debugging symbol (for instance a register) or the integer holding the error code to translate:
 
-```
+```text
 gef➤ error 42
 42 (0x2a) : No message of desired type
 ```
 
-```
+```text
 gef➤ eq $sp 0x1337
 gef➤ error *(int*)$sp
 4919 (0x1337) : Unknown error 4919

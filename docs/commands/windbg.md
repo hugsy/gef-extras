@@ -1,8 +1,8 @@
-## WinDbg compatibility layer ##
+## WinDbg compatibility layer
 
 This plugin is a set of commands, aliases and extensions to mimic some of the most common WinDbg commands into GEF.
 
-### Commands ###
+### Commands
 
   - `hh` - open GEF help in web browser
   - `sxe` (set-exception-enable): break on loading libraries
@@ -14,12 +14,12 @@ This plugin is a set of commands, aliases and extensions to mimic some of the mo
   - `r` - register info
 
 
-### Settings ###
+### Settings
 
   - `gef.use-windbg-prompt` - set to `True` to change the prompt like `0:000 ➤`
 
 
-### Aliases ###
+### Aliases
 
   - `da` : `display s`
   - `dt` : `pcustom`

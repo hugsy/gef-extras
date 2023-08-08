@@ -1,4 +1,4 @@
-## Command ida-interact ##
+## Command ida-interact
 
 `gef` provides a simple XML-RPC client designed to communicate with a server
 running inside a specific IDA Python plugin, called `ida_gef.py`.
@@ -19,7 +19,7 @@ command expects the name of the function to execute as the first argument, all t
 other arguments are the arguments of the remote function.
 
 To enumerate the functions available, simply run
-```
+```text
 gef➤  ida-interact -h
 ```
 ![gef-ida-help](https://i.imgur.com/JFNBfjY.png)
@@ -28,14 +28,14 @@ Now, to execute an RPC, invoke the command `ida-interact` on the desired method,
 with its arguments (if required).
 
 For example:
-```
+```text
 gef➤  ida setcolor 0x40061E
 ```
 will edit the remote IDB and set the background color of the location 0x40061E
 with the color 0x005500 (default value).
 
 Another convenient example is to add comment inside IDA directly from `gef`:
-```
+```text
 gef➤  ida makecomm 0x40060C "<<<--- stack overflow"
 [+] Success
 ```

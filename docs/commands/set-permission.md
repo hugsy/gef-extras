@@ -1,4 +1,4 @@
-## Command set-permission ##
+## Command set-permission
 
 This command was added to facilitate the exploitation process, by changing the
 permissions on a specific memory page directly from the debugger.
@@ -24,7 +24,7 @@ original context, allowing you to resume execution.
 
 The usage is
 
-```
+```text
 gef➤ set-permission address [permission]
 ```
 
@@ -39,7 +39,7 @@ as READ|WRITE|EXECUTE on this binary,
 
 Simply run
 
-```
+```text
 gef➤ mprotect 0xfffdd000
 ```
 

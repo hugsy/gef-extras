@@ -57,22 +57,22 @@ $ git clone https://github.com/hugsy/gef-extras
 ```
 
 Add the path to the external scripts to GEF's config:
-```
+```text
 gef➤  gef config gef.extra_plugins_dir /path/to/gef-extras/scripts
 ```
 
 And same for the structures (to be used by [`pcustom` command](https://hugsy.github.io/gef/commands/pcustom/)):
-```
+```text
 gef➤  gef config pcustom.struct_path /path/to/gef-extras/structs
 ```
 
 And for the syscall tables:
-```
+```text
 gef➤  gef config syscall-args.path /path/to/gef-extras/syscall-tables
 ```
 
 And finally for the glibc function call args definition:
-```
+```text
 gef➤  gef config context.libc_args True
 gef➤  gef config context.libc_args_path /path/to/gef-extras/glibc-function-args
 ```
@@ -86,12 +86,12 @@ Now run and enjoy all the fun!
 Note that it is possible to specify multiple directories, separating the paths with
 a semi-colon:
 
-```
+```text
 gef➤  gef config gef.extra_plugins_dir /path/to/dir1;/path/to/dir2
 ```
 
 And don't forget to save your settings.
 
-```
+```text
 gef➤ gef save
 ```

@@ -10,7 +10,7 @@ The `bincompare` command will compare a provided binary file with process memory
 You can use the `bytearray` command to generate the binary file.
 
 Example without badchars:
-```
+```text
 gef➤  bincompare -f bytearray.bin -a 0x56557008
 [+] Comparison result:
     +-----------------------------------------------+
@@ -51,7 +51,7 @@ gef➤  bincompare -f bytearray.bin -a 0x56557008
 ```
 
 Example with badchars and no truncateed buffer:
-```
+```text
 gef➤  bincompare -f bytearray.bin -a 0x56557008
 [+] Comparison result:
     +-----------------------------------------------+
@@ -92,7 +92,7 @@ gef➤  bincompare -f bytearray.bin -a 0x56557008
 ```
 
 Example with badchars and truncated buffer:
-```
+```text
 gef➤  bincompare -f bytearray.bin -a 0x56557008
 [+] Comparison result:
     +-----------------------------------------------+
