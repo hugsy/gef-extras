@@ -7,7 +7,7 @@ By default, GDB does not allow you to do that, so the command will modify a
 code section of the binary being debugged, and add a native `mprotect` syscall
 stub. For example, for x86, the following stub will be inserted:
 
-```
+```text
 pushad
 pushfd
 mov eax, mprotect_syscall_num

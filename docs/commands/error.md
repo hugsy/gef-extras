@@ -4,7 +4,7 @@ A basic equivalent to WinDbg `!error` command.
 
 If a debugging session is active, `error` can be used with no argument: the command will use the `return_register` of the current architecture associated to the binary.
 
-```
+```text
 [ Legend: Modified register | Code | Heap | Stack | String ]
 ─────────────────────────────────────────────────────────────────────────────────────── registers ────
 $rax   : 0x1

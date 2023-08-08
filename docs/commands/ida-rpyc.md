@@ -6,7 +6,7 @@ running inside a specific IDA Python plugin, called `ida_gef.py`.
 Simply download this script, and run it inside IDA. When the server is running,
 you should see some output:
 
-```
+```text
 [+] Creating new thread for XMLRPC server: Thread-1
 [+] Starting XMLRPC server: 0.0.0.0:1337
 [+] Registered 12 functions.
