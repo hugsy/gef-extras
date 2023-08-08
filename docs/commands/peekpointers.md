@@ -6,6 +6,7 @@ This command helps find pointers belonging to other memory regions
 helpful in case of OOB Read when looking for specific pointers
 
 Syntax:
+
 ```python
 gef➤  peek-pointers LOCATION [section-name]
 ```

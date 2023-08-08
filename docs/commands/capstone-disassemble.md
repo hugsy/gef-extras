@@ -21,6 +21,7 @@ gef➤ cs --length 20
 ```
 
 Show opcodes next to disassembly
+
 ```text
 gef➤ cs --show-opcodes
 ```

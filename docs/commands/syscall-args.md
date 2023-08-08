@@ -6,11 +6,13 @@ call being invoked and the arguments being passed to it. Requires
 [gef-extras](https://github.com/hugsy/gef-extras).
 
 To use it, simply run
+
 ```text
 gef➤ syscall-args
 ```
 
 For instance,
+
 ```text
 ───────────────────────────────────────────────────────────────────────────────────────────────────────[ registers ]────
 $rax   : 0x0000000000000001

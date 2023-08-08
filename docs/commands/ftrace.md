@@ -14,4 +14,3 @@ Example:
 ```text
 gef➤ ftrace malloc,1 calloc,2 free,1
 ```
-

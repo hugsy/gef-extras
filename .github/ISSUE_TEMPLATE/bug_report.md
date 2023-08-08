@@ -6,20 +6,22 @@ labels: triage
 assignees: ''
 
 ---
-<!--Your issue will be closed unless you confirm the following (insert `x` in the
-brackets if done/agreed):-->
+## Bug Report
 
-* [ ] Is your bug specific to GEF (not GDB)? - Try to reproduce it running `gdb -nx`
-* [ ] Did you search through the [documentation](https://github.com/hugsy/gef/) first?
-* [ ] Did you check [issues](https://github.com/hugsy/gef/issues) (including
+<!--Your issue will be closed unless you confirm the following (insert `x` in the
+brackets if done/agreed) -->
+
+*  [ ] Is your bug specific to GEF (not GDB)? - Try to reproduce it running `gdb -nx`
+*  [ ] Did you search through the [documentation](https://github.com/hugsy/gef/) first?
+*  [ ] Did you check [issues](https://github.com/hugsy/gef/issues) (including
   the closed ones) - and the [PR](https://github.com/hugsy/gef/pulls)?
 
 
 ### Step 1: Describe your environment
 
-* Operating System / Distribution:
-* Architecture:
-* GEF version (including the Python library version) run `version` in GEF.
+*  Operating System / Distribution:
+*  Architecture:
+*  GEF version (including the Python library version) run `version` in GEF.
 
 
 ### Step 2: Describe your problem
@@ -42,12 +44,12 @@ int main(){ return 0; }
 
 #### Observed Results
 
-* What happened? This could be a description, log output, etc.
+*  What happened? This could be a description, log output, etc.
 
 
 #### Expected results
 
-* What did you expect to happen?
+*  What did you expect to happen?
 
 #### Traces
 

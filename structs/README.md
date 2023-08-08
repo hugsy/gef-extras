@@ -1,6 +1,8 @@
-# gef-structs
+## Custom structures
 
-Open repositories of custom structures for GDB Enhanced Features (GEF). Structures are available via the `pcustom` command (often aliased as `dt`) and allow to recreate and parse at runtime a segment of memory as-if you had the structure defined in symbols.
+Open repositories of custom structures for GDB Enhanced Features (GEF). Structures are available
+via the `pcustom` command (often aliased as `dt`) and allow to recreate and parse at runtime a
+segment of memory as-if you had the structure defined in symbols.
 
 Example:
 
@@ -36,7 +38,8 @@ Start              End                Offset             Perm Path
 0x7ffff7d9e000+0x003e e_shstrndx :      68 (c_ushort)
 ```
 
-To add a new structure, use the skeleton below (refer to the [`ctypes` documentation](https://docs.python.org/3/library/ctypes.html) for the syntax)
+To add a new structure, use the skeleton below (refer to the
+[`ctypes` documentation](https://docs.python.org/3/library/ctypes.html) for the syntax)
 
 ```python
 from ctypes import *

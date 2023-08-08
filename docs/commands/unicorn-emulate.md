@@ -40,5 +40,3 @@ A convenient option is `--output-file /path/to/file.py` that will generate a
 pure Python script embedding your current execution context, ready to be re-used
 outside GEF!! This can be useful for dealing with obfuscation or solve crackmes
 if powered with a SMT for instance.
-
-

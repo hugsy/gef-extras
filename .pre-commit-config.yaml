@@ -17,4 +17,6 @@ repos:
     - id: markdownlint-docker
       args:
         - --config=docs/.markdownlint.yaml
+        - --ignore=README.md
+        - --ignore=docs/index.md
         - "docs/**/*.md"

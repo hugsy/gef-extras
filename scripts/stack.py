@@ -57,4 +57,3 @@ class CurrentFrameStack(GenericCommand):
         else:
             gef_print(titlify("Stack top (higher address)"))
         return
-

@@ -1,17 +1,22 @@
-# Installing GEF-Extras
+## Installing GEF-Extras
+
+This page explains to how set up GEF-Extras to work alongside of GEF.
 
 ## Prerequisites
 
 ### GDB
 
-Only [GDB 8 and higher](https://www.gnu.org/s/gdb) is required. It must be compiled with Python 3.6 or higher support. For most people, simply using your distribution package manager should be enough.
+Only [GDB 8 and higher](https://www.gnu.org/s/gdb) is required. It must be compiled with Python 3.6
+or higher support. For most people, simply using your distribution package manager should be enough.
 
-GEF will then only work for Python 3. If you absolutely require GDB + Python 2, please use [GEF-Legacy](https://github.com/hugsy/gef-legacy) instead. Note that `gef-legacy` won't provide new features, and only functional bugs will be handled.
+GEF will then only work for Python 3. If you absolutely require GDB + Python 2, please use
+[GEF-Legacy](https://github.com/hugsy/gef-legacy) instead. Note that `gef-legacy` won't provide new
+features, and only functional bugs will be handled.
 
 You can verify it with the following command:
 
 ```bash
-$ gdb -nx -ex 'pi print(sys.version)' -ex quit
+b -nx -ex 'pi print(sys.version)' -ex quit
 ```
 
 This should display your version of Python compiled with `gdb`.
@@ -35,11 +40,13 @@ $ bash -c "$(curl -fsSL https://gef.blah.cat/sh)"
 $ bash -c "$(wget https://gef.blah.cat/sh -O -)"
 ```
 
-For more advanced installation methods, refer [the installation chapter of the GEF documentation](https://hugsy.github.io/gef/install).
+For more advanced installation methods, refer
+[the installation chapter of the GEF documentation](https://hugsy.github.io/gef/install).
 
 ### Python dependencies
 
-Because GEF-Extras allows external dependencies, you must make sure to have the adequate Python libraries installed before you can use the features.
+Because GEF-Extras allows external dependencies, you must make sure to have the adequate Python
+libraries installed before you can use the features.
 
 Thankfully this is easily done in Python, as such:
 
@@ -54,7 +61,7 @@ python -m pip install --user --upgrade /tmp/requirements.txt
 Start with cloning this repo:
 
 ```bash
-$ git clone https://github.com/hugsy/gef-extras
+t clone https://github.com/hugsy/gef-extras
 ```
 
 Add the path to the external scripts to GEF's config:
@@ -63,7 +70,8 @@ Add the path to the external scripts to GEF's config:
 gef➤  gef config gef.extra_plugins_dir /path/to/gef-extras/scripts
 ```
 
-And same for the structures (to be used by [`pcustom` command](https://hugsy.github.io/gef/commands/pcustom/)):
+And same for the structures (to be used by
+[`pcustom` command](https://hugsy.github.io/gef/commands/pcustom/)):
 
 ```text
 gef➤  gef config pcustom.struct_path /path/to/gef-extras/structs

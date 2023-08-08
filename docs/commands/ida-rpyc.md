@@ -19,22 +19,27 @@ command expects the name of the function to execute as the first argument, all t
 other arguments are the arguments of the remote function.
 
 To enumerate the functions available, simply run
+
 ```text
 gef➤  ida-interact -h
 ```
+
 ![gef-ida-help](https://i.imgur.com/JFNBfjY.png)
 
 Now, to execute an RPC, invoke the command `ida-interact` on the desired method,
 with its arguments (if required).
 
 For example:
+
 ```text
 gef➤  ida setcolor 0x40061E
 ```
+
 will edit the remote IDB and set the background color of the location 0x40061E
 with the color 0x005500 (default value).
 
 Another convenient example is to add comment inside IDA directly from `gef`:
+
 ```text
 gef➤  ida makecomm 0x40060C "<<<--- stack overflow"
 [+] Success
@@ -47,5 +52,5 @@ Result:
 Please use the `-h` argument to see all the methods available and their syntax.
 
 It is also note-worthy that [Binary Ninja](https://binary.ninja) support has be added:
-![](https://pbs.twimg.com/media/CzSso9bUAAArL1f.jpg:large), by using the
+![gef-binja-add-bkp](https://pbs.twimg.com/media/CzSso9bUAAArL1f.jpg:large), by using the
 Binary Ninja plugin [`gef-binja.py`](https://github.com/hugsy/gef-binja).

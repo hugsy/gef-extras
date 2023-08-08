@@ -3,11 +3,13 @@
 `gef` can be used to determine whether the instruction to be executed next is a system call.
 
 To use it, simply run
+
 ```text
 gef➤ is-syscall
 ```
 
 If it is a system call,
+
 ```text
 gef➤ is-syscall
 [+] Current instruction is a syscall
