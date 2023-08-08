@@ -9,7 +9,6 @@ assignees: ''
 <!--Your issue will be closed unless you confirm the following (insert `x` in the
 brackets if done/agreed):-->
 
-* [ ] Did you use the latest version of GEF from `dev` branch?
 * [ ] Is your bug specific to GEF (not GDB)? - Try to reproduce it running `gdb -nx`
 * [ ] Did you search through the [documentation](https://github.com/hugsy/gef/) first?
 * [ ] Did you check [issues](https://github.com/hugsy/gef/issues) (including

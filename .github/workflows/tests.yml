@@ -1,18 +1,16 @@
 name: CI Test for GEF-EXTRAS
 
 env:
-  BRANCH: dev
+  BRANCH: main
 
 on:
   push:
     branches:
       - main
-      - dev
 
   pull_request:
     branches:
       - main
-      - dev
 
 jobs:
   build:

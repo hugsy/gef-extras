@@ -2,15 +2,17 @@ name: "Discord Notification"
 
 
 on:
+  issues:
+    types:
+      - opened
+
   push:
     branches:
       - main
-      - dev
 
   pull_request:
     branches:
       - main
-      - dev
 
 env:
   DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
@@ -54,7 +56,7 @@ jobs:
           avatar_url: ${{ github.actor.avatar_url }}
 
       - name: GEF-Extras Issue Notification
-        if: github.event_name == 'issues' && github.event.action == 'opened' && github.repository_owner == 'hugsy'
+        if: github.event_name == 'issues' && github.repository_owner == 'hugsy'
         uses: sarisia/actions-status-discord@v1
         with:
           nodetail: true
