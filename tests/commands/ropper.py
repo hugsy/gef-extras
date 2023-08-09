@@ -29,4 +29,3 @@ class RopperCommand(GefUnitTestGeneric):
         self.assertNoException(res)
         self.assertNotIn(": error:", res)
         self.assertTrue(len(res.splitlines()) > 2)
-

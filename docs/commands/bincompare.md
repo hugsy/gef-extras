@@ -1,16 +1,18 @@
 ## Command bincompare
 
-The `bincompare` command will compare a provided binary file with process memory in order to find differences between the two.
+The `bincompare` command will compare a provided binary file with process memory in order to find
+differences between the two.
 
 `bincompare` requires args:
 
-* `-f` (for `file`) - the full path of binary file to be compared.
-* `-a` (for `address`) - the memory address to be compared with the file data.
+*  `-f` (for `file`) - the full path of binary file to be compared.
+*  `-a` (for `address`) - the memory address to be compared with the file data.
 
 You can use the `bytearray` command to generate the binary file.
 
 Example without badchars:
-```
+
+```text
 gef➤  bincompare -f bytearray.bin -a 0x56557008
 [+] Comparison result:
     +-----------------------------------------------+
@@ -51,7 +53,8 @@ gef➤  bincompare -f bytearray.bin -a 0x56557008
 ```
 
 Example with badchars and no truncateed buffer:
-```
+
+```text
 gef➤  bincompare -f bytearray.bin -a 0x56557008
 [+] Comparison result:
     +-----------------------------------------------+
@@ -92,7 +95,8 @@ gef➤  bincompare -f bytearray.bin -a 0x56557008
 ```
 
 Example with badchars and truncated buffer:
-```
+
+```text
 gef➤  bincompare -f bytearray.bin -a 0x56557008
 [+] Comparison result:
     +-----------------------------------------------+

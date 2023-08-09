@@ -11,14 +11,18 @@
 # gef> bytearray -b "\x00\x0a\x0d"
 #
 
+import binascii
 import getopt
-import gdb
 import re
+
+import gdb
+
 
 @register
 class BytearrayCommand(GenericCommand):
     """BytearrayCommand: Generate a bytearray to be compared with possible badchars.
-Function ported from mona.py"""
+    Function ported from mona.py"""
+
     _cmdline_ = "bytearray"
     _syntax_ = "{:s} [-b badchars]".format(_cmdline_)
 
@@ -106,7 +110,7 @@ Function ported from mona.py"""
         totalbytes = len(arraytable)
         tablecnt = 0
         while tablecnt < totalbytes:
-            if (cnt < bytesperline):
+            if cnt < bytesperline:
                 outputline += "\\x" + arraytable[tablecnt]
             else:
                 outputline += '"\n'
@@ -147,8 +151,8 @@ Function ported from mona.py"""
         the bytes
         """
         pattern = pattern.replace("\\x", "")
-        pattern = pattern.replace("\"", "")
-        pattern = pattern.replace("\'", "")
+        pattern = pattern.replace('"', "")
+        pattern = pattern.replace("'", "")
         return binascii.unhexlify(pattern)
 
     def cleanHex(self, hex):
@@ -162,4 +166,3 @@ Function ported from mona.py"""
             return True
         else:
             return False
-

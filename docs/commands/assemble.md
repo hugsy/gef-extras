@@ -1,4 +1,4 @@
-## Command assemble ##
+## Command assemble
 
 If you have installed [`keystone`](https://www.keystone-engine.org/), then `gef`
 will provide a convenient command to assemble native instructions directly to
@@ -6,7 +6,7 @@ opcodes of the architecture you are currently debugging.
 
 Call it via `assemble` or its alias `asm`:
 
-```
+```text
 gef➤ asm [INSTRUCTION [; INSTRUCTION ...]]
 ```
 
@@ -16,7 +16,7 @@ By setting the `--arch ARCH` and `--mode MODE` the target platform for the
 assembly can be changed. Available architectures and modes can be displayed
 with `--list-archs`.
 
-```
+```text
 gef➤ asm --list-archs
 Available architectures/modes (with endianness):
 - ARM
@@ -43,14 +43,14 @@ Available architectures/modes (with endianness):
   * 64      (little)
 ```
 
-```
+```text
 gef➤ asm --arch x86 --mode 32 [INSTRUCTION [; INSTRUCTION ...]]
 gef➤ asm --arch arm [INSTRUCTION [; INSTRUCTION ...]]
 ```
 
 To choose the endianness use `--endian ENDIANNESS` (by default, `little`):
 
-```
+```text
 gef➤ asm --endian big [INSTRUCTION [; INSTRUCTION ...]]
 ```
 
