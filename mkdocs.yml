@@ -29,4 +29,4 @@ nav:
   - syscall-args: commands/syscall-args.md
   - visualize_heap: commands/visualize_heap.md
   - windbg: commands/windbg.md
-- GEF-Extras: https://hugsy.github.io/gef-extras/
+- GEF: https://hugsy.github.io/gef/
