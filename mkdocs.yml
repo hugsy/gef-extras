@@ -12,7 +12,6 @@ nav:
 - Home: index.md
 - Installation: install.md
 - Commands:
-
   - assemble: commands/assemble.md
   - bincompare: commands/bincompare.md
   - bytearray: commands/bytearray.md
@@ -30,3 +29,4 @@ nav:
   - syscall-args: commands/syscall-args.md
   - visualize_heap: commands/visualize_heap.md
   - windbg: commands/windbg.md
+- GEF: https://hugsy.github.io/gef/
