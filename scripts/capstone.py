@@ -108,7 +108,7 @@ class CapstoneDisassembleCommand(GenericCommand):
             int, int, Any], Generator[Instruction, None, None]]] = None
         return
 
-    def switch_disassembler(self) -> None:
+    def switch_disassembler(self, _) -> None:
         ctx = gef.gdb.commands["context"]
         assert isinstance(ctx, ContextCommand)
         if gef.config[f"{self._cmdline_}.use-capstone"] == True:
