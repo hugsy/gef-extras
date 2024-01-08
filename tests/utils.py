@@ -8,53 +8,62 @@ import os
 import pathlib
 import platform
 import re
+import struct
 import subprocess
 import tempfile
+import time
 import unittest
 import warnings
 from typing import Iterable, List, Optional, Union
 from urllib.request import urlopen
 
-TMPDIR                       = pathlib.Path(tempfile.gettempdir())
-ARCH                         = (os.getenv("GEF_CI_ARCH") or platform.machine()).lower()
-BIN_SH                       = pathlib.Path("/bin/sh")
-CI_VALID_ARCHITECTURES_32B   = ("i686", "armv7l")
-CI_VALID_ARCHITECTURES_64B   = ("x86_64", "aarch64", "mips64el", "ppc64le", "riscv64")
-CI_VALID_ARCHITECTURES       = CI_VALID_ARCHITECTURES_64B + CI_VALID_ARCHITECTURES_32B
-COVERAGE_DIR                 = os.getenv("COVERAGE_DIR", "")
-DEFAULT_CONTEXT              = "-code -stack"
-DEFAULT_TARGET               = TMPDIR / "default.out"
-GEF_DEFAULT_PROMPT           = "gef➤  "
-GEF_DEFAULT_TEMPDIR          = "/tmp/gef"
-GEF_PATH                     = pathlib.Path(os.getenv("GEF_PATH", "../gef/gef.py")).resolve()
-GEF_EXTRAS_TEST_DIR_PATH     = pathlib.Path(__file__).absolute().parent
-GEF_EXTRAS_ROOT_PATH         = GEF_EXTRAS_TEST_DIR_PATH.parent
-GEF_EXTRAS_SCRIPTS_PATH      = GEF_EXTRAS_ROOT_PATH / "scripts"
-GEF_EXTRAS_OS_PATH           = GEF_EXTRAS_ROOT_PATH / "os"
-GEF_EXTRAS_STRUCTS_PATH      = GEF_EXTRAS_ROOT_PATH / "structs"
-STRIP_ANSI_DEFAULT           = True
-GDBSERVER_DEFAULT_PORT       = 1234
+
+TMPDIR = pathlib.Path(tempfile.gettempdir())
+ARCH = (os.getenv("GEF_CI_ARCH") or platform.machine()).lower()
+BIN_SH = pathlib.Path("/bin/sh")
+CI_VALID_ARCHITECTURES_32B = ("i686", "armv7l")
+CI_VALID_ARCHITECTURES_64B = ("x86_64", "aarch64", "mips64el", "ppc64le", "riscv64")
+CI_VALID_ARCHITECTURES = CI_VALID_ARCHITECTURES_64B + CI_VALID_ARCHITECTURES_32B
+COVERAGE_DIR = os.getenv("COVERAGE_DIR", "")
+DEFAULT_CONTEXT = "-code -stack"
+DEFAULT_TARGET = TMPDIR / "default.out"
+GEF_DEFAULT_PROMPT = "gef➤  "
+GEF_DEFAULT_TEMPDIR = "/tmp/gef"
+GEF_PATH = pathlib.Path(os.getenv("GEF_PATH", "gef.py")).absolute()
+GEF_EXTRAS_PATH = pathlib.Path(__file__).parent.parent
+GEF_EXTRAS_SCRIPTS_PATH = GEF_EXTRAS_PATH / "scripts"
+STRIP_ANSI_DEFAULT = True
+GDBSERVER_DEFAULT_HOST = "localhost"
+GDBSERVER_DEFAULT_PORT = 1234
+
+GEF_RIGHT_ARROW = " → "
 
 CommandType = Union[str, Iterable[str]]
 
+
+ERROR_INACTIVE_SESSION_MESSAGE = "[*] No debugging session active\n"
+WARNING_DEPRECATION_MESSAGE = "is deprecated and will be removed in a feature release."
+
+
 class Color(enum.Enum):
     """Used to colorify terminal output."""
-    NORMAL         = "\x1b[0m"
-    GRAY           = "\x1b[1;38;5;240m"
-    LIGHT_GRAY     = "\x1b[0;37m"
-    RED            = "\x1b[31m"
-    GREEN          = "\x1b[32m"
-    YELLOW         = "\x1b[33m"
-    BLUE           = "\x1b[34m"
-    PINK           = "\x1b[35m"
-    CYAN           = "\x1b[36m"
-    BOLD           = "\x1b[1m"
-    UNDERLINE      = "\x1b[4m"
-    UNDERLINE_OFF  = "\x1b[24m"
-    HIGHLIGHT      = "\x1b[3m"
-    HIGHLIGHT_OFF  = "\x1b[23m"
-    BLINK          = "\x1b[5m"
-    BLINK_OFF      = "\x1b[25m"
+
+    NORMAL = "\x1b[0m"
+    GRAY = "\x1b[1;38;5;240m"
+    LIGHT_GRAY = "\x1b[0;37m"
+    RED = "\x1b[31m"
+    GREEN = "\x1b[32m"
+    YELLOW = "\x1b[33m"
+    BLUE = "\x1b[34m"
+    PINK = "\x1b[35m"
+    CYAN = "\x1b[36m"
+    BOLD = "\x1b[1m"
+    UNDERLINE = "\x1b[4m"
+    UNDERLINE_OFF = "\x1b[24m"
+    HIGHLIGHT = "\x1b[3m"
+    HIGHLIGHT_OFF = "\x1b[23m"
+    BLINK = "\x1b[5m"
+    BLINK_OFF = "\x1b[25m"
 
 
 class GdbAssertionError(AssertionError):
@@ -64,37 +73,41 @@ class GdbAssertionError(AssertionError):
 class GefUnitTestGeneric(unittest.TestCase):
     """Generic class for command testing, that defines all helpers"""
 
-    def setUp(self) -> None:
-        if not GEF_PATH.exists():
-            raise FileNotFoundError(f"Missing gef.py (expected: '{GEF_PATH.absolute()}')")
-        return super().setUp()
-
     @staticmethod
     def assertException(buf):
         """Assert that GEF raised an Exception."""
-        if not ("Python Exception <" in buf
-                or "Traceback" in buf
-                or "'gdb.error'" in buf
-                or "Exception raised" in buf
-                or "failed to execute properly, reason:" in buf):
+        if not (
+            "Python Exception <" in buf
+            or "Traceback" in buf
+            or "'gdb.error'" in buf
+            or "Exception raised" in buf
+            or "failed to execute properly, reason:" in buf
+        ):
             raise GdbAssertionError("GDB Exception expected, not raised")
 
     @staticmethod
     def assertNoException(buf):
         """Assert that no Exception was raised from GEF."""
-        if ("Python Exception <" in buf
-                or "Traceback" in buf
-                or "'gdb.error'" in buf
-                or "Exception raised" in buf
-                or "failed to execute properly, reason:" in buf):
+        if (
+            "Python Exception <" in buf
+            or "Traceback" in buf
+            or "'gdb.error'" in buf
+            or "Exception raised" in buf
+            or "failed to execute properly, reason:" in buf
+        ):
             raise GdbAssertionError(f"Unexpected GDB Exception raised in {buf}")
 
         if "is deprecated and will be removed in a feature release." in buf:
-            lines = [l for l in buf.splitlines()
-                     if "is deprecated and will be removed in a feature release." in l]
+            lines = [
+                l
+                for l in buf.splitlines()
+                if "is deprecated and will be removed in a feature release." in l
+            ]
             deprecated_api_names = {x.split()[1] for x in lines}
             warnings.warn(
-                UserWarning(f"Use of deprecated API(s): {', '.join(deprecated_api_names)}")
+                UserWarning(
+                    f"Use of deprecated API(s): {', '.join(deprecated_api_names)}"
+                )
             )
 
     @staticmethod
@@ -116,9 +129,13 @@ def ansi_clean(s: str) -> str:
     return ansi_escape.sub("", s)
 
 
-def gdb_run_cmd(cmd: CommandType, before: CommandType = (), after: CommandType = (),
-                target: pathlib.Path = DEFAULT_TARGET,
-                strip_ansi: bool = STRIP_ANSI_DEFAULT) -> str:
+def gdb_run_cmd(
+    cmd: CommandType,
+    before: CommandType = (),
+    after: CommandType = (),
+    target: pathlib.Path = DEFAULT_TARGET,
+    strip_ansi: bool = STRIP_ANSI_DEFAULT,
+) -> str:
     """Execute a command inside GDB. `before` and `after` are lists of commands to be executed
     before (resp. after) the command to test."""
 
@@ -129,19 +146,23 @@ def gdb_run_cmd(cmd: CommandType, before: CommandType = (), after: CommandType =
 
     command = ["gdb", "-q", "-nx"]
     if COVERAGE_DIR:
-        coverage_file = pathlib.Path(COVERAGE_DIR) / os.getenv("PYTEST_XDIST_WORKER", "gw0")
-        command += _add_command([
-            "pi from coverage import Coverage",
-            f"pi cov = Coverage(data_file=\"{coverage_file}\","
-            "auto_data=True, branch=True)",
-            "pi cov.start()",
-        ])
-    command += _add_command([
-        f"source {GEF_PATH}",
-        "gef config gef.debug True",
-        f"gef config gef.extra_plugins_dir {GEF_EXTRAS_SCRIPTS_PATH.absolute()}",
-        f"gef config pcustom.struct_path {GEF_EXTRAS_STRUCTS_PATH.absolute()}",
-    ])
+        coverage_file = pathlib.Path(COVERAGE_DIR) / os.getenv(
+            "PYTEST_XDIST_WORKER", "gw0"
+        )
+        command += _add_command(
+            [
+                "pi from coverage import Coverage",
+                f'pi cov = Coverage(data_file="{coverage_file}",'
+                "auto_data=True, branch=True)",
+                "pi cov.start()",
+            ]
+        )
+    command += _add_command(
+        [
+            f"source {GEF_PATH}",
+            "gef config gef.debug True",
+        ]
+    )
     command += _add_command(before)
     command += _add_command(cmd)
     command += _add_command(after)
@@ -149,7 +170,9 @@ def gdb_run_cmd(cmd: CommandType, before: CommandType = (), after: CommandType =
         command += _add_command(["pi cov.stop()", "pi cov.save()"])
     command += ["-ex", "quit", "--", str(target)]
 
-    lines = subprocess.check_output(command, stderr=subprocess.STDOUT).strip().splitlines()
+    lines = (
+        subprocess.check_output(command, stderr=subprocess.STDOUT).strip().splitlines()
+    )
     output = b"\n".join(lines)
     result = None
 
@@ -173,66 +196,100 @@ def gdb_run_cmd(cmd: CommandType, before: CommandType = (), after: CommandType =
     return result
 
 
-def gdb_run_silent_cmd(cmd: CommandType, before: CommandType = (), after: CommandType = (),
-                       target: pathlib.Path = DEFAULT_TARGET,
-                       strip_ansi: bool = STRIP_ANSI_DEFAULT) -> str:
+def gdb_run_silent_cmd(
+    cmd: CommandType,
+    before: CommandType = (),
+    after: CommandType = (),
+    target: pathlib.Path = DEFAULT_TARGET,
+    strip_ansi: bool = STRIP_ANSI_DEFAULT,
+) -> str:
     """Disable the output and run entirely the `target` binary."""
-    before = [*before, "gef config context.clear_screen False",
-              "gef config context.layout '-code -stack'",
-              "run"]
+    before = [
+        *before,
+        "gef config context.clear_screen False",
+        "gef config context.layout '-code -stack'",
+        "run",
+    ]
     return gdb_run_cmd(cmd, before, after, target, strip_ansi)
 
 
-def gdb_run_cmd_last_line(cmd: CommandType, before: CommandType = (), after: CommandType = (),
-                          target: pathlib.Path = DEFAULT_TARGET,
-                          strip_ansi: bool = STRIP_ANSI_DEFAULT) -> str:
+def gdb_run_cmd_last_line(
+    cmd: CommandType,
+    before: CommandType = (),
+    after: CommandType = (),
+    target: pathlib.Path = DEFAULT_TARGET,
+    strip_ansi: bool = STRIP_ANSI_DEFAULT,
+) -> str:
     """Execute a command in GDB, and return only the last line of its output."""
     return gdb_run_cmd(cmd, before, after, target, strip_ansi).splitlines()[-1]
 
 
-def gdb_start_silent_cmd(cmd: CommandType, before: CommandType = (), after: CommandType = (),
-                         target: pathlib.Path = DEFAULT_TARGET,
-                         strip_ansi: bool = STRIP_ANSI_DEFAULT,
-                         context: str = DEFAULT_CONTEXT) -> str:
+def gdb_start_silent_cmd(
+    cmd: CommandType,
+    before: CommandType = (),
+    after: CommandType = (),
+    target: pathlib.Path = DEFAULT_TARGET,
+    strip_ansi: bool = STRIP_ANSI_DEFAULT,
+    context: str = DEFAULT_CONTEXT,
+) -> str:
     """Execute a command in GDB by starting an execution context. This command
     disables the `context` and sets a tbreak at the most convenient entry
     point."""
-    before = [*before, "gef config context.clear_screen False",
-              f"gef config context.layout '{context}'",
-              "entry-break"]
+    before = [
+        *before,
+        "gef config context.clear_screen False",
+        f"gef config context.layout '{context}'",
+        "entry-break",
+    ]
     return gdb_run_cmd(cmd, before, after, target, strip_ansi)
 
 
-def gdb_start_silent_cmd_last_line(cmd: CommandType, before: CommandType = (),
-                                   after: CommandType = (),
-                                   target: pathlib.Path = DEFAULT_TARGET,
-                                   strip_ansi=STRIP_ANSI_DEFAULT) -> str:
+def gdb_start_silent_cmd_last_line(
+    cmd: CommandType,
+    before: CommandType = (),
+    after: CommandType = (),
+    target: pathlib.Path = DEFAULT_TARGET,
+    strip_ansi=STRIP_ANSI_DEFAULT,
+) -> str:
     """Execute `gdb_start_silent_cmd()` and return only the last line of its output."""
     return gdb_start_silent_cmd(cmd, before, after, target, strip_ansi).splitlines()[-1]
 
 
-def gdb_test_python_method(meth: str, before: str = "", after: str = "",
-                           target: pathlib.Path = DEFAULT_TARGET,
-                           strip_ansi: bool = STRIP_ANSI_DEFAULT) -> str:
+def gdb_test_python_method(
+    meth: str,
+    before: str = "",
+    after: str = "",
+    target: pathlib.Path = DEFAULT_TARGET,
+    strip_ansi: bool = STRIP_ANSI_DEFAULT,
+) -> str:
     brk = before + ";" if before else ""
     cmd = f"pi {brk}print({meth});{after}"
     return gdb_start_silent_cmd(cmd, target=target, strip_ansi=strip_ansi)
 
 
-def gdb_time_python_method(meth: str, setup: str,
-                           py_before: str = "", py_after: str = "",
-                           before: CommandType = (), after: CommandType = (),
-                           target: pathlib.Path = DEFAULT_TARGET,
-                           strip_ansi: bool = STRIP_ANSI_DEFAULT, number: int = 1000) -> float:
+def gdb_time_python_method(
+    meth: str,
+    setup: str,
+    py_before: str = "",
+    py_after: str = "",
+    before: CommandType = (),
+    after: CommandType = (),
+    target: pathlib.Path = DEFAULT_TARGET,
+    strip_ansi: bool = STRIP_ANSI_DEFAULT,
+    number: int = 1000,
+) -> float:
     brk = py_before + ";" if py_before else ""
-    cmd = f"""pi import timeit;{brk}print(timeit.timeit("{meth}", """\
-          f"""setup="{setup}", number={number}));{py_after}"""
-    lines = gdb_run_cmd(cmd, before=before, after=after,
-                        target=target, strip_ansi=strip_ansi).splitlines()
+    cmd = (
+        f"""pi import timeit;{brk}print(timeit.timeit("{meth}", """
+        f"""setup="{setup}", number={number}));{py_after}"""
+    )
+    lines = gdb_run_cmd(
+        cmd, before=before, after=after, target=target, strip_ansi=strip_ansi
+    ).splitlines()
     return float(lines[-1])
 
 
-def _target(name: str, extension: str = ".out") -> pathlib.Path:
+def debug_target(name: str, extension: str = ".out") -> pathlib.Path:
     target = TMPDIR / f"{name}{extension}"
     if not target.exists():
         subprocess.run(["make", "-C", "tests/binaries", target.name])
@@ -241,19 +298,25 @@ def _target(name: str, extension: str = ".out") -> pathlib.Path:
     return target
 
 
-def start_gdbserver(exe: Union[str, pathlib.Path] = _target("default"),
-                    port: int = GDBSERVER_DEFAULT_PORT) -> subprocess.Popen:
+def start_gdbserver(
+    exe: Union[str, pathlib.Path] = debug_target("default"),
+    host: str = GDBSERVER_DEFAULT_HOST,
+    port: int = GDBSERVER_DEFAULT_PORT,
+) -> subprocess.Popen:
     """Start a gdbserver on the target binary.
 
     Args:
-        exe (str, optional): the binary to execute. Defaults to _target("default").
+        exe (str, optional): the binary to execute. Defaults to debug_target("default").
         port (int, optional): the port to make gdbserver listen on. Defaults to 1234.
 
     Returns:
         subprocess.Popen: a Popen object for the gdbserver process.
     """
-    return subprocess.Popen(["gdbserver", f":{port}", exe],
-                            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    return subprocess.Popen(
+        ["gdbserver", f"{host}:{port}", exe],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
 
 
 def stop_gdbserver(gdbserver: subprocess.Popen) -> None:
@@ -269,20 +332,28 @@ def stop_gdbserver(gdbserver: subprocess.Popen) -> None:
 
 
 @contextlib.contextmanager
-def gdbserver_session(*args, **kwargs):
-    exe = kwargs.get("exe", "") or _target("default")
-    port = kwargs.get("port", 0) or GDBSERVER_DEFAULT_PORT
-    sess = start_gdbserver(exe, port)
+def gdbserver_session(
+    port: int = GDBSERVER_DEFAULT_PORT,
+    host: str = GDBSERVER_DEFAULT_HOST,
+    exe: Union[str, pathlib.Path] = debug_target("default"),
+):
+    sess = start_gdbserver(exe, host, port)
     try:
+        time.sleep(1)  # forced delay to allow gdbserver to start listening
         yield sess
     finally:
         stop_gdbserver(sess)
 
 
-def start_qemuuser(exe: Union[str, pathlib.Path] = _target("default"),
-                   port: int = GDBSERVER_DEFAULT_PORT) -> subprocess.Popen:
-    return subprocess.Popen(["qemu-x86_64", "-g", str(port), exe],
-                            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+def start_qemuuser(
+    exe: Union[str, pathlib.Path] = debug_target("default"),
+    port: int = GDBSERVER_DEFAULT_PORT,
+) -> subprocess.Popen:
+    return subprocess.Popen(
+        ["qemu-x86_64", "-g", str(port), exe],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
 
 
 def stop_qemuuser(process: subprocess.Popen) -> None:
@@ -293,14 +364,13 @@ def stop_qemuuser(process: subprocess.Popen) -> None:
 
 @contextlib.contextmanager
 def qemuuser_session(*args, **kwargs):
-    exe = kwargs.get("exe", "") or _target("default")
+    exe = kwargs.get("exe", "") or debug_target("default")
     port = kwargs.get("port", 0) or GDBSERVER_DEFAULT_PORT
-    sess = start_gdbserver(exe, port)
+    sess = start_qemuuser(exe, port)
     try:
         yield sess
     finally:
-        stop_gdbserver(sess)
-
+        stop_qemuuser(sess)
 
 
 def find_symbol(binary: pathlib.Path, symbol: str) -> int:
@@ -323,9 +393,13 @@ def find_symbol(binary: pathlib.Path, symbol: str) -> int:
         KeyError if the symbol is not found
     """
     name = symbol.encode("utf8")
-    for line in [x.strip().split() for x in subprocess.check_output(["objdump", "-t", binary]).splitlines() if len(x.strip())]:
-         if line[-1] == name:
-             return int(line[0], 0x10)
+    for line in [
+        x.strip().split()
+        for x in subprocess.check_output(["objdump", "-t", binary]).splitlines()
+        if len(x.strip())
+    ]:
+        if line[-1] == name:
+            return int(line[0], 0x10)
     raise KeyError(f"`{symbol}` not found in {binary}")
 
 
@@ -340,11 +414,7 @@ def findlines(substring: str, buffer: str) -> List[str]:
     Returns:
         List[str]
     """
-    return [
-        line.strip()
-        for line in buffer.splitlines()
-        if substring in line.strip()
-    ]
+    return [line.strip() for line in buffer.splitlines() if substring in line.strip()]
 
 
 def removeafter(substring: str, buffer: str, included: bool = False) -> str:
@@ -391,7 +461,6 @@ def removeuntil(substring: str, buffer: str, included: bool = False) -> str:
     return buffer[idx:]
 
 
-
 def download_file(url: str) -> Optional[bytes]:
     """Download a file from the internet.
 
@@ -406,3 +475,35 @@ def download_file(url: str) -> Optional[bytes]:
         return http.read() if http.getcode() == 200 else None
     except Exception:
         return None
+
+
+def u8(x: bytes) -> int:
+    return struct.unpack("<B", x[:1])[0]
+
+
+def u16(x: bytes) -> int:
+    return struct.unpack("<H", x[:2])[0]
+
+
+def u32(x: bytes) -> int:
+    return struct.unpack("<I", x[:4])[0]
+
+
+def u64(x: bytes) -> int:
+    return struct.unpack("<Q", x[:8])[0]
+
+
+def p8(x: int) -> bytes:
+    return struct.pack("<B", x)
+
+
+def p16(x: int) -> bytes:
+    return struct.pack("<H", x)
+
+
+def p32(x: int) -> bytes:
+    return struct.pack("<I", x)
+
+
+def p64(x: int) -> bytes:
+    return struct.pack("<Q", x)

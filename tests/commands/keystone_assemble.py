@@ -4,24 +4,29 @@ keystone-assemble command test module
 
 import pytest
 
-from tests.utils import (ARCH, GefUnitTestGeneric, gdb_run_silent_cmd,
-                         gdb_start_silent_cmd)
+from tests.base import RemoteGefUnitTestGeneric
+
+from tests.utils import (
+    ARCH,
+)
 
 
-@pytest.mark.skipif(ARCH in ("mips64el", "ppc64le", "riscv64"), reason=f"Skipped for {ARCH}")
-class KeystoneAssembleCommand(GefUnitTestGeneric):
+@pytest.mark.skipif(
+    ARCH in ("mips64el", "ppc64le", "riscv64"), reason=f"Skipped for {ARCH}"
+)
+class KeystoneAssembleCommand(RemoteGefUnitTestGeneric):
     """`keystone-assemble` command test module"""
 
     def setUp(self) -> None:
         try:
             import keystone  # pylint: disable=W0611
         except ImportError:
-            pytest.skip("keystone-engine not available",
-                        allow_module_level=True)
+            pytest.skip("keystone-engine not available", allow_module_level=True)
         return super().setUp()
 
     def test_cmd_keystone_assemble(self):
-        self.assertNotIn("keystone", gdb_run_silent_cmd("gef missing"))
+        gdb = self._gdb
+        self.assertNotIn("keystone", gdb.execute("gef missing", to_string=True))
         cmds = [
             "assemble --arch arm   --mode arm                  add  r0, r1, r2",
             "assemble --arch arm   --mode arm     --endian big add  r0, r1, r2",
@@ -43,6 +48,7 @@ class KeystoneAssembleCommand(GefUnitTestGeneric):
             "assemble --arch x86   --mode 64                   mov rax, 0x42",
         ]
         for cmd in cmds:
-            res = gdb_start_silent_cmd(cmd)
-            self.assertNoException(res)
-            self.assertGreater(len(res.splitlines()), 1)
+            res = gdb.execute(cmd, to_string=True) or ""
+            assert res
+            lines = res.splitlines()
+            self.assertGreater(len(lines), 1)

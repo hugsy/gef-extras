@@ -1,4 +1,3 @@
-
 __AUTHOR__ = "hugsy"
 __VERSION__ = 0.2
 __LICENSE__ = "MIT"
