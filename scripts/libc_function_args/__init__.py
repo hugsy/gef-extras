@@ -31,7 +31,6 @@ class GlibcFunctionArguments:
     @staticmethod
     def load_libc_args() -> bool:
         """Load the LIBC function arguments. Returns `True` on success, `False` or an Exception otherwise."""
-        global gef
 
         # load libc function arguments' definitions
         path = pathlib.Path(
