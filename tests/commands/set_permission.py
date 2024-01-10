@@ -2,8 +2,6 @@
 `set-permission` command test module
 """
 
-import re
-
 import pytest
 from tests.base import RemoteGefUnitTestGeneric
 
