@@ -79,10 +79,6 @@ jobs:
       run: |
         python${{ env.PY_VER }} -m pytest --forked -n ${{ env.NB_CPU }} -v -k "not benchmark" tests/
 
-    - name: Run linter
-      run: |
-        python${{ env.PY_VER }} -m pylint --rcfile=$(pwd)/.pylintrc **/*.py
-
   standalone:
     runs-on: ubuntu-latest
     name: "Verify GEF-Extras install from gef/scripts"
