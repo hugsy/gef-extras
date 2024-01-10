@@ -81,7 +81,7 @@ jobs:
 
     - name: Run linter
       run: |
-        python${{ env.PY_VER }} -m pylint --rcfile=$(pwd)/.pylintrc ${{ env.GEF_PATH }} tests/*/*.py
+        python${{ env.PY_VER }} -m pylint --rcfile=$(pwd)/.pylintrc **/*.py
 
   standalone:
     runs-on: ubuntu-latest
