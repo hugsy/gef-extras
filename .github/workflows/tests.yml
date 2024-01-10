@@ -2,6 +2,7 @@ name: CI Test for GEF-EXTRAS
 
 env:
   BRANCH: main
+  NB_CPU: 1
 
 on:
   push:
@@ -66,24 +67,16 @@ jobs:
 
     - name: Checkout GEF
       run: |
-        mkdir -p ${{ env.GEF_PATH_DIR }}
-        wget -O ${{ env.GEF_PATH }} https://raw.githubusercontent.com/hugsy/gef/${{ env.BRANCH }}/gef.py
+        git clone -b ${{ env.BRANCH }} https://github.com/hugsy/gef ${{ env.GEF_PATH_DIR }}
         echo "source ${{ env.GEF_PATH }}" > ~/.gdbinit
         gdb -q -ex 'gef missing' -ex 'gef help' -ex 'gef config' -ex start -ex continue -ex quit /bin/pwd
 
-    - name: Build config file
+    - name: Setup Tests
       run: |
-        gdb -q \
-          -ex "gef config pcustom.struct_path '$(pwd)/structs'" \
-          -ex "gef config syscall-args.path '$(pwd)/syscall-tables'" \
-          -ex "gef config context.libc_args True" \
-          -ex "gef config context.libc_args_path '$(pwd)/glibc-function-args'" \
-          -ex 'gef save' \
-          -ex quit
+        make -C tests/binaries -j ${{ env.NB_CPU }}
 
     - name: Run Tests
       run: |
-        make -C tests/binaries -j ${{ env.NB_CPU }}
         python${{ env.PY_VER }} -m pytest --forked -n ${{ env.NB_CPU }} -v -k "not benchmark" tests/
 
     - name: Run linter
