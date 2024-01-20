@@ -1,7 +1,8 @@
-retdec-python
-pygments
-rpyc
-keystone-engine
 capstone
-unicorn
+keystone-engine
+pygments
+retdec-python
+requests
 ropper
+rpyc
+unicorn

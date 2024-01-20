@@ -17,15 +17,18 @@ VALID_ARCH_MODES = {
     # Format:
     # ARCH = [MODES]
     #   with MODE = (NAME, HAS_LITTLE_ENDIAN, HAS_BIG_ENDIAN)
-    "ARM":     [("ARM",     True,  True),  ("THUMB",   True,  True),
-                ("ARMV8",   True,  True),  ("THUMBV8", True,  True)],
-    "ARM64":   [("0", True,  False)],
-    "MIPS":    [("MIPS32",  True,  True),  ("MIPS64",  True,  True)],
-    "PPC":     [("PPC32",   False, True),  ("PPC64",   True,  True)],
-    "SPARC":   [("SPARC32", True,  True),  ("SPARC64", False, True)],
-    "SYSTEMZ": [("SYSTEMZ", True,  True)],
-    "X86":     [("16",      True,  False), ("32",      True,  False),
-                ("64",      True,  False)]
+    "ARM": [
+        ("ARM", True, True),
+        ("THUMB", True, True),
+        ("ARMV8", True, True),
+        ("THUMBV8", True, True),
+    ],
+    "ARM64": [("0", True, False)],
+    "MIPS": [("MIPS32", True, True), ("MIPS64", True, True)],
+    "PPC": [("PPC32", False, True), ("PPC64", True, True)],
+    "SPARC": [("SPARC32", True, True), ("SPARC64", False, True)],
+    "SYSTEMZ": [("SYSTEMZ", True, True)],
+    "X86": [("16", True, False), ("32", True, False), ("64", True, False)],
 }
 VALID_ARCHS = VALID_ARCH_MODES.keys()
 VALID_MODES = [_ for sublist in VALID_ARCH_MODES.values() for _ in sublist]
@@ -35,20 +38,32 @@ __ks: Optional[keystone.Ks] = None
 
 @register
 class AssembleCommand(GenericCommand):
-    """Inline code assemble. Architecture can be set in GEF runtime config. """
+    """Inline code assemble. Architecture can be set in GEF runtime config."""
 
     _cmdline_ = "assemble"
     _syntax_ = f"{_cmdline_} [-h] [--list-archs] [--mode MODE] [--arch ARCH] [--overwrite-location LOCATION] [--endian ENDIAN] [--as-shellcode] instruction;[instruction;...instruction;])"
-    _aliases_ = ["asm", ]
-    _example_ = (f"{_cmdline_} --arch x86 --mode 32 nop ; nop ; inc eax ; int3",
-                 f"{_cmdline_} --arch arm --mode arm add r0, r0, 1")
+    _aliases_ = [
+        "asm",
+    ]
+    _example_ = (
+        f"{_cmdline_} --arch x86 --mode 32 nop ; nop ; inc eax ; int3",
+        f"{_cmdline_} --arch arm --mode arm add r0, r0, 1",
+    )
 
     def __init__(self) -> None:
         super().__init__()
         self["default_architecture"] = (
-            "X86", "Specify the default architecture to use when assembling")
+            "X86",
+            "Specify the default architecture to use when assembling",
+        )
         self["default_mode"] = (
-            "64", "Specify the default architecture to use when assembling")
+            "64",
+            "Specify the default architecture to use when assembling",
+        )
+        self["default_endianess"] = (
+            "little",
+            "Specify the default endianess to use when assembling",
+        )
         return
 
     def pre_load(self) -> None:
@@ -81,9 +96,23 @@ class AssembleCommand(GenericCommand):
                 gef_print(f"  * {mode:<7} ({endianness})")
         return
 
-    @parse_arguments({"instructions": [""]}, {"--mode": "", "--arch": "", "--overwrite-location": "", "--endian": "little", "--list-archs": True, "--as-shellcode": True})
+    @parse_arguments(
+        {"instructions": [""]},
+        {
+            "--arch": "",
+            "--mode": "",
+            "--endian": "",
+            "--overwrite-location": "",
+            "--list-archs": True,
+            "--as-shellcode": True,
+        },
+    )
     def do_invoke(self, _: List[str], **kwargs: Any) -> None:
-        arch_s, mode_s, endian_s = self["default_architecture"], self["default_mode"], ""
+        arch_s, mode_s, endian_s = (
+            self["default_architecture"],
+            self["default_mode"],
+            self["default_endianess"],
+        )
 
         args = kwargs["arguments"]
         if args.list_archs:
@@ -96,19 +125,22 @@ class AssembleCommand(GenericCommand):
 
         if is_alive():
             arch_s, mode_s = gef.arch.arch, gef.arch.mode
-            endian_s = "big" if gef.arch.endianness == Endianness.BIG_ENDIAN else ""
+            endian_s = (
+                "big" if gef.arch.endianness == Endianness.BIG_ENDIAN else "little"
+            )
 
-        if not args.arch:
-            err("An architecture must be provided")
-            return
+        if args.arch:
+            arch_s = args.arch
 
-        if not args.mode:
-            err("A mode must be provided")
-            return
+        if args.mode:
+            mode_s = args.mode
 
-        arch_s = args.arch.upper()
-        mode_s = args.mode.upper()
-        endian_s = args.endian.upper()
+        if args.endian:
+            endian_s = args.endian
+
+        arch_s = arch_s.upper()
+        mode_s = mode_s.upper()
+        endian_s = endian_s.upper()
 
         if arch_s not in VALID_ARCH_MODES:
             raise AttributeError(f"invalid arch '{arch_s}'")
@@ -117,12 +149,17 @@ class AssembleCommand(GenericCommand):
         try:
             mode_idx = [m[0] for m in valid_modes].index(mode_s)
         except ValueError:
-            raise AttributeError(
-                f"invalid mode '{mode_s}' for arch '{arch_s}'")
+            raise AttributeError(f"invalid mode '{mode_s}' for arch '{arch_s}'")
 
-        if endian_s == "little" and not valid_modes[mode_idx][1] or endian_s == "big" and not valid_modes[mode_idx][2]:
+        if (
+            endian_s == "little"
+            and not valid_modes[mode_idx][1]
+            or endian_s == "big"
+            and not valid_modes[mode_idx][2]
+        ):
             raise AttributeError(
-                f"invalid endianness '{endian_s}' for arch/mode '{arch_s}:{mode_s}'")
+                f"invalid endianness '{endian_s}' for arch/mode '{arch_s}:{mode_s}'"
+            )
 
         ks_arch: int = getattr(keystone, f"KS_ARCH_{arch_s}")
         # manual fixups
@@ -131,10 +168,8 @@ class AssembleCommand(GenericCommand):
             ks_mode = 0
         else:
             ks_mode: int = getattr(keystone, f"KS_MODE_{mode_s}")
-        ks_endian: int = getattr(
-            keystone, f"KS_MODE_{endian_s}_ENDIAN")
-        insns = [x.strip()
-                 for x in " ".join(args.instructions).split(";") if x]
+        ks_endian: int = getattr(keystone, f"KS_MODE_{endian_s}_ENDIAN")
+        insns = [x.strip() for x in " ".join(args.instructions).split(";") if x]
         info(f"Assembling {len(insns)} instruction(s) for {arch_s}:{mode_s}")
 
         if args.as_shellcode:
@@ -151,8 +186,7 @@ class AssembleCommand(GenericCommand):
                 raw += res
 
             s = binascii.hexlify(res)
-            res = b"\\x" + b"\\x".join([s[i:i + 2]
-                                       for i in range(0, len(s), 2)])
+            res = b"\\x" + b"\\x".join([s[i : i + 2] for i in range(0, len(s), 2)])
             res = res.decode("utf-8")
 
             if args.as_shellcode:
@@ -163,17 +197,19 @@ class AssembleCommand(GenericCommand):
         if args.overwrite_location:
             if not is_alive():
                 warn(
-                    "The debugging session is not active, cannot overwrite location. Skipping...")
+                    "The debugging session is not active, cannot overwrite location. Skipping..."
+                )
                 return
 
             address = parse_address(args.overwrite_location)
-            info(
-                f"Overwriting {len(raw):d} bytes at {format_address(address)}")
+            info(f"Overwriting {len(raw):d} bytes at {format_address(address)}")
             gef.memory.write(address, raw, len(raw))
         return
 
 
-def ks_assemble(code: str, arch: int, mode: int, address: int = PLUGIN_ASSEMBLE_DEFAULT_ADDRESS) -> Optional[bytes]:
+def ks_assemble(
+    code: str, arch: int, mode: int, address: int = PLUGIN_ASSEMBLE_DEFAULT_ADDRESS
+) -> Optional[bytes]:
     """Assembly encoding function based on keystone."""
     global __ks
 
@@ -197,9 +233,11 @@ class ChangePermissionCommand(GenericCommand):
     """Change a page permission. By default, it will change it to 7 (RWX)."""
 
     _cmdline_ = "set-permission"
-    _syntax_ = (f"{_cmdline_} address [permission]\n"
-                "\taddress\t\tan address within the memory page for which the permissions should be changed\n"
-                "\tpermission\ta 3-bit bitmask with read=1, write=2 and execute=4 as integer")
+    _syntax_ = (
+        f"{_cmdline_} address [permission]\n"
+        "\taddress\t\tan address within the memory page for which the permissions should be changed\n"
+        "\tpermission\ta 3-bit bitmask with read=1, write=2 and execute=4 as integer"
+    )
     _aliases_ = ["mprotect"]
     _example_ = f"{_cmdline_} $sp 7"
 
@@ -233,8 +271,10 @@ class ChangePermissionCommand(GenericCommand):
         size = sect.page_end - sect.page_start
         original_pc = gef.arch.pc
 
-        info(f"Generating sys_mprotect({sect.page_start:#x}, {size:#x}, "
-             f"'{perm!s}') stub for arch {get_arch()}")
+        info(
+            f"Generating sys_mprotect({sect.page_start:#x}, {size:#x}, "
+            f"'{perm!s}') stub for arch {get_arch()}"
+        )
         stub = self.get_arch_and_mode(sect.page_start, size, perm)
         if stub is None:
             err("Failed to generate mprotect opcodes")
@@ -254,7 +294,9 @@ class ChangePermissionCommand(GenericCommand):
         gdb.execute("continue")
         return
 
-    def get_arch_and_mode(self, addr: int, size: int, perm: Permission) -> Union[bytes, None]:
+    def get_arch_and_mode(
+        self, addr: int, size: int, perm: Permission
+    ) -> Union[bytes, None]:
         code = gef.arch.mprotect_asm(addr, size, perm)
 
         # arch, mode and endianness as seen by GEF
@@ -271,8 +313,7 @@ class ChangePermissionCommand(GenericCommand):
             ks_mode = 0
         else:
             ks_mode: int = getattr(keystone, f"KS_MODE_{mode_s}")
-        ks_endian: int = getattr(
-            keystone, f"KS_MODE_{endian_s}")
+        ks_endian: int = getattr(keystone, f"KS_MODE_{endian_s}")
 
         addr = gef.arch.pc
         return ks_assemble(code, ks_arch, ks_mode | ks_endian, addr)

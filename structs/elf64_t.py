@@ -16,7 +16,6 @@ Elf64_Sxword = ct.c_int64
 
 
 class elf64_t(ct.Structure):
-
     _fields_ = [
         ("ei_magic", ct.c_char * 4),  # ELF identification
         ("ei_class", ct.c_uint8),
