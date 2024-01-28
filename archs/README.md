@@ -14,8 +14,8 @@ devices, power the target, and ultimately connect to the target device.
 
 #### Scan for devices
 
-```
-gef➤ gef-bmp-remote --scan /dev/ttyUSB1"
+```bash
+gef➤  gef-bmp-remote --scan /dev/ttyUSB1"
 [=] [remote] Executing 'monitor swdp_scan'
 Target voltage: 3.3V
 Available Targets:
@@ -31,7 +31,9 @@ numbered. Use the appropriate number to later `--attach`.
 If you are powering the device through the BMP, then make sure to add the `--power` arguments,
 otherwise the target may not be powered up when you attempt the scan.
 
-```
-gef-bmp-remote --file /path/to/binary.elf --target 1 /dev/ttyUSB1",
-gef-bmp-remote --file /path/to/binary.elf --target 1 --power /dev/ttyUSB1",
+If you want to keep power between scanning and attaching, then use `--keep-power`.
+
+```bash
+gef➤  gef-bmp-remote --file /path/to/binary.elf --attach 1 /dev/ttyUSB1",
+gef➤  gef-bmp-remote --file /path/to/binary.elf --attach 1 --power /dev/ttyUSB1",
 ```

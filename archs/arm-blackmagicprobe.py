@@ -38,20 +38,20 @@ class BMPRemoteCommand(GenericCommand):
     will likely fail. You can however still use the limited command provided by GDB `target remote`."""
 
     _cmdline_ = "gef-bmp-remote"
-    _syntax_  = f"{_cmdline_} [OPTIONS] TARGET"
+    _syntax_  = f"{_cmdline_} [OPTIONS] TTY"
     _example_ = [
                  f"{_cmdline_} --scan /dev/ttyUSB1"
                  f"{_cmdline_} --scan /dev/ttyUSB1 --power"
                  f"{_cmdline_} --scan /dev/ttyUSB1 --power --keep-power"
-                 f"{_cmdline_} --file /path/to/binary.elf --target 1 /dev/ttyUSB1",
-                 f"{_cmdline_} --file /path/to/binary.elf --target 1 --power /dev/ttyUSB1",
+                 f"{_cmdline_} --file /path/to/binary.elf --attach 1 /dev/ttyUSB1",
+                 f"{_cmdline_} --file /path/to/binary.elf --attach 1 --power /dev/ttyUSB1",
                  ]
 
     def __init__(self) -> None:
         super().__init__(prefix=False)
         return
 
-    @parse_arguments({"tty": ""}, {"--file": "", "--target": "", "--power": False,
+    @parse_arguments({"tty": ""}, {"--file": "", "--attach": "", "--power": False,
                                    "--keep-power": False, "--scan": False})
     def do_invoke(self, _: List[str], **kwargs: Any) -> None:
         if gef.session.remote is not None:
@@ -64,7 +64,7 @@ class BMPRemoteCommand(GenericCommand):
             err("Missing parameters")
             return
 
-        if not args.scan and not args.target:
+        if not args.scan and not args.attach:
             err("Must provide target to attach to if not scanning")
             return
 
@@ -73,7 +73,7 @@ class BMPRemoteCommand(GenericCommand):
         # calls `is_remote_debug` which checks if `remote_initializing` is True or `.remote` is None
         # This prevents some spurious errors being thrown during startup
         gef.session.remote_initializing = True
-        session = GefBMPRemoteSessionManager(args.tty, args.file, args.target, args.scan, args.power)
+        session = GefBMPRemoteSessionManager(args.tty, args.file, args.attach, args.scan, args.power)
 
         dbg(f"[remote] initializing remote session with {session.target} under {session.root}")
 
@@ -97,11 +97,11 @@ class BMPRemoteCommand(GenericCommand):
 class GefBMPRemoteSessionManager(GefRemoteSessionManager):
     """Class for managing remote sessions with GEF. It will create a temporary environment
     designed to clone the remote one."""
-    def __init__(self, tty: str="", file: str="", target: int=1,
+    def __init__(self, tty: str="", file: str="", attach: int=1,
                  scan: bool=False, power: bool=False, keep_power: bool=False) -> None:
         self.__tty = tty
         self.__file = file
-        self.__target = target
+        self.__attach = attach
         self.__scan = scan
         self.__power = power
         self.__keep_power = keep_power
@@ -109,10 +109,9 @@ class GefBMPRemoteSessionManager(GefRemoteSessionManager):
         self.__local_root_path = pathlib.Path(self.__local_root_fd.name)
 
     def __str__(self) -> str:
-        return f"BMPRemoteSessionManager(tty='{self.__tty}', file='{self.__file}', target={self.__target})"
+        return f"BMPRemoteSessionManager(tty='{self.__tty}', file='{self.__file}', attach={self.__attach})"
 
     def close(self) -> None:
-        # TODO: Needed?
         self.__local_root_fd.cleanup()
         try:
             gef_on_new_unhook(self.remote_objfile_event_handler)
@@ -129,10 +128,11 @@ class GefBMPRemoteSessionManager(GefRemoteSessionManager):
 
     @property
     def target(self) -> str:
-        return f"{self.__tty} target {self.__target}"
+        return f"{self.__tty} (attach {self.__attach})"
 
     def sync(self, src: str, dst: Optional[str] = None) -> bool:
-        pass
+        # We cannot sync from this target
+        return None
 
     @property
     def file(self) -> Optional[pathlib.Path]:
@@ -140,12 +140,6 @@ class GefBMPRemoteSessionManager(GefRemoteSessionManager):
             return pathlib.Path(self.__file).expanduser()
         return None
 
-    # @property
-    # def maps(self) -> pathlib.Path:
-    #     if not self._maps:
-    #         self._maps = self.root / f"proc/{self.pid}/maps"
-    #     return self._maps
-    #
     def connect(self) -> bool:
         """Connect to remote target. If in extended mode, also attach to the given PID."""
         # before anything, register our new hook to download files from the remote target
@@ -166,28 +160,25 @@ class GefBMPRemoteSessionManager(GefRemoteSessionManager):
         if self.__power:
             self._power_on()
 
-        # We must always scan, but with --scan we are done here.
+        # We must always scan, but with --scan we are done here
         self._gdb_execute("monitor swdp_scan")
         if self.__scan:
-            # Returning false cleans up the session
             self._gdb_execute("disconnect")
-            # Clear targets
 
-            # TODO: Suppress the error here
+            # Returning false cleans up the session
             return False
 
         try:
-            reset_architecture("ARMBlackMagicProbe")
             with DisableContextOutputContext():
                 if self.file:
                     self._gdb_execute(f"file {self.file}")
-                self._gdb_execute(f"attach {self.__target or 1}")
-            return True
+                self._gdb_execute(f"attach {self.__attach or 1}")
         except Exception as e:
             err(f"Failed to connect to {self.target}: {e}")
+            # a failure will trigger the cleanup, deleting our hook
+            return False
 
-        # a failure will trigger the cleanup, deleting our hook anyway
-        return False
+        return True
 
     def setup(self) -> bool:
         dbg(f"Setting up as remote session")
@@ -196,22 +187,10 @@ class GefBMPRemoteSessionManager(GefRemoteSessionManager):
         reset_all_caches()
         if self.file:
             gef.binary = Elf(self.file)
-        # TODO: When should we set this?
+        # We'd like to set this earlier, but we can't because of this bug
+        # https://sourceware.org/bugzilla/show_bug.cgi?id=31303
         reset_architecture("ARMBlackMagicProbe")
         return True
-
-    # def remote_objfile_event_handler(self, evt: "gdb.NewObjFileEvent") -> None:
-    #     dbg(f"[remote] in remote_objfile_handler({evt.new_objfile.filename if evt else 'None'}))")
-    #     if not evt or not evt.new_objfile.filename:
-    #         return
-    #     if not evt.new_objfile.filename.startswith("target:") and not evt.new_objfile.filename.startswith("/"):
-    #         warn(f"[remote] skipping '{evt.new_objfile.filename}'")
-    #         return
-    #     if evt.new_objfile.filename.startswith("target:"):
-    #         src: str = evt.new_objfile.filename[len("target:"):]
-    #         if not self.sync(src):
-    #             raise FileNotFoundError(f"Failed to sync '{src}'")
-    #     return
 
     def _power_off(self):
         self._gdb_execute("monitor tpwr disable")
