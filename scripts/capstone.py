@@ -176,7 +176,7 @@ class CapstoneDisassembleCommand(GenericCommand):
 
     @only_if_gdb_running
     @parse_arguments(
-        {("location"): "$pc"}, {("--show-opcodes", "-s"): True, "--length": 0}
+        {("location"): "$pc"}, {("--show-opcodes", "-s"): False, "--length": 0}
     )
     def do_invoke(self, _: List[str], **kwargs: Any) -> None:
         args = kwargs["arguments"]
