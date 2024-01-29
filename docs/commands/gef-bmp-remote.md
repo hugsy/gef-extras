@@ -3,10 +3,10 @@
 The `gef-bmp-command` is used with the [`ARMBlackMagicProbe`](../../archs/arm-blackmagicprobe.py]
 architecture.
 
-The [Black Magic Probe](https://black-magic.org/) is a JTAG/SWD debugging that handles communicating
-with your device and exposes a _gdbserver_. This allows you to connect to it via GDB with the
-`remote` command. However, because this is exposed via a tty, GEF cannot handle it with its
-`gef-remote` command (which assumes a host:port connection). The
+The [Black Magic Probe](https://black-magic.org/) is a JTAG/SWD debugger that handles communicating
+with your device and exposes a _gdbserver_ for GDB to connect to. This allows you to connect to it
+via GDB with the `target extended-remote` command. However, because this is exposed via a tty, GEF
+cannot handle it with its `gef-remote` command (which assumes a _host:port_ connection). The
 [arm-blackmagicprobe.py](../../archs/arm-blackmagicprobe.py) script offers a way around this. It
 creates a custom ARM-derived `Architecture`, as well as the `gef-bmp-remote` command, which lets you
 scan for devices, power the target, and ultimately connect to the target device.
