@@ -1,5 +1,5 @@
 __AUTHOR__ = "hugsy"
-__VERSION__ = 0.2
+__VERSION__ = 0.3
 
 
 from typing import TYPE_CHECKING, Callable, List
@@ -40,6 +40,7 @@ class BreakOnLoadSharedLibrary(gdb.Breakpoint):
 @register
 class WindbgSxeCommand(GenericCommand):
     """WinDBG compatibility layer: sxe (set-exception-enable): break on loading libraries."""
+
     _cmdline_ = "sxe"
     _syntax_ = f"{_cmdline_} [ld,ud]:module"
     _example_ = f"{_cmdline_} ld:mylib.so"
@@ -69,7 +70,9 @@ class WindbgSxeCommand(GenericCommand):
         return
 
 
-def windbg_execute_until(cnt: int, cmd: str, stop_condition: Callable[[Instruction], bool]):
+def windbg_execute_until(
+    cnt: int, cmd: str, stop_condition: Callable[[Instruction], bool]
+):
     while cnt:
         cnt -= 1
         gef.config["context.enable"] = False
@@ -84,12 +87,13 @@ def windbg_execute_until(cnt: int, cmd: str, stop_condition: Callable[[Instructi
 @register
 class WindbgTcCommand(GenericCommand):
     """WinDBG compatibility layer: tc - trace until next call."""
+
     _cmdline_ = "tc"
     _syntax_ = f"{_cmdline_} [COUNT]"
 
     @only_if_gdb_running
     def do_invoke(self, argv):
-        cnt = int(argv[0]) if len(argv) else 0xffffffffffffffff
+        cnt = int(argv[0]) if len(argv) else 0xFFFFFFFFFFFFFFFF
         windbg_execute_until(cnt, "stepi", gef.arch.is_call)
         gdb.execute("context")
         return
@@ -98,12 +102,13 @@ class WindbgTcCommand(GenericCommand):
 @register
 class WindbgPcCommand(GenericCommand):
     """WinDBG compatibility layer: pc - run until next call."""
+
     _cmdline_ = "pc"
     _syntax_ = f"{_cmdline_} [COUNT]"
 
     @only_if_gdb_running
     def do_invoke(self, argv):
-        cnt = int(argv[0]) if len(argv) else 0xffffffffffffffff
+        cnt = int(argv[0]) if len(argv) else 0xFFFFFFFFFFFFFFFF
         windbg_execute_until(cnt, "nexti", gef.arch.is_call)
         gdb.execute("context")
         return
@@ -112,12 +117,13 @@ class WindbgPcCommand(GenericCommand):
 @register
 class WindbgTtCommand(GenericCommand):
     """WinDBG compatibility layer: tt - trace until next return."""
+
     _cmdline_ = "tt"
     _syntax_ = f"{_cmdline_} [COUNT]"
 
     @only_if_gdb_running
     def do_invoke(self, argv):
-        cnt = int(argv[0]) if len(argv) else 0xffffffffffffffff
+        cnt = int(argv[0]) if len(argv) else 0xFFFFFFFFFFFFFFFF
         windbg_execute_until(cnt, "stepi", gef.arch.is_ret)
         gdb.execute("context")
         return
@@ -126,12 +132,13 @@ class WindbgTtCommand(GenericCommand):
 @register
 class WindbgPtCommand(GenericCommand):
     """WinDBG compatibility layer: pt - run until next return."""
+
     _cmdline_ = "pt"
     _syntax_ = f"{_cmdline_} [COUNT]"
 
     @only_if_gdb_running
     def do_invoke(self, argv):
-        cnt = int(argv[0]) if len(argv) else 0xffffffffffffffff
+        cnt = int(argv[0]) if len(argv) else 0xFFFFFFFFFFFFFFFF
         windbg_execute_until(cnt, "nexti", gef.arch.is_ret)
         gdb.execute("context")
         return
@@ -140,12 +147,13 @@ class WindbgPtCommand(GenericCommand):
 @register
 class WindbgPtcCommand(GenericCommand):
     """WinDBG compatibility layer: ptc - run until next call or return."""
+
     _cmdline_ = "ptc"
     _syntax_ = f"{_cmdline_} [COUNT]"
 
     @only_if_gdb_running
     def do_invoke(self, argv):
-        cnt = int(argv[0]) if len(argv) else 0xffffffffffffffff
+        cnt = int(argv[0]) if len(argv) else 0xFFFFFFFFFFFFFFFF
 
         def fn(x) -> bool:
             return gef.arch.is_ret(x) or gef.arch.is_call(x)
@@ -158,6 +166,7 @@ class WindbgPtcCommand(GenericCommand):
 @register
 class WindbgHhCommand(GenericCommand):
     """WinDBG compatibility layer: hh - open help in web browser."""
+
     _cmdline_ = "hh"
     _syntax_ = f"{_cmdline_}"
 
@@ -165,16 +174,16 @@ class WindbgHhCommand(GenericCommand):
         url = GEF_DOCS_URL
         if len(argv):
             url += "search.html?q={}".format(argv[0])
-        subprocess.Popen(["xdg-open", url],
-                         cwd="/",
-                         stdout=subprocess.PIPE,
-                         stderr=subprocess.STDOUT)
+        subprocess.Popen(
+            ["xdg-open", url], cwd="/", stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+        )
         return
 
 
 @register
 class WindbgGoCommand(GenericCommand):
     """WinDBG compatibility layer: g - go."""
+
     _cmdline_ = "g"
     _syntax_ = _cmdline_
 
@@ -189,6 +198,7 @@ class WindbgGoCommand(GenericCommand):
 @register
 class WindbgUCommand(GenericCommand):
     """WinDBG compatibility layer: u - disassemble."""
+
     _cmdline_ = "u"
     _syntax_ = _cmdline_
 
@@ -219,6 +229,7 @@ class WindbgUCommand(GenericCommand):
 @register
 class WindbgXCommand(GenericCommand):
     """WinDBG compatibility layer: x - search symbol."""
+
     _cmdline_ = "xs"
     _syntax_ = "{:s} REGEX".format(_cmdline_)
 
@@ -243,6 +254,7 @@ class WindbgXCommand(GenericCommand):
 @register
 class WindbgRCommand(GenericCommand):
     """WinDBG compatibility layer: r - register info"""
+
     _cmdline_ = "r"
     _syntax_ = f"{_cmdline_} [REGISTER[=VALUE]]"
 
@@ -252,12 +264,11 @@ class WindbgRCommand(GenericCommand):
 
         def chunks(l, n):
             for ii in range(0, len(l), n):
-                yield l[ii:ii + n]
+                yield l[ii : ii + n]
 
         def print_reg(reg, width=16):
             fmt = f"%s=%0{width}x".format()
-            regval = gef.arch.register(f"${reg}") & (
-                (1 << (gef.arch.ptrsize * 8)) - 1)
+            regval = gef.arch.register(f"${reg}") & ((1 << (gef.arch.ptrsize * 8)) - 1)
             gef_print(fmt % (reg.rjust(max_reg_len), regval), end="")
 
         for regs in chunks(reg_list, n):
@@ -273,36 +284,39 @@ class WindbgRCommand(GenericCommand):
                     gef_print()
 
     def arch_reg_width(self):
-        if get_arch().startswith("i386:x86-64"):
+        if gef.arch.arch.startswith("i386:x86-64"):
             return 3
-        if get_arch().startswith("i386"):
+        if gef.arch.arch.startswith("i386"):
             return 6
-        if get_arch().startswith("aarch64"):
+        if gef.arch.arch.startswith("aarch64"):
             return 4
         raise NotImplementedError
 
     def print_gprs(self):
         gprs = None
 
-        if get_arch() == "i386":
+        if gef.arch.arch == "i386":
             # eax=00473dc8 ebx=00622000 ecx=00000000 edx=a0b086dc esi=00a40620 edi=00a44890
             # eip=00461003 esp=005bf8c8 ebp=005bf8c8
             gprs = [
-                'eax', 'ebx', 'ecx',
-                'edx', 'esi', 'edi',
-                'eip', 'esp', 'ebp',
+                "eax",
+                "ebx",
+                "ecx",
+                "edx",
+                "esi",
+                "edi",
+                "eip",
+                "esp",
+                "ebp",
             ]
             self.print_regs(gprs, 8)
 
             # cs=0023  ss=002b  ds=002b  es=002b  fs=0053  gs=002b             efl=0000020
-            segregs = [
-                'cs', 'ss', 'ds',
-                'es', 'fs', 'gs'
-            ]
+            segregs = ["cs", "ss", "ds", "es", "fs", "gs"]
             self.print_regs(segregs, 4)
             return
 
-        elif get_arch().startswith("i386:x86-64"):
+        elif gef.arch.arch.startswith("i386:x86-64"):
             # rax=0000000000000000 rbx=000000e62e50b000 rcx=00007ffb4763c564
             # rdx=0000000000000000 rsi=00007ffb476cd4c0 rdi=0000000000000010
             # rip=00007ffb4767121c rsp=000000e62e28f140 rbp=0000000000000000
@@ -310,24 +324,32 @@ class WindbgRCommand(GenericCommand):
             # r11=0000000000000246 r12=0000000000000001 r13=0000000000000000
             # r14=00007ffb476ccd90 r15=0000027685520000
             gprs = [
-                'rax', 'rbx', 'rcx',
-                'rdx', 'rsi', 'rdi',
-                'rip', 'rsp', 'rbp',
-                'r8', 'r9', 'r10',
-                'r11', 'r12', 'r13',
-                'r14', 'r15'
+                "rax",
+                "rbx",
+                "rcx",
+                "rdx",
+                "rsi",
+                "rdi",
+                "rip",
+                "rsp",
+                "rbp",
+                "r8",
+                "r9",
+                "r10",
+                "r11",
+                "r12",
+                "r13",
+                "r14",
+                "r15",
             ]
             self.print_regs(gprs)
 
             # cs=0033  ss=002b  ds=002b  es=002b  fs=0053  gs=002b             efl=00000202
-            segregs = [
-                'cs', 'ss', 'ds',
-                'es', 'fs', 'gs'
-            ]
+            segregs = ["cs", "ss", "ds", "es", "fs", "gs"]
             self.print_regs(segregs, 4)
             return
 
-        elif get_arch().startswith('aarch64'):
+        elif gef.arch.arch.startswith("aarch64"):
             #  x0=0000000000000078   x1=000002037b0069e0   x2=0000000000000010   x3=000000293a8ff9f0
             #  x4=000000293a8ffb90   x5=000000293a8ff9eb   x6=0000000000000000   x7=0000000000000000
             #  x8=0000000000000072   x9=0000000000000000  x10=0000000000000000  x11=ffffffffff817aa9
@@ -338,15 +360,39 @@ class WindbgRCommand(GenericCommand):
             # x28=0000000000000000   fp=000000293a8ffc10   lr=00007ffea80f7388   sp=000000293a8ff9e0
             #  pc=00007ffea80e30f4  psr=60000000 -ZC- EL0
             gprs = [
-                'x0', 'x1', 'x2', 'x3',
-                'x4', 'x5', 'x6', 'x7',
-                'x8', 'x9', 'x10', 'x11',
-                'x12', 'x13', 'x14', 'x15',
-                'x16', 'x17', 'x18', 'x19',
-                'x20', 'x21', 'x22', 'x23',
-                'x24', 'x25', 'x26', 'x27',
-                'x28', 'fp', 'lr', 'sp',
-                'pc'
+                "x0",
+                "x1",
+                "x2",
+                "x3",
+                "x4",
+                "x5",
+                "x6",
+                "x7",
+                "x8",
+                "x9",
+                "x10",
+                "x11",
+                "x12",
+                "x13",
+                "x14",
+                "x15",
+                "x16",
+                "x17",
+                "x18",
+                "x19",
+                "x20",
+                "x21",
+                "x22",
+                "x23",
+                "x24",
+                "x25",
+                "x26",
+                "x27",
+                "x28",
+                "fp",
+                "lr",
+                "sp",
+                "pc",
             ]
             self.print_regs(gprs)
             return
@@ -374,7 +420,7 @@ class WindbgRCommand(GenericCommand):
 
 def __windbg_prompt__(current_prompt: Callable) -> str:
     """WinDBG prompt function."""
-    p = "0:000 ➤ "
+    p = "0:000 ➤  "
     if gef.config["gef.disable_color"] is True:
         return p
 
@@ -385,8 +431,10 @@ def __windbg_prompt__(current_prompt: Callable) -> str:
 
 
 def __default_prompt__(x):
-    if gef.config["gef.use-windbg-prompt"] is False \
-            or gef.config["gef.readline_compat"] is True:
+    if (
+        gef.config["gef.use-windbg-prompt"] is False
+        or gef.config["gef.readline_compat"] is True
+    ):
         return __gef_prompt__(x)
 
     return __windbg_prompt__(x)
@@ -394,7 +442,8 @@ def __default_prompt__(x):
 
 # Prompt
 gef.config["gef.use-windbg-prompt"] = GefSetting(
-    False, description="Use WinDBG like prompt")
+    False, description="Use WinDBG like prompt"
+)
 gdb.prompt_hook = __default_prompt__
 
 # Aliases

@@ -1,11 +1,10 @@
-
 __AUTHOR__ = "hugsy"
-__VERSION__ = 0.2
+__VERSION__ = 0.3
 __LICENSE__ = "MIT"
 
-from typing import (TYPE_CHECKING, Any, Callable, Generator, List, Optional,
-                    Tuple)
+from typing import TYPE_CHECKING, Any, Callable, Generator, List, Optional, Tuple
 
+import gdb
 import capstone
 
 if TYPE_CHECKING:
@@ -20,41 +19,75 @@ def gef_to_cs_arch() -> Tuple[str, str, str]:
     if gef.arch.arch == "ARM":
         if isinstance(gef.arch, ARM):
             if gef.arch.is_thumb():
-                return "CS_ARCH_ARM", "CS_MODE_THUMB", f"CS_MODE_{repr(gef.arch.endianness).upper()}"
-            return "CS_ARCH_ARM", "CS_MODE_ARM", f"CS_MODE_{repr(gef.arch.endianness).upper()}"
+                return (
+                    "CS_ARCH_ARM",
+                    "CS_MODE_THUMB",
+                    f"CS_MODE_{repr(gef.arch.endianness).upper()}",
+                )
+            return (
+                "CS_ARCH_ARM",
+                "CS_MODE_ARM",
+                f"CS_MODE_{repr(gef.arch.endianness).upper()}",
+            )
 
     if gef.arch.arch == "ARM64":
         return "CS_ARCH_ARM64", "0", f"CS_MODE_{repr(gef.arch.endianness).upper()}"
 
     if gef.arch.arch == "X86":
         if gef.arch.mode == "32":
-            return "CS_ARCH_X86", "CS_MODE_32", f"CS_MODE_{repr(gef.arch.endianness).upper()}"
+            return (
+                "CS_ARCH_X86",
+                "CS_MODE_32",
+                f"CS_MODE_{repr(gef.arch.endianness).upper()}",
+            )
         if gef.arch.mode == "64":
-            return "CS_ARCH_X86", "CS_MODE_64", f"CS_MODE_{repr(gef.arch.endianness).upper()}"
+            return (
+                "CS_ARCH_X86",
+                "CS_MODE_64",
+                f"CS_MODE_{repr(gef.arch.endianness).upper()}",
+            )
 
     if gef.arch.arch == "PPC":
         if gef.arch.mode == "PPC32":
-            return "CS_ARCH_PPC", "CS_MODE_PPC32", f"CS_MODE_{repr(gef.arch.endianness).upper()}"
+            return (
+                "CS_ARCH_PPC",
+                "CS_MODE_PPC32",
+                f"CS_MODE_{repr(gef.arch.endianness).upper()}",
+            )
         if gef.arch.mode == "PPC64":
-            return "CS_ARCH_PPC", "CS_MODE_PPC64", f"CS_MODE_{repr(gef.arch.endianness).upper()}"
+            return (
+                "CS_ARCH_PPC",
+                "CS_MODE_PPC64",
+                f"CS_MODE_{repr(gef.arch.endianness).upper()}",
+            )
 
     if gef.arch.arch == "MIPS":
         if gef.arch.mode == "MIPS32":
-            return "CS_ARCH_MIPS", "CS_MODE_MIPS32", f"CS_MODE_{repr(gef.arch.endianness).upper()}"
+            return (
+                "CS_ARCH_MIPS",
+                "CS_MODE_MIPS32",
+                f"CS_MODE_{repr(gef.arch.endianness).upper()}",
+            )
         if gef.arch.mode == "MIPS64":
-            return "CS_ARCH_MIPS32", "CS_MODE_MIPS64", f"CS_MODE_{repr(gef.arch.endianness).upper()}"
+            return (
+                "CS_ARCH_MIPS32",
+                "CS_MODE_MIPS64",
+                f"CS_MODE_{repr(gef.arch.endianness).upper()}",
+            )
 
     raise ValueError
 
 
-def cs_disassemble(location: int, nb_insn: int, **kwargs: Any) -> Generator[Instruction, None, None]:
+def cs_disassemble(
+    location: int, nb_insn: int, **kwargs: Any
+) -> Generator[Instruction, None, None]:
     """Disassemble `nb_insn` instructions after `addr` and `nb_prev` before
     `addr` using the Capstone-Engine disassembler, if available.
     Return an iterator of Instruction objects."""
 
     def cs_insn_to_gef_insn(cs_insn: capstone.CsInsn) -> Instruction:
         sym_info = gdb_get_location_from_symbol(cs_insn.address)
-        loc = "<{}+{}>".format(*sym_info) if sym_info else ""
+        loc = f"<{sym_info[0]}+{sym_info[1]}>" if sym_info else ""
         ops = [] + cs_insn.op_str.split(", ")
         return Instruction(cs_insn.address, loc, cs_insn.mnemonic, ops, cs_insn.bytes)
 
@@ -78,8 +111,9 @@ def cs_disassemble(location: int, nb_insn: int, **kwargs: Any) -> Generator[Inst
             return
         nb_insn += nb_prev
 
-    code = kwargs.get("code", gef.memory.read(
-        location, gef.session.pagesize - offset - 1))
+    code = kwargs.get(
+        "code", gef.memory.read(location, gef.session.pagesize - offset - 1)
+    )
     for insn in cs.disasm(code, location):
         if skip:
             skip -= 1
@@ -103,20 +137,32 @@ class CapstoneDisassembleCommand(GenericCommand):
     def __init__(self) -> None:
         super().__init__(complete=gdb.COMPLETE_LOCATION)
         gef.config[f"{self._cmdline_}.use-capstone"] = GefSetting(
-            False, bool, "Replace the GDB disassembler in the `context` with Capstone", hooks={"on_write": self.switch_disassembler})
-        self.__original_disassembler: Optional[Callable[[
-            int, int, Any], Generator[Instruction, None, None]]] = None
+            False,
+            bool,
+            "Replace the GDB disassembler in the `context` with Capstone",
+            hooks={
+                "on_write": [
+                    self.switch_disassembler,
+                ]
+            },
+        )
+        self.__original_disassembler: Optional[
+            Callable[[int, int, Any], Generator[Instruction, None, None]]
+        ] = None
         return
 
     def switch_disassembler(self, _) -> None:
         ctx = gef.gdb.commands["context"]
         assert isinstance(ctx, ContextCommand)
-        if gef.config[f"{self._cmdline_}.use-capstone"] == True:
+        if gef.config[f"{self._cmdline_}.use-capstone"]:
             self.__original_disassembler = ctx.instruction_iterator
             ctx.instruction_iterator = cs_disassemble
         else:
             # `use-capstone` set to False
-            if ctx.instruction_iterator == cs_disassemble and self.__original_disassembler:
+            if (
+                ctx.instruction_iterator == cs_disassemble
+                and self.__original_disassembler
+            ):
                 # restore the original
                 ctx.instruction_iterator = self.__original_disassembler
         return
@@ -129,7 +175,9 @@ class CapstoneDisassembleCommand(GenericCommand):
         return
 
     @only_if_gdb_running
-    @parse_arguments({("location"): "$pc"}, {("--show-opcodes", "-s"): True, "--length": 0})
+    @parse_arguments(
+        {("location"): "$pc"}, {("--show-opcodes", "-s"): False, "--length": 0}
+    )
     def do_invoke(self, _: List[str], **kwargs: Any) -> None:
         args = kwargs["arguments"]
         show_opcodes = args.show_opcodes
@@ -141,7 +189,9 @@ class CapstoneDisassembleCommand(GenericCommand):
 
         insns = []
         opcodes_len = 0
-        for insn in cs_disassemble(location, length, skip=length * self.repeat_count, **kwargs):
+        for insn in cs_disassemble(
+            location, length, skip=length * self.repeat_count, **kwargs
+        ):
             insns.append(insn)
             opcodes_len = max(opcodes_len, len(insn.opcodes))
 
@@ -151,8 +201,7 @@ class CapstoneDisassembleCommand(GenericCommand):
             msg = ""
 
             if insn.address == gef.arch.pc:
-                msg = Color.colorify(
-                    f"{RIGHT_ARROW}   {text_insn}", "bold red")
+                msg = Color.colorify(f"{RIGHT_ARROW}   {text_insn}", "bold red")
                 valid, reason = self.capstone_analyze_pc(insn, length)
                 if valid:
                     gef_print(msg)

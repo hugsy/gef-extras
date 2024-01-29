@@ -4,48 +4,42 @@ A slightly better way to remote with GDB/GEF
 gdb -ex 'source /path/to/gef-extras/scripts/remote.py' -ex rpyc-remote -ex quit
 """
 
+__AUTHOR__ = "hugsy"
+__VERSION__ = 0.3
 
-import contextlib
-import sys
-from typing import TYPE_CHECKING, Any
+import argparse
 
 import gdb
+
 import rpyc
 
+from typing import TYPE_CHECKING, Any, List
+
 if TYPE_CHECKING:
+    import rpyc.core.protocol
+    import rpyc.utils.server
     from . import *
     from . import gdb
 
-__AUTHOR__ = "hugsy"
-__VERSION__ = 0.2
+RPYC_DEFAULT_HOST = "0.0.0.0"
+RPYC_DEFAULT_PORT = 12345
 
 
-class GefRemoteService(rpyc.Service):
-    """The RPYC service for interacting with GEF"""
+class RemoteDebugService(rpyc.Service):
+    def on_connect(self, conn: rpyc.core.protocol.Connection):
+        ok(f"connect open: {str(conn)}")
+        return
 
-    def exposed_gdb(self, cmd: str) -> str:
-        return gdb.execute(cmd, to_string=True) or ""
+    def on_disconnect(self, conn: rpyc.core.protocol.Connection):
+        ok(f"connection closed: {str(conn)}")
+        return
 
-    def exposed_gef(self, cmd: str) -> Any:
+    def exposed_eval(self, cmd):
         return eval(cmd)
 
+    exposed_gdb = gdb
 
-class DisableStreamBufferContext(contextlib.ContextDecorator):
-    """Because stream buffering doesn't play well with rpyc"""
-
-    def __enter__(self) -> None:
-        info("Backuping context")
-        self.old_stream_buffer = gef.ui.stream_buffer
-        self.old_redirect_fd = gef.ui.redirect_fd
-        gef.ui.stream_buffer = sys.stdout
-        gef.ui.redirect_fd = None
-        return self
-
-    def __exit__(self, _) -> bool:
-        info("Restoring context")
-        gef.ui.stream_buffer = self.old_stream_buffer
-        gef.ui.redirect_fd = self.old_redirect_fd
-        return False
+    exposed_gef = gef
 
 
 @register
@@ -54,23 +48,28 @@ class GefRemoteCommand(GenericCommand):
 
     _cmdline_ = "rpyc-remote"
     _aliases_ = []
-    _syntax_ = f"{_cmdline_:s}"
-    _example_ = f"{_cmdline_:s}"
+    _syntax_ = f"{_cmdline_:s} --port=[PORT]"
+    _example_ = f"{_cmdline_:s} --port=1234"
 
     def __init__(self) -> None:
         super().__init__(prefix=False)
-        self["host"] = ("0.0.0.0", "The interface to listen on")
-        self["port"] = (12345, "The port to listen on")
+        self["host"] = (RPYC_DEFAULT_HOST, "The interface to listen on")
+        self["port"] = (RPYC_DEFAULT_PORT, "The port to listen on")
         return
 
-    def do_invoke(self, _) -> None:
-        with DisableStreamBufferContext():
-            info(
-                f"Listening on {self['host']}:{self['port']}, press Ctrl+C to stop")
-            server = rpyc.utils.server.ThreadedServer(
-                GefRemoteService, port=12345)
-            try:
-                server.start()
-            except KeyboardInterrupt:
-                info("Stopping")
-                server.close()
+    def do_invoke(self, _: List[str]) -> None:
+        old_value = gef.config["gef.buffer"]
+        if gef.config["gef.buffer"]:
+            gef.config["gef.buffer"] = False
+            warn(f"TTY buffer must be disable for {self._cmdline_} to work")
+
+        info(f"RPYC service listening on tcp/{self['host']}:{self['port']}")
+        svc = rpyc.utils.server.OneShotServer(
+            RemoteDebugService,
+            port=self["port"],
+            protocol_config={
+                "allow_public_attrs": True,
+            },
+        )
+        svc.start()
+        gef.config["gef.buffer"] = old_value

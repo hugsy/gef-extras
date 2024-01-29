@@ -125,7 +125,7 @@ class UnicornEmulateCommand(GenericCommand):
         return
 
     @only_if_gdb_running
-    @parse_arguments({"nb": 1}, {"--start": "", "--until": "", "--skip-emulation": True, "--output-file": ""})
+    @parse_arguments({"nb": 1}, {"--start": "", "--until": "", "--skip-emulation": False, "--output-file": ""})
     def do_invoke(self, _: List[str], **kwargs: Any) -> None:
         args = kwargs["arguments"]
         start_address = parse_address(str(args.start or gef.arch.pc))

@@ -91,3 +91,7 @@ ENV/
 .vscode
 .benchmarks
 .pytest_cache
+
+scripts/libc_functions_args/tables/libc.txt.gz
+scripts/libc_function_args/tables/x86_64.json
+scripts/libc_function_args/tables/x86_32.json
