@@ -31,21 +31,17 @@ class ARMBlackMagicProbe(ARM):
 
 @register
 class BMPRemoteCommand(GenericCommand):
-    """GDB `target remote` command on steroids. This command will use the remote procfs to create
-    a local copy of the execution environment, including the target binary and its libraries
-    in the local temporary directory (the value by default is in `gef.config.tempdir`). Additionally, it
-    will fetch all the /proc/PID/maps and loads all its information. If procfs is not available remotely, the command
-    will likely fail. You can however still use the limited command provided by GDB `target remote`."""
+    """This command is intended to replace `gef-remote` to connect to a
+    BlackMagicProbe. It uses a special session manager that knows how to
+    connect and manage the server running over a tty."""
 
     _cmdline_ = "gef-bmp-remote"
     _syntax_  = f"{_cmdline_} [OPTIONS] TTY"
-    _example_ = [
-                 f"{_cmdline_} --scan /dev/ttyUSB1"
+    _example_ = [f"{_cmdline_} --scan /dev/ttyUSB1"
                  f"{_cmdline_} --scan /dev/ttyUSB1 --power"
                  f"{_cmdline_} --scan /dev/ttyUSB1 --power --keep-power"
                  f"{_cmdline_} --file /path/to/binary.elf --attach 1 /dev/ttyUSB1",
-                 f"{_cmdline_} --file /path/to/binary.elf --attach 1 --power /dev/ttyUSB1",
-                 ]
+                 f"{_cmdline_} --file /path/to/binary.elf --attach 1 --power /dev/ttyUSB1"]
 
     def __init__(self) -> None:
         super().__init__(prefix=False)
@@ -95,8 +91,8 @@ class BMPRemoteCommand(GenericCommand):
 
 
 class GefBMPRemoteSessionManager(GefRemoteSessionManager):
-    """Class for managing remote sessions with GEF. It will create a temporary environment
-    designed to clone the remote one."""
+    """This subclass of GefRemoteSessionManager specially handles the
+    intricacies involved with connecting to a BlackMagicProbe."""
     def __init__(self, tty: str="", file: str="", attach: int=1,
                  scan: bool=False, power: bool=False, keep_power: bool=False) -> None:
         self.__tty = tty
