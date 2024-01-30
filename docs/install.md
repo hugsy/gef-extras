@@ -52,7 +52,7 @@ Thankfully this is easily done in Python, as such:
 
 ```text
 wget -O /tmp/requirements.txt https://raw.githubusercontent.com/hugsy/gef-extras/main/requirements.txt
-python -m pip install --user --upgrade /tmp/requirements.txt
+python -m pip install --user --upgrade -r /tmp/requirements.txt
 ```
 
 
@@ -61,7 +61,7 @@ python -m pip install --user --upgrade /tmp/requirements.txt
 Start with cloning this repo:
 
 ```bash
-t clone https://github.com/hugsy/gef-extras
+git clone https://github.com/hugsy/gef-extras
 ```
 
 Add the path to the external scripts to GEF's config:
