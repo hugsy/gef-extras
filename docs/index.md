@@ -57,8 +57,8 @@ For a complete rundown of the commands/functions GEF allows to use out of the bo
 
 As a reward, your Github avatar will be immortalize in the list below of contributors to GEF-Extras
 
-![[contributors-img](https://contrib.rocks/image?repo=hugsy/gef-extras)
-](<https://github.com/hugsy/gef-extras/graphs/contributors>)
+[![contributors-img](https://contrib.rocks/image?repo=hugsy/gef-extra)](https://github.com/hugsy/gef-extra/graphs/contributors)
+
 
 
 ### Feature requests
