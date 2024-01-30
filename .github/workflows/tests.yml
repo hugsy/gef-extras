@@ -77,7 +77,7 @@ jobs:
 
     - name: Run Tests
       run: |
-        python${{ env.PY_VER }} -m pytest --forked -n ${{ env.NB_CPU }} -v -k "not benchmark" tests/
+        python${{ env.PY_VER }} -m pytest --forked -n ${{ env.NB_CPU }} -v -m "not benchmark" tests/
 
   standalone:
     runs-on: ubuntu-latest
