@@ -1,4 +1,4 @@
-# Command gef-bmp-remote
+## Command gef-bmp-remote
 
 The `gef-bmp-command` is used with the [`ARMBlackMagicProbe`](../../archs/arm-blackmagicprobe.py]
 architecture.
@@ -11,7 +11,7 @@ cannot handle it with its `gef-remote` command (which assumes a _host:port_ conn
 creates a custom ARM-derived `Architecture`, as well as the `gef-bmp-remote` command, which lets you
 scan for devices, power the target, and ultimately connect to the target device.
 
-# Scan for devices
+### Scan for devices
 
 ```bash
 gef➤  gef-bmp-remote --scan /dev/ttyUSB1"
