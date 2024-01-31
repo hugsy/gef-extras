@@ -3,7 +3,7 @@
 
 <!-- Describe technically what your patch does. -->
 <!-- Why is this change required? What problem does it solve? -->
-<!-- Why is this patch will make a better world? -->
+<!-- How does this patch make a better world? -->
 <!-- How does this look? Add a screenshot if you can -->
 
 
