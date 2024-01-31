@@ -19,7 +19,7 @@ def __get_function_name(l: str) -> str:
     return _function_name
 
 
-def __get_function_args(l: str) -> list[str]:
+def __get_function_args(l: str) -> List[str]:
     _function_args = " (".join(l.split(" (")[1:])
     _function_args = ")".join(_function_args.split(")")[:-1])
     _function_args = _function_args.split(",")
@@ -28,7 +28,7 @@ def __get_function_args(l: str) -> list[str]:
 
 
 def generate_json_file(
-    function_dict: dict[str, list[str]], _params: list[str], outfile_name: pathlib.Path
+    function_dict: dict[str, List[str]], _params: List[str], outfile_name: pathlib.Path
 ) -> bool:
     _dict = {}
     for _key, _value in function_dict.items():
