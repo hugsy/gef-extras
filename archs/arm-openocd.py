@@ -7,6 +7,7 @@ Author: Grazfather
 """
 
 from typing import Optional
+from pathlib import Path
 
 import gdb
 
@@ -44,7 +45,7 @@ class OpenOCDRemoteCommand(GenericCommand):
         super().__init__(prefix=False)
         return
 
-    @parse_arguments({"host": "", "port": ""}, {"--file": ""})
+    @parse_arguments({"host": "", "port": 0}, {"--file": ""})
     def do_invoke(self, _: List[str], **kwargs: Any) -> None:
         if gef.session.remote is not None:
             err("You're already in a remote session. Close it first before opening a new one...")
@@ -88,7 +89,7 @@ class GefOpenOCDRemoteSessionManager(GefRemoteSessionManager):
     intricacies involved with connecting to an OpenOCD-hosted GDB server.
     Specifically, it does not have the concept of PIDs which we need to work
     around."""
-    def __init__(self, host, port, file: str="") -> None:
+    def __init__(self, host: str, port: str, file: str="") -> None:
         self.__host = host
         self.__port = port
         self.__file = file
@@ -112,7 +113,7 @@ class GefOpenOCDRemoteSessionManager(GefRemoteSessionManager):
         return f"{self.__host}:{self.__port}"
 
     @property
-    def root(self) -> pathlib.Path:
+    def root(self) -> Path:
         return self.__local_root_path.absolute()
 
     def sync(self, src: str, dst: Optional[str] = None) -> bool:
@@ -120,9 +121,9 @@ class GefOpenOCDRemoteSessionManager(GefRemoteSessionManager):
         return None
 
     @property
-    def file(self) -> Optional[pathlib.Path]:
+    def file(self) -> Optional[Path]:
         if self.__file:
-            return pathlib.Path(self.__file).expanduser()
+            return Path(self.__file).expanduser()
         return None
 
     def connect(self) -> bool:
@@ -144,7 +145,7 @@ class GefOpenOCDRemoteSessionManager(GefRemoteSessionManager):
         try:
             with DisableContextOutputContext():
                 if self.file:
-                    self._gdb_execute(f"file {self.file}")
+                    self._gdb_execute(f"file '{self.file}'")
         except Exception as e:
             err(f"Failed to connect to {self.target}: {e}")
             # a failure will trigger the cleanup, deleting our hook
