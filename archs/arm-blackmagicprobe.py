@@ -10,6 +10,8 @@ from typing import Optional
 
 import gdb
 
+assert 'gef' in globals(), "This file must be source after gef.py"
+
 
 class ARMBlackMagicProbe(ARM):
     arch = "ARMBlackMagicProbe"
@@ -37,9 +39,9 @@ class BMPRemoteCommand(GenericCommand):
 
     _cmdline_ = "gef-bmp-remote"
     _syntax_  = f"{_cmdline_} [OPTIONS] TTY"
-    _example_ = [f"{_cmdline_} --scan /dev/ttyUSB1"
-                 f"{_cmdline_} --scan /dev/ttyUSB1 --power"
-                 f"{_cmdline_} --scan /dev/ttyUSB1 --power --keep-power"
+    _example_ = [f"{_cmdline_} --scan /dev/ttyUSB1",
+                 f"{_cmdline_} --scan /dev/ttyUSB1 --power",
+                 f"{_cmdline_} --scan /dev/ttyUSB1 --power --keep-power",
                  f"{_cmdline_} --file /path/to/binary.elf --attach 1 /dev/ttyUSB1",
                  f"{_cmdline_} --file /path/to/binary.elf --attach 1 --power /dev/ttyUSB1"]
 
