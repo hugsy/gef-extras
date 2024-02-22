@@ -11,6 +11,8 @@ from pathlib import Path
 
 import gdb
 
+assert 'gef' in globals(), "This file must be source after gef.py"
+
 
 class ARMOpenOCD(ARM):
     arch = "ARMOpenOCD"
@@ -27,7 +29,7 @@ class ARMOpenOCD(ARM):
 
     @staticmethod
     def maps():
-        yield from GefMemoryManager.parse_info_mem()
+        yield from gef.memory.parse_info_mem()
 
 
 @register
