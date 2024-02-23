@@ -104,7 +104,12 @@ class GefBMPRemoteSessionManager(GefRemoteSessionManager):
         self.__power = power
         self.__keep_power = keep_power
         self.__local_root_fd = tempfile.TemporaryDirectory()
-        self.__local_root_path = pathlib.Path(self.__local_root_fd.name)
+        self.__local_root_path = Path(self.__local_root_fd.name)
+        class BMPMode():
+            def prompt_string(self) -> str:
+                return Color.boldify("(BMP) ")
+
+        self._mode = BMPMode()
 
     def __str__(self) -> str:
         return f"BMPRemoteSessionManager(tty='{self.__tty}', file='{self.__file}', attach={self.__attach})"
@@ -121,7 +126,7 @@ class GefBMPRemoteSessionManager(GefRemoteSessionManager):
         return
 
     @property
-    def root(self) -> pathlib.Path:
+    def root(self) -> Path:
         return self.__local_root_path.absolute()
 
     @property
@@ -133,9 +138,9 @@ class GefBMPRemoteSessionManager(GefRemoteSessionManager):
         return None
 
     @property
-    def file(self) -> Optional[pathlib.Path]:
+    def file(self) -> Optional[Path]:
         if self.__file:
-            return pathlib.Path(self.__file).expanduser()
+            return Path(self.__file).expanduser()
         return None
 
     def connect(self) -> bool:

@@ -29,7 +29,7 @@ class ARMOpenOCD(ARM):
 
     @staticmethod
     def maps():
-        yield from gef.memory.parse_info_mem()
+        yield from GefMemoryManager.parse_info_mem()
 
 
 @register
@@ -96,7 +96,12 @@ class GefOpenOCDRemoteSessionManager(GefRemoteSessionManager):
         self.__port = port
         self.__file = file
         self.__local_root_fd = tempfile.TemporaryDirectory()
-        self.__local_root_path = pathlib.Path(self.__local_root_fd.name)
+        self.__local_root_path = Path(self.__local_root_fd.name)
+        class OpenOCDMode():
+            def prompt_string(self) -> str:
+                return Color.boldify("(OpenOCD) ")
+
+        self._mode = OpenOCDMode()
 
     def __str__(self) -> str:
         return f"OpenOCDRemoteSessionManager(='{self.__tty}', file='{self.__file}', attach={self.__attach})"
