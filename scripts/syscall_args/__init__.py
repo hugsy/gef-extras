@@ -10,6 +10,8 @@ import pathlib
 import re
 from importlib.machinery import SourceFileLoader
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
+import inspect
+import os
 
 if TYPE_CHECKING:
     from .. import *
@@ -43,9 +45,11 @@ class SyscallArgsCommand(GenericCommand):
     def __init__(self) -> None:
         super().__init__(prefix=False, complete=gdb.COMPLETE_NONE)
         self.__path: Optional[pathlib.Path] = None
-        path = CURRENT_DIRECTORY / "syscall-tables"
-        self["path"] = (str(path.absolute()),
-                        "Path to store/load the syscall tables files")
+        caller_frame = inspect.stack()[0]
+        path = caller_frame.filename
+        path = os.path.join(os.path.dirname(os.path.abspath(path)), "syscall-tables")
+        self["path"] = (path, "Path to store/load the syscall tables files")
+
         return
 
     @property
