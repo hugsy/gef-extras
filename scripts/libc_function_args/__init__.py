@@ -7,6 +7,7 @@ __AUTHOR__ = "daniellimws"
 __VERSION__ = 0.1
 __LICENSE__ = "MIT"
 
+import inspect
 import json
 import pathlib
 import re
@@ -16,8 +17,8 @@ if TYPE_CHECKING:
     from .. import *
 
 
-GLIBC_FUNCTION_ARGS_CURRENT_FILE = pathlib.Path(__file__)
-GLIBC_FUNCTION_ARGS_CURRENT_DIRECTORY = GLIBC_FUNCTION_ARGS_CURRENT_FILE.parent
+GLIBC_FUNCTION_ARGS_CURRENT_FILE = pathlib.Path(inspect.getfile(inspect.currentframe())).resolve()
+GLIBC_FUNCTION_ARGS_CURRENT_DIRECTORY = pathlib.Path(inspect.getfile(inspect.currentframe())).parent.resolve()
 GLIBC_FUNCTION_ARGS_CONTEXT_PANE_INDEX = "libc_function_args"
 GLIBC_FUNCTION_ARGS_CONTEXT_PANE_DESCRIPTION = "Glibc Function Arguments"
 
@@ -33,9 +34,7 @@ class GlibcFunctionArguments:
         """Load the LIBC function arguments. Returns `True` on success, `False` or an Exception otherwise."""
 
         # load libc function arguments' definitions
-        path = (
-            pathlib.Path(GLIBC_FUNCTION_ARGS_CURRENT_DIRECTORY).expanduser().absolute()
-        )
+        path = GLIBC_FUNCTION_ARGS_CURRENT_DIRECTORY
         if not path.exists():
             raise RuntimeError(
                 "Config `context.libc_args_path` set but it's not a directory"

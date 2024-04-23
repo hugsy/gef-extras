@@ -6,6 +6,7 @@ __AUTHOR__ = "daniellimws"
 __VERSION__ = 0.1
 __LICENSE__ = "MIT"
 
+import inspect
 import pathlib
 import re
 from importlib.machinery import SourceFileLoader
@@ -14,8 +15,8 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional
 if TYPE_CHECKING:
     from .. import *
 
-CURRENT_FILE = pathlib.Path(__file__)
-CURRENT_DIRECTORY = CURRENT_FILE.parent
+CURRENT_FILE = pathlib.Path(inspect.getfile(inspect.currentframe())).resolve()
+CURRENT_DIRECTORY = pathlib.Path(inspect.getfile(inspect.currentframe())).parent.resolve()
 CONTEXT_PANE_INDEX = "syscall_args"
 CONTEXT_PANE_DESCRIPTION = "Syscall Arguments"
 
@@ -44,7 +45,7 @@ class SyscallArgsCommand(GenericCommand):
         super().__init__(prefix=False, complete=gdb.COMPLETE_NONE)
         self.__path: Optional[pathlib.Path] = None
         path = CURRENT_DIRECTORY / "syscall-tables"
-        self["path"] = (str(path.absolute()),
+        self["path"] = (str(path),
                         "Path to store/load the syscall tables files")
         return
 
