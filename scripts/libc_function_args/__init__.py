@@ -142,11 +142,11 @@ class GlibcFunctionArguments:
 
         return function_name
 
-if GLIBC_FUNCTION_ARGS_CONTEXT_PANE_INDEX not in gef.config["context.layout"]:
+if GLIBC_FUNCTION_ARGS_CONTEXT_PANE_INDEX in gef.config["context.layout"]:
     #
     # Register the context pane
     #
-    register_external_context_pane(
+    register_external_context_layout_mapping(
         GLIBC_FUNCTION_ARGS_CONTEXT_PANE_INDEX,
         GlibcFunctionArguments.pane_content,
         pane_title_function=GlibcFunctionArguments.pane_title,
