@@ -131,9 +131,9 @@ def __syscall_args_pane_content() -> None:
 def __syscall_args_pane_title() -> str:
     return CONTEXT_PANE_DESCRIPTION
 
-
-#
-# Register a callback to `syscall-args` to automatically detect when a syscall is hit
-#
-register_external_context_pane(
-    CONTEXT_PANE_INDEX, __syscall_args_pane_content, pane_title_function=__syscall_args_pane_title, condition=__syscall_args_pane_condition)
+if CONTEXT_PANE_INDEX not in gef.config["context.layout"]:
+    #
+    # Register a callback to `syscall-args` to automatically detect when a syscall is hit
+    #
+    register_external_context_pane(
+        CONTEXT_PANE_INDEX, __syscall_args_pane_content, pane_title_function=__syscall_args_pane_title, condition=__syscall_args_pane_condition)
