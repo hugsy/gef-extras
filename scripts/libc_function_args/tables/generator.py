@@ -38,7 +38,7 @@ def generate_json_file(
             _dict[_key][_params[i]] = _value[i]
 
     outfile_path = pathlib.Path(inspect.getfile(inspect.currentframe())).parent.resolve() /  outfile_name
-    with open(outfile_path, "w") as outfile:
+    with outfile_path.open("w") as outfile:
         json.dump(_dict, outfile)
 
     logging.info(f"{outfile_name} written")
