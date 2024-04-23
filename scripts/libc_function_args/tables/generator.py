@@ -2,6 +2,7 @@
 __AUTHOR__ = "theguly"
 __VERSION__ = 0.2
 
+import inspect
 import gzip
 import json
 import logging
@@ -36,7 +37,8 @@ def generate_json_file(
         for i in range(0, len(_value)):
             _dict[_key][_params[i]] = _value[i]
 
-    with open(outfile_name, "w") as outfile:
+    outfile_path = pathlib.Path(inspect.getfile(inspect.currentframe())).parent.resolve() /  outfile_name
+    with open(outfile_path, "w") as outfile:
         json.dump(_dict, outfile)
 
     logging.info(f"{outfile_name} written")
@@ -44,7 +46,7 @@ def generate_json_file(
 
 
 def generate_all_json_files() -> bool:
-    curdir = pathlib.Path(__file__).parent
+    curdir = pathlib.Path(inspect.getfile(inspect.currentframe())).parent.resolve()
     libc_file_path = curdir / "libc.txt.gz"
     libc_x86_funcdef_fpath = curdir / "x86_32.json"
     libc_x64_funcdef_fpath = curdir / "x86_64.json"
