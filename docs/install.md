@@ -113,5 +113,3 @@ gef➤  gef config gef.extra_plugins_dir /path/to/dir1;/path/to/dir2
 ```
 
 Now run and enjoy all the fun!
-
-
