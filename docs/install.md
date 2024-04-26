@@ -64,6 +64,12 @@ Start with cloning this repo:
 git clone https://github.com/hugsy/gef-extras
 ```
 
+Add syscall_args and libc_function_args to context layout:
+```text
+gef➤  pi gef.config['context.layout'] += ' syscall_args'
+gef➤  pi gef.config['context.layout'] += ' libc_function_args'
+```
+
 Add the path to the external scripts to GEF's config:
 
 ```text
@@ -90,11 +96,13 @@ gef➤  gef config context.libc_args True
 gef➤  gef config context.libc_args_path /path/to/gef-extras/glibc-function-args
 ```
 
+And don't forget to save your settings.
+
+```text
+gef➤ gef save
+```
+
 Check out the [complete documentation](commands/glibc_function_args.md) on libc argument support.
-
-
-Now run and enjoy all the fun!
-
 
 Note that it is possible to specify multiple directories, separating the paths with
 a semi-colon:
@@ -103,8 +111,6 @@ a semi-colon:
 gef➤  gef config gef.extra_plugins_dir /path/to/dir1;/path/to/dir2
 ```
 
-And don't forget to save your settings.
+Now run and enjoy all the fun!
 
-```text
-gef➤ gef save
-```
+
