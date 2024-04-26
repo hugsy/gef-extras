@@ -65,6 +65,7 @@ git clone https://github.com/hugsy/gef-extras
 ```
 
 Add syscall_args and libc_function_args to context layout:
+
 ```text
 gef➤  pi gef.config['context.layout'] += ' syscall_args'
 gef➤  pi gef.config['context.layout'] += ' libc_function_args'
