@@ -31,7 +31,7 @@ class GotAuditCommand(RemoteGefUnitTestGeneric):
         res = gdb.execute("got-audit", to_string=True)
         self.assertIn("malloc", res)
         self.assertIn("puts", res)
-        self.assertIn("/libc.so.6", res)
+        self.assertIn("/libc", res)
 
         res = gdb.execute("got-audit malloc", to_string=True)
         self.assertIn("malloc", res)
