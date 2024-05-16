@@ -118,7 +118,7 @@ def generate_all_json_files() -> bool:
         # generate x86_64
         if libc_x64_funcdef_fpath in libc_funcdef_list and not generate_json_file(
             function_dict,
-            ["$rdi", "$rsi", "$rdx", "$r10", "$r8", "$r9"],
+            ["$rdi", "$rsi", "$rdx", "$rcx", "$r8", "$r9"],
             libc_x64_funcdef_fpath,
         ):
             logging.error(
