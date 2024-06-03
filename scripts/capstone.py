@@ -125,46 +125,50 @@ def cs_disassemble(
     return
 
 
+InstructionGenerator = Callable[[int, int, Any], Generator[Instruction, None, None]]
+
+
 @register
 class CapstoneDisassembleCommand(GenericCommand):
     """Use capstone disassembly framework to disassemble code."""
 
     _cmdline_ = "capstone-disassemble"
     _syntax_ = f"{_cmdline_} [-h] [--show-opcodes] [--length LENGTH] [LOCATION]"
-    _aliases_ = ["cs-dis"]
+    _aliases_ = ["cs-dis", "cs"]
     _example_ = f"{_cmdline_} --length 50 $pc"
 
     def __init__(self) -> None:
         super().__init__(complete=gdb.COMPLETE_LOCATION)
+        ctx = gef.gdb.commands["context"]
+        assert isinstance(ctx, ContextCommand)
+
         gef.config[f"{self._cmdline_}.use-capstone"] = GefSetting(
-            False,
-            bool,
-            "Replace the GDB disassembler in the `context` with Capstone",
+            value=False,
+            cls=bool,
+            description="Replace the GDB disassembler in the `context` with Capstone",
             hooks={
-                "on_write": [
-                    self.switch_disassembler,
+                "on_changed": [
+                    lambda _oldval, newval: self.switch_disassembler(newval),
                 ]
             },
         )
-        self.__original_disassembler: Optional[
-            Callable[[int, int, Any], Generator[Instruction, None, None]]
-        ] = None
+
+        self.__original_disassembler: InstructionGenerator = ctx.instruction_iterator
         return
 
-    def switch_disassembler(self, _) -> None:
+    def switch_disassembler(self, enable_csdis: bool) -> None:
+        """This function is called anytime the setting `capstone-disassemble.use-capstone`
+        is changed. Its purpose is to switch the active disassembler to the value specified
+        by user.
+        """
+        assert self.__original_disassembler
         ctx = gef.gdb.commands["context"]
         assert isinstance(ctx, ContextCommand)
-        if gef.config[f"{self._cmdline_}.use-capstone"]:
-            self.__original_disassembler = ctx.instruction_iterator
+
+        if enable_csdis:
             ctx.instruction_iterator = cs_disassemble
         else:
-            # `use-capstone` set to False
-            if (
-                ctx.instruction_iterator == cs_disassemble
-                and self.__original_disassembler
-            ):
-                # restore the original
-                ctx.instruction_iterator = self.__original_disassembler
+            ctx.instruction_iterator = self.__original_disassembler
         return
 
     def __del__(self):
