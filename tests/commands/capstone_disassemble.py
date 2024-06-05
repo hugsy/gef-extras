@@ -65,7 +65,7 @@ class CapstoneDisassembleCommand(RemoteGefUnitTestGeneric):
         self.assertTrue(int(opcode, 16))
         self.assertTrue(symbol.startswith("<") and symbol.endswith(">"))
 
-        cmd = "cs --show-opcodes main"
+        cmd = "cs --show-opcodes &__libc_start_main"
         res = gdb.execute(cmd, to_string=True) or ""
         assert res
         self.assertGreater(len(res.splitlines()), 1)
