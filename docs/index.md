@@ -38,6 +38,12 @@ wget -q -O- https://github.com/hugsy/gef/raw/main/scripts/gef-extras.sh | sh
 The script will download (via git) GEF-Extras, and set up your `~/.gef.rc` file so that you can
 start straight away.
 
+If you receive an error mentioning --break-system-packages, you can bypass it by running this command at your own risk:
+
+```bash
+wget -q -O- https://github.com/hugsy/gef/raw/main/scripts/gef-extras.sh | sed 's/\(pip install\)/\1 --break-system-packages/' | sh
+```
+
 Refer to the [installation page](install.md) for more installation methods.
 
 
