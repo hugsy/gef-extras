@@ -22,6 +22,7 @@ nav:
   - ftrace: commands/ftrace.md
   - ida-rpyc: commands/ida-rpyc.md
   - is-syscall: commands/is-syscall.md
+  - ksymaddr: commands/ksymaddr.md
   - peekpointers: commands/peekpointers.md
   - retdec: commands/retdec.md
   - ropper: commands/ropper.md
