@@ -28,16 +28,17 @@ jobs:
         export NEEDRESTART_MODE=n
         sudo apt-get update
         sudo apt-get install -y wget gdb-multiarch python3-dev python3-pip python3-full python3-wheel python3-setuptools git
+        echo GEF_PATH="${HOME}/gef/gef.py" >> $GITHUB_ENV
         echo GEF_CI_ARCH=`uname --processor` >> $GITHUB_ENV
         echo GEF_PATH_DIR=${HOME}/gef >> $GITHUB_ENV
         echo GEF_EXTRAS_PATH=${HOME}/gef-extras >> $GITHUB_ENV
-        echo GEF_PATH="${HOME}/gef/gef.py" >> $GITHUB_ENV
 
     - name: Validate test parameters
       run: |
         [ "${{ env.GEF_PATH }}" = "" ] && exit 1
-        [ "${{ env.GEF_PATH_DIR }}" = "" ] && exit 1
-        [ "${{ env.GEF_CI_CACHE_DIR }}" = "" ] && exit 1
+        [ "${{ env.GEF_PATH_DIR }}" = "" ] && exit 2
+        [ "${{ env.GEF_EXTRAS_PATH }}" = "" ] && exit 3
+        [ "${{ env.BRANCH }}" = "" ] && exit 4
 
     - name: Checkout GEF & GEF-Extras
       run: |
