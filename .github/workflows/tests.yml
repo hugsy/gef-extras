@@ -35,6 +35,9 @@ jobs:
 
     - name: Checkout GEF & GEF-Extras
       run: |
+        mkdir -p ~/.config/pip
+        echo '[global]' > ~/.config/pip/pip.conf
+        echo 'break-system-packages = true' >> ~/.config/pip/pip.conf
         mkdir -p ${{ env.GEF_PATH_DIR }} ${{ env.GEF_EXTRAS_PATH }}
         wget -O ${{ env.GEF_PATH }} https://raw.githubusercontent.com/hugsy/gef/${{ env.BRANCH }}/gef.py
         echo "source ${{ env.GEF_PATH }}" > ~/.gdbinit
