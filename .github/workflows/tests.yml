@@ -28,7 +28,6 @@ jobs:
         export NEEDRESTART_MODE=n
         sudo apt-get update
         sudo apt-get install -y wget gdb-multiarch python3-dev python3-pip python3-full python3-wheel python3-setuptools git
-        sudo python3 -m pip install --upgrade pip
         echo GEF_CI_ARCH=`uname --processor` >> $GITHUB_ENV
         echo GEF_PATH_DIR=${HOME}/gef >> $GITHUB_ENV
         echo GEF_EXTRAS_PATH=${HOME}/gef-extras >> $GITHUB_ENV
