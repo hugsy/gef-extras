@@ -33,13 +33,6 @@ jobs:
         echo GEF_PATH_DIR=${HOME}/gef >> $GITHUB_ENV
         echo GEF_EXTRAS_PATH=${HOME}/gef-extras >> $GITHUB_ENV
 
-    - name: Validate test parameters
-      run: |
-        [ -z "${{ env.GEF_PATH }}" ] && exit 1
-        [ -z "${{ env.GEF_PATH_DIR }}" ] && exit 2
-        [ -z "${{ env.GEF_EXTRAS_PATH }}" ] && exit 3
-        [ -z "${{ env.BRANCH }}" ] && exit 4
-
     - name: Checkout GEF & GEF-Extras
       run: |
         mkdir -p ${{ env.GEF_PATH_DIR }} ${{ env.GEF_EXTRAS_PATH }}
@@ -91,7 +84,7 @@ jobs:
         echo GEF_PATH="${HOME}/gef/gef.py" >> $GITHUB_ENV
 
     - name: Cache dependencies
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       id: cache-deps
       env:
         cache-name: cache-deps
@@ -109,14 +102,6 @@ jobs:
       run: |
         mkdir -p ${{ env.GEF_CI_CACHE_DIR }}
         python${{ env.PY_VER }} -m pip install --user --upgrade -r ./requirements.txt -r ./tests/requirements.txt
-
-    - name: Validate test parameters
-      run: |
-        [ "${{ env.GEF_PATH }}" = "" ] && exit 1
-        [ "${{ env.GEF_PATH_DIR }}" = "" ] && exit 1
-        [ "${{ env.GEF_CI_CACHE_DIR }}" = "" ] && exit 1
-        [ "${{ env.PY_VER }}" = "0" ] && exit 1
-        [ "${{ env.GEF_CI_NB_CPU }}" -ge 1 ] && exit 1
 
     - name: Checkout GEF
       run: |
