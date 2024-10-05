@@ -70,6 +70,9 @@ jobs:
     - name: Install python and toolchain
       if: matrix.runner == 'ubuntu-24.04'
       run: |
+        mkdir -p ~/.config/pip
+        echo '[global]' > ~/.config/pip/pip.conf
+        echo 'break-system-packages = true' >> ~/.config/pip/pip.conf
         sudo apt-get install -y python3-full
 
     - name: Install python and toolchain
