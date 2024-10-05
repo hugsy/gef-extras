@@ -131,4 +131,3 @@ jobs:
     - name: Run Tests
       run: |
         python${{ env.PY_VER }} -m pytest --forked -n ${{ env.GEF_CI_NB_CPU }} -v -m "not benchmark" tests/
-
