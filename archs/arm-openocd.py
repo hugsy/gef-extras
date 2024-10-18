@@ -29,7 +29,7 @@ class ARMOpenOCD(ARM):
 
     @staticmethod
     def maps():
-        yield from GefMemoryManager.parse_info_mem()
+        yield from gef.memory.parse_info_mem()
 
 
 @register
