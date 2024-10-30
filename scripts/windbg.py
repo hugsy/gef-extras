@@ -255,7 +255,7 @@ class WindbgXCommand(GenericCommand):
 class WindbgRCommand(GenericCommand):
     """WinDBG compatibility layer: r - register info"""
 
-    _cmdline_ = "r"
+    _cmdline_ = "ri"
     _syntax_ = f"{_cmdline_} [REGISTER[=VALUE]]"
 
     def print_regs(self, reg_list, width=16):
