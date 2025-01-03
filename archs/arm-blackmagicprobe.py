@@ -51,7 +51,7 @@ class BMPRemoteCommand(GenericCommand):
 
     @parse_arguments({"tty": ""}, {"--file": "", "--attach": "", "--power": False,
                                    "--keep-power": False, "--scan": False})
-    def do_invoke(self, _: List[str], **kwargs: Any) -> None:
+    def do_invoke(self, _: list[str], **kwargs: Any) -> None:
         if gef.session.remote is not None:
             err("You're already in a remote session. Close it first before opening a new one...")
             return

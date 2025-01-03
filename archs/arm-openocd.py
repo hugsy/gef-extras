@@ -48,7 +48,7 @@ class OpenOCDRemoteCommand(GenericCommand):
         return
 
     @parse_arguments({"host": "", "port": 0}, {"--file": ""})
-    def do_invoke(self, _: List[str], **kwargs: Any) -> None:
+    def do_invoke(self, _: list[str], **kwargs: Any) -> None:
         if gef.session.remote is not None:
             err("You're already in a remote session. Close it first before opening a new one...")
             return
