@@ -30,7 +30,7 @@ class GotAuditCommand(GotCommand, GenericCommand):
     _symbols_: dict[str, list[str]] = collections.defaultdict(list)
     _paths_: dict[str, list[str]] = collections.defaultdict(list)
 
-    _expected_dups_ = [
+    _expected_dups_ = {
         "__cxa_finalize",
 
         # Symbols that appear in both GNU's libc.so and libm.so
@@ -102,7 +102,7 @@ class GotAuditCommand(GotCommand, GenericCommand):
 
         # Symbols that appear in libresolv and libvncserver
         "__b64_ntop", "__b64_pton",
-    ]
+    }
 
     def get_symbols_from_path(self, elf_file):
         nm = gef.session.constants["nm"]
