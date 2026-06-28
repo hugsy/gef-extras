@@ -54,8 +54,8 @@ gef➤ decompile -s main
 
 Retdec now supports syntax highlighting for all C decompilations with the use of Pygments.
 
-Available themes can be found
-[here](https://github.com/pygments/pygments/blob/8e9f9cbec9ff496a1846602e32af27ffba52f5f7/pygments/styles/__init__.py).
+Available Pygments themes can be found
+[on the Pygments repository](https://github.com/pygments/pygments/blob/8e9f9cbec9ff496a1846602e32af27ffba52f5f7/pygments/styles/__init__.py).
 
 You can change themes by running
 
