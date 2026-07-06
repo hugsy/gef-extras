@@ -39,9 +39,6 @@ class UnicornEmulateCommand(RemoteGefUnitTestGeneric):
 
         gdb.execute("break function1")
         gdb.execute("run")
-        pc_sym = gdb.execute("info symbol $pc", to_string=True)
-        if "function1" not in pc_sym:
-            gdb.execute("continue")
 
         start_marker = "= Starting emulation ="
         end_marker = "Final registers"
