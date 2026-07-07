@@ -285,7 +285,12 @@ def reset():
             content += f"    emu.mem_map({page_start:#x}, {size:#x}, {perm.value:#o})\n"
 
             if perm & Permission.READ:
-                code = gef.memory.read(page_start, size)
+                try:
+                    code = gef.memory.read(page_start, size)
+                except gdb.MemoryError:
+                    warn(f"Skipping unreadable segment {sect.path} at {page_start:#x}")
+                    continue
+
                 loc = f"/tmp/gef-{fname}-{page_start:#x}.raw"
                 with open(loc, "wb") as f:
                     f.write(bytes(code))
