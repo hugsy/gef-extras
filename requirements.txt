@@ -1,0 +1,3 @@
+mkdocs-material
+lazydocs
+pre-commit
