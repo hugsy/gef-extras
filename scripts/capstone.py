@@ -15,6 +15,8 @@ if TYPE_CHECKING:
 __cs: Optional[capstone.Cs] = None
 
 
+_CS_ARCH_ARM64_NAME = "CS_ARCH_AARCH64" if hasattr(capstone, "CS_ARCH_AARCH64") else "CS_ARCH_ARM64"
+
 def gef_to_cs_arch() -> Tuple[str, str, str]:
     if gef.arch.arch == "ARM":
         if isinstance(gef.arch, ARM):
@@ -31,7 +33,7 @@ def gef_to_cs_arch() -> Tuple[str, str, str]:
             )
 
     if gef.arch.arch == "ARM64":
-        return "CS_ARCH_ARM64", "0", f"CS_MODE_{repr(gef.arch.endianness).upper()}"
+        return _CS_ARCH_ARM64_NAME, "CS_MODE_ARM", f"CS_MODE_{repr(gef.arch.endianness).upper()}"
 
     if gef.arch.arch == "X86":
         if gef.arch.mode == "32":
@@ -70,7 +72,7 @@ def gef_to_cs_arch() -> Tuple[str, str, str]:
             )
         if gef.arch.mode == "MIPS64":
             return (
-                "CS_ARCH_MIPS32",
+                "CS_ARCH_MIPS",
                 "CS_MODE_MIPS64",
                 f"CS_MODE_{repr(gef.arch.endianness).upper()}",
             )
